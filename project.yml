@@ -17,9 +17,10 @@ targets:
       - path: ReceiptArchive
         excludes:
           - Resources
-    resources:
-      - ReceiptArchive/Resources/Assets.xcassets
-      - ReceiptArchive/Resources/PrivacyInfo.xcprivacy
+      - path: ReceiptArchive/Resources/Assets.xcassets
+        buildPhase: resources
+      - path: ReceiptArchive/Resources/PrivacyInfo.xcprivacy
+        buildPhase: resources
     info:
       path: ReceiptArchive/Resources/Info.plist
     settings:

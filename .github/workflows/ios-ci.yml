@@ -56,6 +56,7 @@ jobs:
           test -n "$APP_BUNDLE" || { echo "No archived app bundle found"; exit 1; }
           test -f "$APP_BUNDLE/Info.plist" || { echo "Archived Info.plist is missing"; exit 1; }
           test -f "$APP_BUNDLE/PrivacyInfo.xcprivacy" || { echo "Archived privacy manifest is missing"; exit 1; }
+          test -f "$APP_BUNDLE/Assets.car" || { echo "Compiled app icon and color assets are missing"; exit 1; }
           BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_BUNDLE/Info.plist")"
           DISPLAY_NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$APP_BUNDLE/Info.plist")"
           echo "Archived bundle identifier: $BUNDLE_ID"
