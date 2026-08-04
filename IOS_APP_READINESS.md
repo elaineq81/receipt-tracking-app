@@ -1,4 +1,4 @@
-# Receipt Archive iOS readiness
+# ReceiptSure iOS readiness
 
 ## Repository stage
 
@@ -29,4 +29,3 @@
 7. Archive in Xcode, upload to TestFlight, test, and submit.
 
 The detailed sequence is in `RELEASE_CHECKLIST.md`.
-

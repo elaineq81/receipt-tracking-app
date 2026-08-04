@@ -1,6 +1,6 @@
-# Receipt Archive for iOS
+# ReceiptSure for iOS
 
-Receipt Archive is a native, offline-first SwiftUI app for scanning and organizing receipts by trip, event, or matter. It uses VisionKit for automatic document detection/cropping, Vision for on-device OCR, SwiftData for local persistence, and Apple’s share sheet for exports.
+ReceiptSure is a native, offline-first SwiftUI app for scanning and organizing receipts by trip, event, or matter. It uses VisionKit for automatic document detection/cropping, Vision for on-device OCR, SwiftData for local persistence, and Apple’s share sheet for exports.
 
 Its differentiator is a **Receipt Evidence Record**: visible OCR confidence, validation warnings, duplicate protection, human verification, and evidence status carried into exported reports. See `PRODUCT_STRATEGY.md` for the competitive position and delivery roadmap.
 
@@ -36,7 +36,7 @@ This repository uses [XcodeGen](https://github.com/yonaskolb/XcodeGen) to produc
 1. On a Mac, install Xcode 16 or newer and XcodeGen (`brew install xcodegen`).
 2. In this folder, run `xcodegen generate`.
 3. Open `ReceiptArchive.xcodeproj` and select the `ReceiptArchive` scheme.
-4. In Signing & Capabilities, select your Apple Developer team and replace `com.bodywiseremedy.receiptarchive` if that bundle ID is unavailable.
+4. In Signing & Capabilities, select your Apple Developer team and register or replace `com.bodywiseremedy.receiptsure`.
 5. Run on a physical iPhone or iPad to test document scanning. The simulator cannot exercise the document camera.
 
 Minimum deployment target: iOS 17.0. No third-party runtime packages are required.

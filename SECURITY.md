@@ -1,8 +1,8 @@
-# ReceiptArchive security model
+# ReceiptSure security model
 
 ## Local protection
 
-ReceiptArchive stores receipts in the app’s private container. Users can require Apple device-owner authentication, which permits Face ID, Touch ID, or device-passcode fallback. When privacy shielding is enabled, receipt content is replaced before the app becomes inactive so it does not appear in the app switcher snapshot.
+ReceiptSure stores receipts in the app’s private container. Users can require Apple device-owner authentication, which permits Face ID, Touch ID, or device-passcode fallback. When privacy shielding is enabled, receipt content is replaced before the app becomes inactive so it does not appear in the app switcher snapshot.
 
 The app lock is a privacy boundary inside an already unlocked device. It is not a substitute for a device passcode, operating-system updates, or full-device data protection.
 

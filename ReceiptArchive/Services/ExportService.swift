@@ -10,7 +10,7 @@ enum ExportError: LocalizedError {
 final class ExportService {
     func create(format: ExportFormat, receipts: [Receipt], title: String) throws -> URL {
         let safeTitle = title.replacingOccurrences(of: #"[^A-Za-z0-9_-]"#, with: "-", options: .regularExpression)
-        let folder = FileManager.default.temporaryDirectory.appending(path: "ReceiptArchive-\(UUID().uuidString)", directoryHint: .isDirectory)
+        let folder = FileManager.default.temporaryDirectory.appending(path: "ReceiptSure-\(UUID().uuidString)", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
 
         switch format {

@@ -1,8 +1,8 @@
-# ReceiptArchive product strategy
+# ReceiptSure product strategy
 
 ## Product promise
 
-ReceiptArchive is the private, evidence-grade home for expenses connected to a trip, event, claim, project, or other matter. It turns receipt images into records people can verify, find, and hand to an accountant without rebuilding the spreadsheet.
+ReceiptSure is the private, evidence-grade home for expenses connected to a trip, event, claim, project, or other matter. It turns receipt images into records people can verify, find, and hand to an accountant without rebuilding the spreadsheet.
 
 ## Competitive landscape
 
@@ -11,7 +11,7 @@ The market separates into two broad groups:
 - Enterprise suites such as SAP Concur, Expensify, and Zoho Expense lead on company cards, approval chains, travel booking, and accounting integrations.
 - Personal receipt organizers such as Smart Receipts, QuickReceipts, and Shoeboxed lead on capture, categorization, mileage, folders, and common report formats.
 
-ReceiptArchive should not imitate the breadth of an enterprise travel platform. Its opening is a narrower, better-finished workflow for individuals and small teams who need trustworthy evidence organized around a matter.
+ReceiptSure should not imitate the breadth of an enterprise travel platform. Its opening is a narrower, better-finished workflow for individuals and small teams who need trustworthy evidence organized around a matter.
 
 ## Defensible advantage: the Receipt Evidence Record
 
@@ -83,4 +83,12 @@ This makes trust a product feature instead of hiding uncertainty behind automati
 
 ## What we deliberately postpone
 
-Bank feeds, corporate card issuing, travel booking, payroll, and deep enterprise approvals are expensive surfaces already served by established platforms. They should only enter the roadmap after ReceiptArchive has proven that its evidence record and matter-based reporting solve a distinct customer problem.
+Bank feeds, corporate card issuing, travel booking, payroll, and deep enterprise approvals are expensive surfaces already served by established platforms. They should only enter the roadmap after ReceiptSure has proven that its evidence record and matter-based reporting solve a distinct customer problem.
+
+## Brand position
+
+- Customer-facing app name: **ReceiptSure: Expense Proof**
+- Home-screen name: **ReceiptSure**
+- App Store subtitle: **Trusted receipts, tidy reports**
+- Positioning line: **Scan it. Check it. Prove it.**
+- Primary promise: trustworthy expense evidence without a forced account or opaque automation.

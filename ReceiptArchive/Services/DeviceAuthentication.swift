@@ -10,6 +10,6 @@ enum DeviceAuthentication {
             if let error { throw error }
             return false
         }
-        return try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Unlock your private receipt archive")
+        return try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Unlock your private ReceiptSure library")
     }
 }

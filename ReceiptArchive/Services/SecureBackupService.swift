@@ -12,7 +12,7 @@ enum SecureBackupError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .passwordTooShort: "Use a backup password with at least 8 characters."
-        case .invalidArchive: "This is not a valid Receipt Archive backup."
+        case .invalidArchive: "This is not a valid ReceiptSure backup."
         case .unsupportedVersion: "This backup was created by an unsupported app version."
         case .wrongPassword: "The password is incorrect or the backup is damaged."
         }
@@ -35,7 +35,7 @@ enum SecureBackupService {
             let encoded = try JSONEncoder.backupEncoder.encode(payload)
             return try SecureArchiveCrypto.seal(encoded, password: password)
         }.value
-        let url = FileManager.default.temporaryDirectory.appending(path: "ReceiptArchive-\(Date.now.formatted(.iso8601.year().month().day())).receiptarchive")
+        let url = FileManager.default.temporaryDirectory.appending(path: "ReceiptSure-\(Date.now.formatted(.iso8601.year().month().day())).receiptarchive")
         try encrypted.write(to: url, options: .atomic)
         return url
     }

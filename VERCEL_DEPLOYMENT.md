@@ -1,6 +1,6 @@
 # Vercel deployment trail
 
-The interactive Receipt Archive preview is deployed from the same GitHub repository as the native SwiftUI app, with the two delivery paths kept separate.
+The interactive ReceiptSure preview is deployed from the same GitHub repository as the native SwiftUI app, with the two delivery paths kept separate.
 
 ## Connected project
 
@@ -20,4 +20,3 @@ The interactive Receipt Archive preview is deployed from the same GitHub reposit
 ## Local deployment
 
 Run Vercel commands from `web-demo/`, which is linked locally to the dedicated Vercel project. Local `.vercel` metadata and environment files are ignored by Git and must not be committed.
-

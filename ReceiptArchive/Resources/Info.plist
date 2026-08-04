@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleDisplayName</key>
-    <string>Receipt Archive</string>
+    <string>ReceiptSure</string>
     <key>CFBundleIdentifier</key>
     <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
     <key>CFBundleInfoDictionaryVersion</key>
@@ -22,7 +22,7 @@
             <key>UTTypeConformsTo</key>
             <array><string>public.data</string></array>
             <key>UTTypeDescription</key>
-            <string>Receipt Archive Secure Backup</string>
+            <string>ReceiptSure Secure Backup</string>
             <key>UTTypeIdentifier</key>
             <string>com.bodywiseremedy.receiptarchive.backup</string>
             <key>UTTypeTagSpecification</key>
@@ -38,7 +38,7 @@
     <array>
         <dict>
             <key>CFBundleTypeName</key>
-            <string>Receipt Archive Secure Backup</string>
+            <string>ReceiptSure Secure Backup</string>
             <key>CFBundleTypeRole</key>
             <string>Editor</string>
             <key>LSHandlerRank</key>
@@ -50,9 +50,9 @@
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>NSCameraUsageDescription</key>
-    <string>Receipt Archive uses the camera to scan, detect, and crop receipts you choose to save.</string>
+    <string>ReceiptSure uses the camera to scan, detect, and crop receipts you choose to save.</string>
     <key>NSFaceIDUsageDescription</key>
-    <string>Receipt Archive uses Face ID to protect your locally stored receipts and expense records.</string>
+    <string>ReceiptSure uses Face ID to protect your locally stored receipts and expense records.</string>
     <key>UIApplicationSceneManifest</key>
     <dict>
         <key>UIApplicationSupportsMultipleScenes</key>

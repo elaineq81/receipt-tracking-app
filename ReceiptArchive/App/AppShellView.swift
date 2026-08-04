@@ -64,7 +64,7 @@ struct OnboardingView: View {
     @State private var page = 0
 
     private let pages = [
-        ("Receipts, finally organized", "Scan, review, and file every expense under the trip or matter it belongs to.", "doc.text.viewfinder"),
+        ("ReceiptSure", "Trusted receipts, tidy reports. Scan it. Check it. Prove it.", "doc.text.viewfinder"),
         ("Accurate by design", "Apple Vision reads key fields on-device. You confirm every figure before it is saved.", "checkmark.seal.fill"),
         ("Reports ready to share", "Create clean PDF, Excel, CSV, Word, or image bundles—with category and currency totals.", "square.and.arrow.up.fill")
     ]
@@ -93,4 +93,3 @@ struct OnboardingView: View {
         }
     }
 }
-

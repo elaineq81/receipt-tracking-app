@@ -5,7 +5,7 @@
 - [ ] Generate and open the Xcode project; confirm the iOS deployment target is 17.0.
 - [ ] Set the final app name, unique bundle identifier, Apple Developer team, version, and build number.
 - [ ] Review the included original 1024×1024 opaque AppIcon, confirm it as the final brand choice, and verify all appearance variants in Xcode.
-- [ ] Decide whether the customer-facing name remains **Receipt Archive** and confirm trademark availability.
+- [ ] Reserve **ReceiptSure: Expense Proof** in App Store Connect and complete professional trademark clearance for ReceiptSure in every intended launch market.
 - [ ] Run on a physical iPhone: scan in bright, dim, skewed, long-receipt, and multi-page conditions.
 - [ ] Verify OCR and manual correction with decimal commas, thousands separators, GST/VAT, and the target currencies.
 - [ ] Open every export in its intended app: Preview/Files (PDF), Excel/Numbers (XLSX/CSV), Word/Pages (DOCX), and Files (JPG ZIP).
@@ -46,7 +46,7 @@
 
 ## Suggested App Review note
 
-Receipt Archive is an offline-first receipt organizer. No account is required. To test, create a matter, tap the camera button, scan a printed sample receipt, review the on-device OCR result, save it, then open Reports to export it. Camera access is used only for user-initiated VisionKit document scanning. The app contains no analytics, advertising, tracking, or server upload.
+ReceiptSure is an offline-first receipt organizer. No account is required. To test, create a matter, tap the camera button, scan a printed sample receipt, review the on-device OCR result, save it, then open Reports to export it. Camera access is used only for user-initiated VisionKit document scanning. The app contains no analytics, advertising, tracking, or server upload.
 
 ## Not yet included
 

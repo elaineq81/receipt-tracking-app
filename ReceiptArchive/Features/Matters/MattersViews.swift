@@ -38,7 +38,7 @@ struct MattersView: View {
                 }
             }
         }
-        .navigationTitle("Receipt Archive")
+        .navigationTitle("ReceiptSure")
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button("Scan receipt", systemImage: "camera.viewfinder") { scan(nil) }
@@ -144,4 +144,3 @@ private struct SummaryMetric: View {
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }
-

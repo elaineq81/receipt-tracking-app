@@ -34,7 +34,7 @@ struct RootView: View {
             if shouldCover {
                 VStack(spacing: 18) {
                     Image(systemName: "lock.shield.fill").font(.system(size: 58)).foregroundStyle(.teal)
-                    Text("Receipt Archive is locked").font(.title2.bold())
+                    Text("ReceiptSure is locked").font(.title2.bold())
                     if let authenticationMessage { Text(authenticationMessage).font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center) }
                     if scenePhase == .active && deviceLockEnabled {
                         Button { Task { await unlock() } } label: {

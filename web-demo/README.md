@@ -1,4 +1,4 @@
-# Receipt Archive web demo
+# ReceiptSure web demo
 
 This is a dependency-free interactive product preview for Vercel. It mirrors the native iPhone app's proposed navigation and review workflow using sample data only.
 
