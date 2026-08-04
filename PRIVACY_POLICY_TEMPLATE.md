@@ -18,6 +18,10 @@ Camera access is requested only when the user starts a receipt scan. Apple Visio
 
 Records remain on the user’s device until the user deletes them or removes the app. Files that the user exports or backs up remain wherever the user chose to save or share them. Device backups may be handled by the user’s Apple and device settings.
 
+## Purchases
+
+ReceiptSure Pro is purchased through Apple’s App Store. ReceiptSure uses Apple StoreKit to display the localized price, complete the purchase, verify the entitlement, and restore it. The developer does not receive or store payment-card details. Apple’s handling of purchase and account information is governed by Apple’s privacy policy and the user’s App Store settings.
+
 ## Changes and contact
 
 This policy will be updated before adding cloud sync, accounts, analytics, support uploads, or other data processing. Questions can be sent to [SUPPORT EMAIL].

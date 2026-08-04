@@ -52,22 +52,42 @@ Expected outcome: the lowest general age band. The app contains no violence, sex
 - Made for Kids: No
 - Content rights: the app does not display or stream third-party catalog content
 - Advertising identifier: not used
-- In-app purchases/subscriptions: none in version 1
+- In-app purchases: one non-consumable lifetime unlock; no subscriptions
 - Login: none
 
-## 7. App Review information
+## 7. In-app purchase setup
+
+Create this product before the TestFlight purchase test and submit it with version 1.0:
+
+| App Store Connect field | Prepared value |
+| --- | --- |
+| Type | Non-Consumable |
+| Reference name | ReceiptSure Pro Lifetime |
+| Product ID | `com.bodywiseremedy.receiptsure.pro.lifetime` |
+| Singapore launch price | S$59.98, using the closest available Apple price point |
+| Display name | ReceiptSure Pro Lifetime |
+| Description | Unlimited receipts, matters, reports, professional exports, and merchant filing rules. |
+
+The app itself remains free to download. The free plan includes 15 concurrently stored receipts, two matters, one complete PDF report, and unlimited CSV export. Existing records, receipt images, device security, backups, corrections, and viewing are never locked. Pro is a one-time purchase that adds unlimited receipt and matter creation, unlimited PDF reports, Excel/Word/JPG exports, and merchant rules.
+
+Add the required in-app-purchase review screenshot showing the ReceiptSure Pro sheet and explain the free allowances in the review notes. Mark the product available for sale, complete tax/banking agreements, and attach the product to the 1.0 submission. Apple localizes the actual checkout price; the app displays StoreKit’s returned `displayPrice` rather than a hard-coded amount.
+
+For local testing, the generated Xcode scheme uses `ReceiptArchive/Resources/ReceiptSure.storekit`. Before release, also test with a sandbox Apple Account against the App Store Connect product and verify purchase, cancellation, pending approval, offline launch after purchase, refund/revocation, and Restore Purchases.
+
+## 8. App Review information
 
 Fill in the owner-controlled contact name, telephone number, and email. No demo account is required.
 
 Suggested review note:
 
-> ReceiptSure is an offline-first receipt organizer and requires no account. To test, create a matter, tap the camera button, scan a printed sample receipt, review the on-device OCR result, save it, and open Reports to export it. Camera access is used only for user-initiated VisionKit document scanning. Images and PDFs can also be selected through Apple system pickers. The app contains no analytics, advertising, tracking, or server upload. Optional secure backups are encrypted locally and shared only when the user chooses a destination.
+> ReceiptSure is an offline-first receipt organizer and requires no account. The free plan includes 15 stored receipts, two matters, one PDF report, and CSV export. ReceiptSure Pro is the non-consumable product `com.bodywiseremedy.receiptsure.pro.lifetime`; it unlocks unlimited creation, unlimited PDFs, Excel/Word/JPG exports, and merchant rules. Existing data, viewing, security, backups, and CSV export remain available without purchase. To test, create a matter, scan a sample receipt, review the on-device OCR result, save it, and open Reports. Restore Purchases is in Settings and on the Pro sheet. The app contains no analytics, advertising, tracking, account, or server upload.
 
-## 8. Owner decisions before submission
+## 9. Owner decisions before submission
 
 - [ ] Confirm Apple Developer team and public developer/legal name.
 - [ ] Confirm the SKU before creating the record; it cannot be changed afterward.
-- [ ] Decide free or paid pricing.
+- [x] Free download with ReceiptSure Pro Lifetime as a one-time non-consumable purchase.
+- [ ] Select the closest Apple price point to S$59.98 and review automatic international pricing.
 - [ ] Select launch countries and regions.
 - [ ] Supply App Review contact name, telephone, and email.
 - [ ] Complete trademark clearance and reserve the accepted localized name.
@@ -75,7 +95,7 @@ Suggested review note:
 - [ ] Approve the final icon and screenshots.
 - [ ] Complete physical-device and TestFlight release gates.
 
-## 9. Upload route on the Mac
+## 10. Upload route on the Mac
 
 1. Install Xcode 26 or later with the iOS 26 SDK, plus XcodeGen, then run `xcodegen generate`.
 2. Open `ReceiptArchive.xcodeproj`; the internal project and scheme names remain `ReceiptArchive`, while the shipped product is `ReceiptSure`.

@@ -33,6 +33,8 @@ Create PDF evidence packs, Excel workbooks, CSV tables, Word reports, or JPG bun
 
 Core receipt processing and storage remain on your device. No account is required.
 
+ReceiptSure is free to download. The free plan includes up to 15 stored receipts, two matters, one complete PDF report, and CSV export. A one-time ReceiptSure Pro purchase unlocks unlimited receipts and matters, unlimited PDF reports, Excel/Word/JPG exports, and merchant rules. No subscription is required.
+
 ## Keywords
 
 receipt,scanner,expense,OCR,reimbursement,trip,tax,invoice,report,PDF,Excel,claims,organizer

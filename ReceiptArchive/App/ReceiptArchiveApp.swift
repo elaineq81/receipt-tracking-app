@@ -3,9 +3,13 @@ import SwiftUI
 
 @main
 struct ReceiptArchiveApp: App {
+    @State private var purchases = PurchaseManager()
+
     var body: some Scene {
         WindowGroup {
             RootView()
+                .environment(purchases)
+                .task { await purchases.start() }
         }
         .modelContainer(for: [ExpenseMatter.self, Receipt.self, ReceiptPage.self, ReceiptRevision.self, MerchantRule.self])
     }

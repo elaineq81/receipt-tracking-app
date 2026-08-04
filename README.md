@@ -28,6 +28,13 @@ Its differentiator is a **Receipt Evidence Record**: visible OCR confidence, val
 - Export a selection as PDF (including receipt images), valid XLSX, CSV, DOCX, or a ZIP containing JPGs and a CSV index.
 - Local-only storage, a privacy manifest, and a clear camera purpose string.
 - An original, opaque 1024×1024 App Store icon.
+- StoreKit 2 lifetime Pro entitlement, a professional upgrade screen, and Restore Purchases.
+
+## Pricing model
+
+ReceiptSure is free to download with no account, advertising, or forced trial. The free plan supports 15 concurrently stored receipts, two matters, one complete PDF report, and unlimited CSV export. Saved records, images, corrections, security, backups, viewing, and basic export remain accessible.
+
+**ReceiptSure Pro Lifetime** is a one-time non-consumable purchase (`com.bodywiseremedy.receiptsure.pro.lifetime`), targeted at the closest Apple price point to **S$59.98** in Singapore. It unlocks unlimited receipts and matters, unlimited PDF reports, Excel/Word/JPG exports, and reusable merchant rules. There is no subscription in version 1.
 
 ## Open in Xcode
 
@@ -38,6 +45,8 @@ This repository uses [XcodeGen](https://github.com/yonaskolb/XcodeGen) to produc
 3. Open `ReceiptArchive.xcodeproj` and select the `ReceiptArchive` scheme.
 4. In Signing & Capabilities, select your Apple Developer team and register or replace `com.bodywiseremedy.receiptsure`.
 5. Run on a physical iPhone to test document scanning. The simulator cannot exercise the document camera.
+
+The Debug scheme automatically uses `ReceiptArchive/Resources/ReceiptSure.storekit` for local purchase testing. Before release, test again with the matching product created in App Store Connect and a sandbox Apple Account.
 
 Minimum deployment target: iOS 17.0. No third-party runtime packages are required.
 

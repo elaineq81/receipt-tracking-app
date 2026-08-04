@@ -20,6 +20,7 @@
 - [ ] Run Product → Analyze and resolve warnings; run the app with the Thread Sanitizer in a Debug build.
 - [ ] Create a privacy-policy webpage and a support webpage; insert their public HTTPS URLs in App Store Connect.
 - [ ] Confirm the bundled privacy manifest declares app-only UserDefaults access with approved reason `CA92.1`.
+- [ ] Run the local `ReceiptSure.storekit` purchase flow: buy, cancel, pending approval, restore, delete local transaction, and refund/revocation.
 
 ## 2. App Store Connect record
 
@@ -30,6 +31,7 @@
 - [ ] Complete App Privacy. For this local-only version, verify that data is not collected; reassess if analytics, cloud sync, support upload, or accounts are later added.
 - [ ] Prepare iPhone screenshots from real app states using `APP_STORE_SCREENSHOTS.md`; do not use the browser preview as a submitted screenshot.
 - [ ] Add review notes explaining: no login; scanning requires a physical camera; OCR runs on-device; exports are user initiated.
+- [ ] Create the non-consumable **ReceiptSure Pro Lifetime** product with ID `com.bodywiseremedy.receiptsure.pro.lifetime`, choose the closest Singapore price point to S$59.98, localize it, and attach its review screenshot.
 
 ## 3. Archive and TestFlight
 
@@ -38,6 +40,7 @@
 - [ ] Complete the App Encryption Documentation questionnaire for the AES-GCM/PBKDF2 secure-backup feature before setting any permanent export-compliance key.
 - [ ] Wait for processing, answer export-compliance questions, and add TestFlight beta details.
 - [ ] Test internally first. Confirm install, persistence after relaunch/update, camera permission copy, and every export on a clean device.
+- [ ] With a sandbox Apple Account, verify the free allowances, purchase, cancellation, Ask to Buy/pending state, entitlement persistence, Restore Purchases, Family Sharing choice, and refund/revocation behavior.
 - [ ] Add external testers only after the beta review information and contact details are complete.
 - [ ] Record known limitations and collect feedback without asking testers to share sensitive receipts unnecessarily.
 
@@ -50,7 +53,7 @@
 
 ## Suggested App Review note
 
-ReceiptSure is an offline-first receipt organizer. No account is required. To test, create a matter, tap the camera button, scan a printed sample receipt, review the on-device OCR result, save it, then open Reports to export it. Camera access is used only for user-initiated VisionKit document scanning. The app contains no analytics, advertising, tracking, or server upload.
+ReceiptSure is an offline-first receipt organizer. No account is required. The free plan includes 15 stored receipts, two matters, one PDF report, and CSV export. ReceiptSure Pro is the one-time non-consumable product `com.bodywiseremedy.receiptsure.pro.lifetime`; it unlocks unlimited creation, reports, advanced exports, and merchant rules. Existing data remains accessible without purchase. Restore Purchases is available in Settings and on the Pro screen. Camera access is used only for user-initiated VisionKit scanning. The app contains no analytics, advertising, tracking, or server upload.
 
 ## Not yet included
 

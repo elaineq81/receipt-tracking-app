@@ -2,13 +2,40 @@ import SwiftData
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(PurchaseManager.self) private var purchases
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
     @AppStorage("deviceLockEnabled") private var deviceLockEnabled = false
     @AppStorage("privacyScreenEnabled") private var privacyScreenEnabled = true
     @AppStorage("lastSecureBackupAt") private var lastSecureBackupAt = 0.0
+    let presentPaywall: (PaywallReason) -> Void
+    @State private var purchaseMessage: String?
 
     var body: some View {
         Form {
+            Section("ReceiptSure Pro") {
+                if purchases.isPro {
+                    Label("Lifetime Pro is active", systemImage: "checkmark.seal.fill")
+                        .foregroundStyle(.teal)
+                    Text("Unlimited receipts, matters, reports, and merchant rules are unlocked on this device.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                } else {
+                    Button { presentPaywall(.settings) } label: {
+                        Label("Unlock Pro — one-time purchase", systemImage: "checkmark.seal")
+                    }
+                    Text("Keep using the free plan, or upgrade once with no subscription.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+                Button("Restore Purchases") {
+                    Task {
+                        if await purchases.restore() {
+                            purchaseMessage = "ReceiptSure Pro has been restored."
+                        } else {
+                            purchaseMessage = purchases.errorMessage
+                        }
+                    }
+                }
+                .disabled(purchases.isLoading)
+            }
             Section("Your data") {
                 Label("Stored on this device", systemImage: "iphone.and.arrow.forward")
                 Text("Receipt images and extracted expense details stay in the app’s private local store. Nothing is uploaded by this version.")
@@ -33,10 +60,20 @@ struct SettingsView: View {
                     .font(.footnote).foregroundStyle(.secondary)
             }
             Section("Automation") {
-                NavigationLink {
-                    MerchantRulesView()
-                } label: {
-                    Label("Merchant rules", systemImage: "wand.and.stars")
+                if purchases.isPro {
+                    NavigationLink {
+                        MerchantRulesView()
+                    } label: {
+                        Label("Merchant rules", systemImage: "wand.and.stars")
+                    }
+                } else {
+                    Button { presentPaywall(.automation) } label: {
+                        HStack {
+                            Label("Merchant rules", systemImage: "wand.and.stars")
+                            Spacer()
+                            Text("PRO").font(.caption.bold()).foregroundStyle(.teal)
+                        }
+                    }
                 }
                 Text("Reuse trusted categories and filing details for merchants you visit regularly.")
                     .font(.footnote).foregroundStyle(.secondary)
@@ -50,6 +87,11 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("Settings")
+        .alert("Purchases", isPresented: Binding(get: { purchaseMessage != nil }, set: { if !$0 { purchaseMessage = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(purchaseMessage ?? "Please try again.")
+        }
     }
 
     private static let privacyPolicyURL = URL(string: "https://receipt-tracking-app-lemon.vercel.app/privacy")!
