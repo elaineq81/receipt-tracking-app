@@ -50,6 +50,9 @@ jobs:
 
       - name: Verify release bundle contents
         run: |
-          test -f "$RUNNER_TEMP/ReceiptSure.xcarchive/Products/Applications/ReceiptSure.app/Info.plist"
-          test -f "$RUNNER_TEMP/ReceiptSure.xcarchive/Products/Applications/ReceiptSure.app/PrivacyInfo.xcprivacy"
-          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$RUNNER_TEMP/ReceiptSure.xcarchive/Products/Applications/ReceiptSure.app/Info.plist" | grep -Fx "com.bodywiseremedy.receiptsure"
+          APP_BUNDLE="$(find "$RUNNER_TEMP/ReceiptSure.xcarchive/Products/Applications" -maxdepth 1 -type d -name '*.app' -print -quit)"
+          test -n "$APP_BUNDLE"
+          test -f "$APP_BUNDLE/Info.plist"
+          test -f "$APP_BUNDLE/PrivacyInfo.xcprivacy"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_BUNDLE/Info.plist" | grep -Fx "com.bodywiseremedy.receiptsure"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleDisplayName" "$APP_BUNDLE/Info.plist" | grep -Fx "ReceiptSure"
