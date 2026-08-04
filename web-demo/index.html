@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#087f79" />
+    <meta name="description" content="Interactive web preview of the Receipt Archive iPhone app." />
+    <title>Receipt Archive — iPhone App Preview</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="showcase">
+      <section class="intro" aria-labelledby="page-title">
+        <div class="brand-lockup">
+          <img src="app-icon.png" alt="" class="brand-icon" />
+          <span>Receipt Archive</span>
+        </div>
+        <p class="eyebrow">Interactive iPhone preview</p>
+        <h1 id="page-title">Receipts organized.<br /><span>Expenses ready.</span></h1>
+        <p class="lede">Explore the proposed iOS experience: create matters, review scanned figures, browse expenses, and prepare tidy reports.</p>
+        <div class="feature-list" aria-label="Included capabilities">
+          <span><i>✓</i> Auto-crop receipt scanning</span>
+          <span><i>✓</i> On-device OCR review</span>
+          <span><i>✓</i> PDF, Excel, CSV & Word exports</span>
+        </div>
+        <p class="demo-note">This browser preview uses sample data. The native iPhone app stores actual receipts locally on-device.</p>
+      </section>
+
+      <section class="device-stage" aria-label="Interactive app sample">
+        <div class="phone">
+          <div class="island" aria-hidden="true"></div>
+          <div class="status-bar"><span>9:41</span><span class="status-icons">● ◒ ▰</span></div>
+
+          <div class="app-shell">
+            <section class="screen active" data-screen="matters">
+              <header class="app-header">
+                <div><p class="overline">Good morning</p><h2>Receipt Archive</h2></div>
+                <button class="icon-button scan-trigger" aria-label="Scan receipt">⌗</button>
+              </header>
+              <div class="summary-grid">
+                <article class="summary-card teal"><small>This month</small><strong>S$ 1,248.60</strong><span>18 receipts</span></article>
+                <article class="summary-card"><small>Unfiled</small><strong>3</strong><span>Needs attention</span></article>
+              </div>
+              <div class="section-heading"><h3>Trips & matters</h3><button id="new-matter">＋ New</button></div>
+              <div class="matter-list" id="matter-list">
+                <button class="matter-row">
+                  <span class="matter-icon coral">✈</span><span class="matter-copy"><strong>Tokyo work trip</strong><small>8 receipts · 12–16 Jul</small></span><span class="matter-total"><strong>¥ 48,320</strong><small>View ›</small></span>
+                </button>
+                <button class="matter-row">
+                  <span class="matter-icon blue">◎</span><span class="matter-copy"><strong>Clinic equipment</strong><small>6 receipts · July</small></span><span class="matter-total"><strong>S$ 742.10</strong><small>View ›</small></span>
+                </button>
+                <button class="matter-row">
+                  <span class="matter-icon gold">♢</span><span class="matter-copy"><strong>Family gathering</strong><small>4 receipts · 6 Jul</small></span><span class="matter-total"><strong>S$ 506.50</strong><small>View ›</small></span>
+                </button>
+              </div>
+              <button class="primary-action scan-trigger"><span>▣</span> Scan a receipt</button>
+            </section>
+
+            <section class="screen" data-screen="receipts">
+              <header class="app-header"><div><p class="overline">All expenses</p><h2>Receipts</h2></div><button class="icon-button scan-trigger" aria-label="Scan receipt">⌗</button></header>
+              <label class="search"><span>⌕</span><input id="receipt-search" type="search" placeholder="Merchant, category or matter" /></label>
+              <div class="date-label">TODAY</div>
+              <div class="receipt-list" id="receipt-list">
+                <article class="receipt-row" data-search="muji supplies clinic equipment"><span class="category-icon">▦</span><span><strong>MUJI Ginza</strong><small>Supplies · Clinic equipment</small></span><b>¥ 12,800<small>14:32</small></b></article>
+                <article class="receipt-row" data-search="blue bottle coffee meals tokyo work trip"><span class="category-icon">♨</span><span><strong>Blue Bottle Coffee</strong><small>Meals · Tokyo work trip</small></span><b>¥ 2,240<small>09:18</small></b></article>
+              </div>
+              <div class="date-label">12 JULY</div>
+              <div class="receipt-list">
+                <article class="receipt-row" data-search="shinkansen transport tokyo work trip"><span class="category-icon">➜</span><span><strong>JR Central</strong><small>Transport · Tokyo work trip</small></span><b>¥ 14,650<small>12 Jul</small></b></article>
+                <article class="receipt-row" data-search="hotel accommodation tokyo work trip"><span class="category-icon">▤</span><span><strong>Hotel Gracery</strong><small>Accommodation · Tokyo work trip</small></span><b>¥ 18,630<small>12 Jul</small></b></article>
+              </div>
+            </section>
+
+            <section class="screen" data-screen="reports">
+              <header class="app-header"><div><p class="overline">Ready to share</p><h2>Reports</h2></div><span class="header-badge">18 items</span></header>
+              <div class="report-hero"><small>ALL EXPENSES · JULY</small><strong>S$ 1,248.60</strong><span>Plus ¥48,320 in JPY</span></div>
+              <h3 class="subheading">By category</h3>
+              <div class="category-bars">
+                <div><span><i class="dot coral-bg"></i>Accommodation <b>S$ 512</b></span><progress value="41" max="100"></progress></div>
+                <div><span><i class="dot teal-bg"></i>Supplies <b>S$ 328</b></span><progress value="27" max="100"></progress></div>
+                <div><span><i class="dot blue-bg"></i>Meals <b>S$ 244</b></span><progress value="20" max="100"></progress></div>
+                <div><span><i class="dot gold-bg"></i>Transport <b>S$ 164</b></span><progress value="13" max="100"></progress></div>
+              </div>
+              <div class="export-card">
+                <div><small>EXPORT FORMAT</small><select id="export-format"><option>PDF report</option><option>Excel workbook</option><option>CSV table</option><option>Word report</option><option>JPG bundle</option></select></div>
+                <button id="export-button">Create & share</button>
+              </div>
+            </section>
+
+            <section class="screen" data-screen="settings">
+              <header class="app-header"><div><p class="overline">Preferences</p><h2>Settings</h2></div></header>
+              <div class="privacy-card"><span>◉</span><div><strong>Your data stays private</strong><p>Receipt images and expense details are stored locally on your device.</p></div></div>
+              <div class="settings-group">
+                <button><span>▣</span><div><strong>Automatic crop</strong><small>VisionKit document detection</small></div><i>On</i></button>
+                <button><span>⌗</span><div><strong>On-device OCR</strong><small>Apple Vision recognition</small></div><i>On</i></button>
+                <button><span>◎</span><div><strong>Default currency</strong><small>Singapore Dollar</small></div><i>SGD ›</i></button>
+              </div>
+              <p class="version">Receipt Archive · Preview 1.0</p>
+            </section>
+          </div>
+
+          <nav class="tab-bar" aria-label="App sections">
+            <button class="active" data-tab="matters"><span>▰</span>Matters</button>
+            <button data-tab="receipts"><span>▤</span>Receipts</button>
+            <button data-tab="reports"><span>▥</span>Reports</button>
+            <button data-tab="settings"><span>⚙</span>Settings</button>
+          </nav>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="scan-dialog">
+      <div class="dialog-shell">
+        <div class="dialog-head"><button id="close-scan" aria-label="Close">×</button><strong id="dialog-title">Scan receipt</strong><span></span></div>
+        <div id="scan-state" class="scan-state">
+          <div class="receipt-paper"><div class="receipt-logo">KISSA</div><small>GINZA, TOKYO</small><hr /><p>Latte　　　　¥ 720</p><p>Sandwich　　 ¥ 980</p><hr /><b>TOTAL　　　¥ 1,700</b><small>2026-07-16  08:42</small></div>
+          <div class="scan-line"></div><div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+          <p>Finding receipt edges…</p>
+        </div>
+        <form id="review-state" class="review-state" hidden>
+          <div class="success-chip">✓ Receipt captured and cropped</div>
+          <label>Merchant<input name="merchant" value="Kissa Ginza" /></label>
+          <div class="form-pair"><label>Date<input name="date" type="date" value="2026-07-16" /></label><label>Currency<select name="currency"><option>JPY</option><option>SGD</option><option>USD</option></select></label></div>
+          <label>Matter<select name="matter"><option>Tokyo work trip</option><option>Clinic equipment</option><option>Family gathering</option><option>Unfiled</option></select></label>
+          <label>Category<select name="category"><option>Meals</option><option>Transport</option><option>Accommodation</option><option>Supplies</option></select></label>
+          <div class="form-pair"><label>Tax<input name="tax" value="155" inputmode="decimal" /></label><label>Total<input name="total" value="1700" inputmode="decimal" /></label></div>
+          <p class="accuracy-note">Compare these figures with the receipt before saving.</p>
+          <button class="save-button" type="submit">Save receipt</button>
+        </form>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
+
