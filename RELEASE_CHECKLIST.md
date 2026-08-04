@@ -11,6 +11,11 @@
 - [ ] Open every export in its intended app: Preview/Files (PDF), Excel/Numbers (XLSX/CSV), Word/Pages (DOCX), and Files (JPG ZIP).
 - [ ] Test Dynamic Type, VoiceOver labels, Dark Mode, landscape, iPad, low storage, cancel paths, and permission denial.
 - [ ] Test deletion and confirm the associated receipt images are removed.
+- [ ] On physical devices with and without Face ID, verify device-owner authentication, passcode fallback, cancellation, relocking after backgrounding, and recovery after failed authentication.
+- [ ] Confirm receipt content is absent from app-switcher snapshots whenever privacy shielding is enabled.
+- [ ] Create a secure archive with a strong test password, restore it into a clean installation, and compare matter, receipt, image, revision, rule, and financial-provenance counts.
+- [ ] Verify wrong-password and modified-archive failures, duplicate-skipping on a second restore, a 20-page receipt backup, low-storage behavior, and interruption during export/import.
+- [ ] Save the archive through Files and at least one third-party document provider, then reopen it through the registered `.receiptarchive` file type.
 - [ ] Run Product → Analyze and resolve warnings; run the app with the Thread Sanitizer in a Debug build.
 - [ ] Create a privacy-policy webpage and a support webpage; insert their public HTTPS URLs in App Store Connect.
 
@@ -45,6 +50,6 @@ Receipt Archive is an offline-first receipt organizer. No account is required. T
 
 ## Not yet included
 
-- Cloud sync, collaboration, automatic exchange-rate conversion, accounting-platform integrations, and encrypted backup are deliberately outside version 1.
+- Cloud sync, collaboration, automatic exchange-rate lookup, and accounting-platform integrations remain outside version 1. Encrypted backup is included but must pass the physical-device round-trip tests above before release.
 - The included icon is technically ready, but the account owner must approve it as the final public brand asset.
 - App Store metadata, legal URLs, signing credentials, and upload require the owner’s Apple Developer account and cannot be completed from a Windows workspace.
