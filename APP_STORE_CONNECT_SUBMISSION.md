@@ -103,3 +103,5 @@ Suggested review note:
 4. Select **Any iOS Device (arm64)** and choose **Product → Archive**.
 5. In Organizer, run **Validate App**, then **Distribute App → App Store Connect → Upload**.
 6. Wait for processing, attach build 1 to version 1.0, complete TestFlight information, and test before App Review submission.
+
+For the exact owner-account sequence, proposed first-wave territories, encryption facts, and private fields still required, use `APPLE_RELEASE_HANDOFF.md`.
