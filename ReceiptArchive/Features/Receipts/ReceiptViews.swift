@@ -127,14 +127,31 @@ struct ReceiptDetailView: View {
                 LabeledContent("Matter", value: receipt.matter?.name ?? "Unfiled")
                 LabeledContent("Category", value: receipt.category.rawValue)
                 LabeledContent("Subtotal", value: receipt.subtotal.formatted(.currency(code: receipt.currencyCode)))
-                LabeledContent("Tax", value: receipt.tax.formatted(.currency(code: receipt.currencyCode)))
+                LabeledContent(receipt.taxLabel, value: receipt.tax.formatted(.currency(code: receipt.currencyCode)))
+                if receipt.tip != 0 { LabeledContent("Tip", value: receipt.tip.formatted(.currency(code: receipt.currencyCode))) }
+                if receipt.discount != 0 { LabeledContent("Discount", value: receipt.discount.formatted(.currency(code: receipt.currencyCode))) }
                 LabeledContent("Total", value: receipt.total.formatted(.currency(code: receipt.currencyCode))).fontWeight(.semibold)
+                let difference = NSDecimalNumber(decimal: receipt.reconciliationDifference).doubleValue
+                Label(abs(difference) <= 0.02 ? "Figures reconcile" : "Figures differ by \(receipt.reconciliationDifference.formatted(.currency(code: receipt.currencyCode)))", systemImage: abs(difference) <= 0.02 ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                    .font(.footnote).foregroundStyle(abs(difference) <= 0.02 ? .green : .orange)
             }
             Section("Filing") {
                 LabeledContent("Payment", value: receipt.paymentMethod.rawValue)
                 LabeledContent("Reimbursement", value: receipt.reimbursementStatus.rawValue)
                 if !receipt.clientOrCostCentre.isEmpty { LabeledContent("Client / cost centre", value: receipt.clientOrCostCentre) }
                 if !receipt.tagsRaw.isEmpty { LabeledContent("Tags", value: receipt.tagsRaw) }
+            }
+            if !receipt.reportingCurrencyCode.isEmpty || receipt.exchangeRate > 0 {
+                Section("Currency conversion") {
+                    if let converted = receipt.reportingTotal {
+                        LabeledContent("Reporting total", value: converted.formatted(.currency(code: receipt.reportingCurrencyCode)))
+                    } else {
+                        Label("Conversion provenance incomplete", systemImage: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                    }
+                    LabeledContent("Rate", value: NSDecimalNumber(decimal: receipt.exchangeRate).stringValue)
+                    if let date = receipt.exchangeRateDate { LabeledContent("Effective date", value: date.formatted(date: .long, time: .omitted)) }
+                    if !receipt.exchangeRateSource.isEmpty { LabeledContent("Source", value: receipt.exchangeRateSource) }
+                }
             }
             Section("Evidence status") {
                 Label(receipt.reviewStatus.title, systemImage: receipt.reviewStatus.symbol)
@@ -187,12 +204,20 @@ private struct ReceiptEditorView: View {
     @State private var currencyCode: String
     @State private var subtotal: Decimal
     @State private var tax: Decimal
+    @State private var tip: Decimal
+    @State private var discount: Decimal
+    @State private var taxLabel: String
     @State private var total: Decimal
     @State private var notes: String
     @State private var paymentMethod: PaymentMethod
     @State private var reimbursementStatus: ReimbursementStatus
     @State private var tags: String
     @State private var clientOrCostCentre: String
+    @State private var reportingCurrencyCode: String
+    @State private var exchangeRate: Decimal
+    @State private var exchangeRateDate: Date
+    @State private var exchangeRateSource: String
+    @State private var includesConversion: Bool
     @State private var reason = ""
     @State private var confirmedAgainstImage = false
 
@@ -205,16 +230,24 @@ private struct ReceiptEditorView: View {
         _currencyCode = State(initialValue: receipt.currencyCode)
         _subtotal = State(initialValue: receipt.subtotal)
         _tax = State(initialValue: receipt.tax)
+        _tip = State(initialValue: receipt.tip)
+        _discount = State(initialValue: receipt.discount)
+        _taxLabel = State(initialValue: receipt.taxLabel)
         _total = State(initialValue: receipt.total)
         _notes = State(initialValue: receipt.notes)
         _paymentMethod = State(initialValue: receipt.paymentMethod)
         _reimbursementStatus = State(initialValue: receipt.reimbursementStatus)
         _tags = State(initialValue: receipt.tagsRaw)
         _clientOrCostCentre = State(initialValue: receipt.clientOrCostCentre)
+        _reportingCurrencyCode = State(initialValue: receipt.reportingCurrencyCode)
+        _exchangeRate = State(initialValue: receipt.exchangeRate)
+        _exchangeRateDate = State(initialValue: receipt.exchangeRateDate ?? receipt.transactionDate)
+        _exchangeRateSource = State(initialValue: receipt.exchangeRateSource)
+        _includesConversion = State(initialValue: !receipt.reportingCurrencyCode.isEmpty || receipt.exchangeRate > 0)
     }
 
     private var warnings: [String] {
-        ReceiptEvidence.warnings(merchant: merchant, date: transactionDate, subtotal: subtotal, tax: tax, total: total, currencyCode: currencyCode, ocrConfidence: receipt.ocrConfidence)
+        ReceiptEvidence.warnings(merchant: merchant, date: transactionDate, subtotal: subtotal, tax: tax, tip: tip, discount: discount, total: total, currencyCode: currencyCode, ocrConfidence: receipt.ocrConfidence, reportingCurrencyCode: includesConversion ? reportingCurrencyCode : "", exchangeRate: includesConversion ? exchangeRate : 0, exchangeRateDate: includesConversion ? exchangeRateDate : nil, exchangeRateSource: includesConversion ? exchangeRateSource : "")
     }
 
     var body: some View {
@@ -235,7 +268,10 @@ private struct ReceiptEditorView: View {
                 }
                 TextField("Currency", text: $currencyCode).textInputAutocapitalization(.characters)
                 DecimalField("Subtotal", value: $subtotal)
+                TextField("Tax label", text: $taxLabel)
                 DecimalField("Tax", value: $tax)
+                DecimalField("Tip", value: $tip)
+                DecimalField("Discount", value: $discount)
                 DecimalField("Total", value: $total)
                 TextField("Notes", text: $notes, axis: .vertical)
             }
@@ -244,6 +280,18 @@ private struct ReceiptEditorView: View {
                 Picker("Reimbursement", selection: $reimbursementStatus) { ForEach(ReimbursementStatus.allCases) { Text($0.rawValue).tag($0) } }
                 TextField("Client or cost centre", text: $clientOrCostCentre)
                 TextField("Tags, separated by commas", text: $tags)
+            }
+            Section("Reporting currency") {
+                Toggle("Add explicit conversion", isOn: $includesConversion)
+                if includesConversion {
+                    TextField("Reporting currency (e.g. SGD)", text: $reportingCurrencyCode).textInputAutocapitalization(.characters)
+                    DecimalField("Rate: 1 \(currencyCode.uppercased()) equals", value: $exchangeRate)
+                    DatePicker("Rate date", selection: $exchangeRateDate, displayedComponents: .date)
+                    TextField("Rate source", text: $exchangeRateSource)
+                    if exchangeRate > 0, reportingCurrencyCode.count == 3 {
+                        LabeledContent("Converted total", value: (total * exchangeRate).formatted(.currency(code: reportingCurrencyCode.uppercased())))
+                    }
+                }
             }
             if !warnings.isEmpty {
                 Section("Needs attention") {
@@ -274,12 +322,18 @@ private struct ReceiptEditorView: View {
         record("Currency", receipt.currencyCode, currencyCode.uppercased())
         record("Subtotal", NSDecimalNumber(decimal: receipt.subtotal).stringValue, NSDecimalNumber(decimal: subtotal).stringValue)
         record("Tax", NSDecimalNumber(decimal: receipt.tax).stringValue, NSDecimalNumber(decimal: tax).stringValue)
+        record("Tax label", receipt.taxLabel, taxLabel)
+        record("Tip", NSDecimalNumber(decimal: receipt.tip).stringValue, NSDecimalNumber(decimal: tip).stringValue)
+        record("Discount", NSDecimalNumber(decimal: receipt.discount).stringValue, NSDecimalNumber(decimal: discount).stringValue)
         record("Total", NSDecimalNumber(decimal: receipt.total).stringValue, NSDecimalNumber(decimal: total).stringValue)
         record("Notes", receipt.notes, notes)
         record("Payment", receipt.paymentMethod.rawValue, paymentMethod.rawValue)
         record("Reimbursement", receipt.reimbursementStatus.rawValue, reimbursementStatus.rawValue)
         record("Client / cost centre", receipt.clientOrCostCentre, clientOrCostCentre)
         record("Tags", receipt.tagsRaw, tags)
+        record("Reporting currency", receipt.reportingCurrencyCode, includesConversion ? reportingCurrencyCode.uppercased() : "")
+        record("Exchange rate", NSDecimalNumber(decimal: receipt.exchangeRate).stringValue, includesConversion ? NSDecimalNumber(decimal: exchangeRate).stringValue : "0")
+        record("Exchange-rate source", receipt.exchangeRateSource, includesConversion ? exchangeRateSource : "")
 
         receipt.merchant = merchant.trimmingCharacters(in: .whitespacesAndNewlines)
         receipt.transactionDate = transactionDate
@@ -288,12 +342,19 @@ private struct ReceiptEditorView: View {
         receipt.currencyCode = currencyCode.uppercased()
         receipt.subtotal = subtotal
         receipt.tax = tax
+        receipt.tip = tip
+        receipt.discount = discount
+        receipt.taxLabel = taxLabel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Tax" : taxLabel.trimmingCharacters(in: .whitespacesAndNewlines)
         receipt.total = total
         receipt.notes = notes
         receipt.paymentMethod = paymentMethod
         receipt.reimbursementStatus = reimbursementStatus
         receipt.clientOrCostCentre = clientOrCostCentre.trimmingCharacters(in: .whitespacesAndNewlines)
         receipt.tagsRaw = tags.trimmingCharacters(in: .whitespacesAndNewlines)
+        receipt.reportingCurrencyCode = includesConversion ? reportingCurrencyCode.uppercased() : ""
+        receipt.exchangeRate = includesConversion ? exchangeRate : 0
+        receipt.exchangeRateDate = includesConversion ? exchangeRateDate : nil
+        receipt.exchangeRateSource = includesConversion ? exchangeRateSource.trimmingCharacters(in: .whitespacesAndNewlines) : ""
         receipt.validationNotes = warnings.joined(separator: "; ")
         receipt.fingerprint = ReceiptEvidence.fingerprint(merchant: merchant, date: transactionDate, total: total, currencyCode: currencyCode)
         receipt.reviewStatus = confirmedAgainstImage ? .verified : .needsReview
@@ -450,6 +511,11 @@ struct ReceiptReviewView: View {
     @State private var reimbursementStatus = ReimbursementStatus.notApplicable
     @State private var tags = ""
     @State private var clientOrCostCentre = ""
+    @State private var reportingCurrencyCode = ""
+    @State private var exchangeRate = Decimal.zero
+    @State private var exchangeRateDate = Date.now
+    @State private var exchangeRateSource = ""
+    @State private var includesConversion = false
     @State private var appliedRuleID: UUID?
     @State private var confirmedAgainstImage = false
     @State private var showDuplicateAlert = false
@@ -457,7 +523,7 @@ struct ReceiptReviewView: View {
     let didSave: () -> Void
 
     private var currentWarnings: [String] {
-        ReceiptEvidence.warnings(merchant: draft.merchant, date: draft.date, subtotal: draft.subtotal, tax: draft.tax, total: draft.total, currencyCode: draft.currencyCode, ocrConfidence: draft.confidence)
+        ReceiptEvidence.warnings(merchant: draft.merchant, date: draft.date, subtotal: draft.subtotal, tax: draft.tax, tip: draft.tip, discount: draft.discount, total: draft.total, currencyCode: draft.currencyCode, ocrConfidence: draft.confidence, reportingCurrencyCode: includesConversion ? reportingCurrencyCode : "", exchangeRate: includesConversion ? exchangeRate : 0, exchangeRateDate: includesConversion ? exchangeRateDate : nil, exchangeRateSource: includesConversion ? exchangeRateSource : "")
     }
 
     private var fingerprint: String {
@@ -505,8 +571,14 @@ struct ReceiptReviewView: View {
             }
             Section("Figures") {
                 DecimalField("Subtotal", value: $draft.subtotal)
+                TextField("Tax label", text: $draft.taxLabel)
                 DecimalField("Tax", value: $draft.tax)
+                DecimalField("Tip", value: $draft.tip)
+                DecimalField("Discount", value: $draft.discount)
                 DecimalField("Total", value: $draft.total)
+                let difference = NSDecimalNumber(decimal: draft.subtotal + draft.tax + draft.tip - draft.discount - draft.total).doubleValue
+                Label(abs(difference) <= 0.02 ? "Figures reconcile" : "Check the figures", systemImage: abs(difference) <= 0.02 ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                    .font(.footnote).foregroundStyle(abs(difference) <= 0.02 ? .green : .orange)
             }
             if let rule = matchingRule, appliedRuleID != rule.id {
                 Section("Merchant rule available") {
@@ -522,6 +594,18 @@ struct ReceiptReviewView: View {
                 Picker("Reimbursement", selection: $reimbursementStatus) { ForEach(ReimbursementStatus.allCases) { Text($0.rawValue).tag($0) } }
                 TextField("Client or cost centre", text: $clientOrCostCentre)
                 TextField("Tags, separated by commas", text: $tags)
+            }
+            Section("Reporting currency") {
+                Toggle("Add explicit conversion", isOn: $includesConversion)
+                if includesConversion {
+                    TextField("Reporting currency (e.g. SGD)", text: $reportingCurrencyCode).textInputAutocapitalization(.characters)
+                    DecimalField("Rate: 1 \(draft.currencyCode.uppercased()) equals", value: $exchangeRate)
+                    DatePicker("Rate date", selection: $exchangeRateDate, displayedComponents: .date)
+                    TextField("Rate source", text: $exchangeRateSource)
+                    if exchangeRate > 0, reportingCurrencyCode.count == 3 {
+                        LabeledContent("Converted total", value: (draft.total * exchangeRate).formatted(.currency(code: reportingCurrencyCode.uppercased())))
+                    }
+                }
             }
             Section("Notes") { TextField("Optional notes", text: $notes, axis: .vertical) }
             Section("Verification") {
@@ -551,7 +635,7 @@ struct ReceiptReviewView: View {
 
     private func saveReceipt() {
         let status: ReceiptReviewStatus = confirmedAgainstImage ? .verified : .needsReview
-        let receipt = Receipt(merchant: draft.merchant, transactionDate: draft.date, currencyCode: draft.currencyCode.uppercased(), subtotal: draft.subtotal, tax: draft.tax, total: draft.total, category: draft.category, notes: notes, ocrText: draft.fullText, ocrConfidence: draft.confidence, reviewStatus: status, reviewedAt: confirmedAgainstImage ? .now : nil, validationNotes: currentWarnings.joined(separator: "; "), fingerprint: fingerprint, paymentMethod: paymentMethod, reimbursementStatus: reimbursementStatus, tags: tags.trimmingCharacters(in: .whitespacesAndNewlines), clientOrCostCentre: clientOrCostCentre.trimmingCharacters(in: .whitespacesAndNewlines), matter: selectedMatter)
+        let receipt = Receipt(merchant: draft.merchant, transactionDate: draft.date, currencyCode: draft.currencyCode.uppercased(), subtotal: draft.subtotal, tax: draft.tax, tip: draft.tip, discount: draft.discount, taxLabel: draft.taxLabel, total: draft.total, category: draft.category, notes: notes, ocrText: draft.fullText, ocrConfidence: draft.confidence, reviewStatus: status, reviewedAt: confirmedAgainstImage ? .now : nil, validationNotes: currentWarnings.joined(separator: "; "), fingerprint: fingerprint, paymentMethod: paymentMethod, reimbursementStatus: reimbursementStatus, tags: tags.trimmingCharacters(in: .whitespacesAndNewlines), clientOrCostCentre: clientOrCostCentre.trimmingCharacters(in: .whitespacesAndNewlines), reportingCurrencyCode: includesConversion ? reportingCurrencyCode.uppercased() : "", exchangeRate: includesConversion ? exchangeRate : 0, exchangeRateDate: includesConversion ? exchangeRateDate : nil, exchangeRateSource: includesConversion ? exchangeRateSource.trimmingCharacters(in: .whitespacesAndNewlines) : "", matter: selectedMatter)
         modelContext.insert(receipt)
         for (index, image) in images.enumerated() {
             if let data = image.jpegData(compressionQuality: 0.88) {

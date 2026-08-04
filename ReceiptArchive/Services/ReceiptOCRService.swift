@@ -8,6 +8,9 @@ struct OCRDraft: Sendable {
     var currencyCode = Locale.current.currency?.identifier ?? "USD"
     var subtotal = Decimal.zero
     var tax = Decimal.zero
+    var tip = Decimal.zero
+    var discount = Decimal.zero
+    var taxLabel = "Tax"
     var total = Decimal.zero
     var category = ExpenseCategory.other
     var fullText = ""
@@ -16,17 +19,21 @@ struct OCRDraft: Sendable {
 }
 
 struct ReceiptEvidence {
-    static func warnings(merchant: String, date: Date, subtotal: Decimal, tax: Decimal, total: Decimal, currencyCode: String, ocrConfidence: Double) -> [String] {
+    static func warnings(merchant: String, date: Date, subtotal: Decimal, tax: Decimal, tip: Decimal = 0, discount: Decimal = 0, total: Decimal, currencyCode: String, ocrConfidence: Double, reportingCurrencyCode: String = "", exchangeRate: Decimal = 0, exchangeRateDate: Date? = nil, exchangeRateSource: String = "") -> [String] {
         var issues: [String] = []
         if merchant.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { issues.append("Merchant is missing") }
         if total <= 0 { issues.append("Total must be checked") }
         if tax < 0 || subtotal < 0 { issues.append("Negative figures need checking") }
-        if subtotal > 0, tax >= 0, abs(NSDecimalNumber(decimal: subtotal + tax - total).doubleValue) > 0.02 {
-            issues.append("Subtotal plus tax does not match total")
+        if tip < 0 || discount < 0 { issues.append("Tip and discount cannot be negative") }
+        if subtotal > 0, tax >= 0, abs(NSDecimalNumber(decimal: subtotal + tax + tip - discount - total).doubleValue) > 0.02 {
+            issues.append("Subtotal, tax, tip and discount do not reconcile to total")
         }
         if currencyCode.count != 3 { issues.append("Currency code is incomplete") }
         if date > Calendar.current.date(byAdding: .day, value: 1, to: .now)! { issues.append("Date appears to be in the future") }
         if ocrConfidence < 0.72 { issues.append("Scan confidence is low") }
+        let hasAnyConversion = !reportingCurrencyCode.isEmpty || exchangeRate > 0 || exchangeRateDate != nil || !exchangeRateSource.isEmpty
+        let hasCompleteConversion = reportingCurrencyCode.count == 3 && exchangeRate > 0 && exchangeRateDate != nil && !exchangeRateSource.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        if hasAnyConversion && !hasCompleteConversion { issues.append("Currency conversion provenance is incomplete") }
         return issues
     }
 
@@ -114,12 +121,16 @@ actor ReceiptOCRService {
 
         let amountsByLine = lines.map { ($0, amounts(in: $0)) }
         draft.tax = bestAmount(in: amountsByLine, labels: ["tax", "gst", "vat", "service charge"]) ?? .zero
+        draft.tip = bestAmount(in: amountsByLine, labels: ["tip", "gratuity"]) ?? .zero
+        draft.discount = bestAmount(in: amountsByLine, labels: ["discount", "coupon", "savings"]) ?? .zero
+        if text.localizedCaseInsensitiveContains("GST") { draft.taxLabel = "GST" }
+        else if text.localizedCaseInsensitiveContains("VAT") { draft.taxLabel = "VAT" }
         draft.subtotal = bestAmount(in: amountsByLine, labels: ["subtotal", "sub total", "net"]) ?? .zero
         draft.total = bestAmount(in: amountsByLine, labels: ["grand total", "amount due", "total", "paid"])
             ?? amountsByLine.flatMap { $0.1 }.max() ?? .zero
-        if draft.subtotal == .zero, draft.total >= draft.tax { draft.subtotal = draft.total - draft.tax }
+        if draft.subtotal == .zero, draft.total >= draft.tax + draft.tip - draft.discount { draft.subtotal = draft.total - draft.tax - draft.tip + draft.discount }
         draft.category = inferCategory(from: text.lowercased())
-        draft.warnings = ReceiptEvidence.warnings(merchant: draft.merchant, date: draft.date, subtotal: draft.subtotal, tax: draft.tax, total: draft.total, currencyCode: draft.currencyCode, ocrConfidence: confidence)
+        draft.warnings = ReceiptEvidence.warnings(merchant: draft.merchant, date: draft.date, subtotal: draft.subtotal, tax: draft.tax, tip: draft.tip, discount: draft.discount, total: draft.total, currencyCode: draft.currencyCode, ocrConfidence: confidence)
         return draft
     }
 

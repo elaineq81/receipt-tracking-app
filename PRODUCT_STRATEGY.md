@@ -47,6 +47,8 @@ This makes trust a product feature instead of hiding uncertainty behind automati
 - Risk-ranked attention inbox and editable receipts with field-level revision history.
 - Camera, Photos, image, and multi-page PDF ingestion through one evidence pipeline.
 - Payment, reimbursement, tags, client/cost-centre fields, and reusable merchant suggestion rules.
+- Tips, discounts, named tax, arithmetic reconciliation, and explicit exchange-rate provenance.
+- Evidence-pack cover sheets with readiness, exceptions, native totals, converted totals, and receipt appendix.
 - PDF, XLSX, CSV, DOCX, and JPG bundle exports.
 - Report readiness and evidence status in exported data.
 
@@ -60,9 +62,7 @@ This makes trust a product feature instead of hiding uncertainty behind automati
 
 ### Evidence-grade reporting
 
-- Reporting currency with explicit exchange rate, source, and effective date.
-- Reconciliation checks for subtotal, tax, tips, discounts, and total.
-- Per-matter cover sheet, exceptions page, verification ledger, and receipt appendix.
+- Dedicated exceptions page and exportable verification ledger.
 - Accountant profiles with reusable column mappings and export presets.
 - Report locking and a content checksum so a delivered evidence pack can be verified.
 

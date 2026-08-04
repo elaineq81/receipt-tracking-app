@@ -40,6 +40,23 @@ struct ReportsView: View {
             .sorted { $0.0 < $1.0 }
     }
 
+    private var reportingTotals: [(String, Decimal)] {
+        Dictionary(grouping: selectedReceipts.filter(\.hasCompleteConversion), by: \Receipt.reportingCurrencyCode)
+            .map { currency, values in (currency, values.compactMap(\.reportingTotal).reduce(Decimal.zero, +)) }
+            .sorted { $0.0 < $1.0 }
+    }
+
+    private var reconciliationExceptions: Int {
+        selectedReceipts.filter { abs(NSDecimalNumber(decimal: $0.reconciliationDifference).doubleValue) > 0.02 }.count
+    }
+
+    private var incompleteConversions: Int {
+        selectedReceipts.filter {
+            let hasAny = !$0.reportingCurrencyCode.isEmpty || $0.exchangeRate > 0 || $0.exchangeRateDate != nil || !$0.exchangeRateSource.isEmpty
+            return hasAny && !$0.hasCompleteConversion
+        }.count
+    }
+
     var body: some View {
         Form {
             Section("Report scope") {
@@ -53,6 +70,8 @@ struct ReportsView: View {
                 let verified = selectedReceipts.filter { $0.reviewStatus == .verified }.count
                 LabeledContent("Verified", value: "\(verified)")
                 LabeledContent("Needs review", value: "\(selectedReceipts.count - verified)")
+                LabeledContent("Figure exceptions", value: "\(reconciliationExceptions)")
+                LabeledContent("Incomplete conversions", value: "\(incompleteConversions)")
                 if verified < selectedReceipts.count {
                     Label("Unverified receipts will be clearly identified in exported records.", systemImage: "exclamationmark.triangle.fill")
                         .font(.footnote).foregroundStyle(.orange)
@@ -62,6 +81,15 @@ struct ReportsView: View {
                 if totals.isEmpty { Text("No expenses in this selection").foregroundStyle(.secondary) }
                 ForEach(totals, id: \.0) { code, total in
                     LabeledContent(code, value: total.formatted(.currency(code: code)))
+                }
+            }
+            if !reportingTotals.isEmpty {
+                Section("Converted reporting totals") {
+                    ForEach(reportingTotals, id: \.0) { code, total in
+                        LabeledContent(code, value: total.formatted(.currency(code: code)))
+                    }
+                    Text("Only receipts with a complete rate, effective date, and source are included.")
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
             }
             Section("Totals by category") {

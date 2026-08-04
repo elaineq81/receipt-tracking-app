@@ -46,6 +46,9 @@ final class Receipt {
     var currencyCode: String
     var subtotal: Decimal
     var tax: Decimal
+    var tip: Decimal = 0
+    var discount: Decimal = 0
+    var taxLabel: String = "Tax"
     var total: Decimal
     var categoryRaw: String
     var notes: String
@@ -60,6 +63,10 @@ final class Receipt {
     var reimbursementStatusRaw: String = ReimbursementStatus.notApplicable.rawValue
     var tagsRaw: String = ""
     var clientOrCostCentre: String = ""
+    var reportingCurrencyCode: String = ""
+    var exchangeRate: Decimal = 0
+    var exchangeRateDate: Date?
+    var exchangeRateSource: String = ""
     var matter: ExpenseMatter?
 
     @Relationship(deleteRule: .cascade, inverse: \ReceiptPage.receipt)
@@ -75,6 +82,9 @@ final class Receipt {
         currencyCode: String,
         subtotal: Decimal,
         tax: Decimal,
+        tip: Decimal = 0,
+        discount: Decimal = 0,
+        taxLabel: String = "Tax",
         total: Decimal,
         category: ExpenseCategory,
         notes: String = "",
@@ -88,6 +98,10 @@ final class Receipt {
         reimbursementStatus: ReimbursementStatus = .notApplicable,
         tags: String = "",
         clientOrCostCentre: String = "",
+        reportingCurrencyCode: String = "",
+        exchangeRate: Decimal = 0,
+        exchangeRateDate: Date? = nil,
+        exchangeRateSource: String = "",
         matter: ExpenseMatter? = nil
     ) {
         self.id = id
@@ -96,6 +110,9 @@ final class Receipt {
         self.currencyCode = currencyCode
         self.subtotal = subtotal
         self.tax = tax
+        self.tip = tip
+        self.discount = discount
+        self.taxLabel = taxLabel
         self.total = total
         self.categoryRaw = category.rawValue
         self.notes = notes
@@ -110,6 +127,10 @@ final class Receipt {
         self.reimbursementStatusRaw = reimbursementStatus.rawValue
         self.tagsRaw = tags
         self.clientOrCostCentre = clientOrCostCentre
+        self.reportingCurrencyCode = reportingCurrencyCode
+        self.exchangeRate = exchangeRate
+        self.exchangeRateDate = exchangeRateDate
+        self.exchangeRateSource = exchangeRateSource
         self.matter = matter
         self.pages = []
         self.revisions = []
@@ -146,6 +167,14 @@ final class Receipt {
     var validationMessages: [String] {
         validationNotes.split(separator: ";").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
     }
+
+    var reconciliationDifference: Decimal { subtotal + tax + tip - discount - total }
+
+    var hasCompleteConversion: Bool {
+        reportingCurrencyCode.count == 3 && exchangeRate > 0 && exchangeRateDate != nil && !exchangeRateSource.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var reportingTotal: Decimal? { hasCompleteConversion ? total * exchangeRate : nil }
 }
 
 enum PaymentMethod: String, CaseIterable, Codable, Identifiable, Sendable {
