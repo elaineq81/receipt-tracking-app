@@ -77,7 +77,7 @@ document.querySelector("#export-button").addEventListener("click", () => {
     const csv = "Date,Merchant,Matter,Category,Currency,Total\n2026-07-16,Kissa Ginza,Tokyo work trip,Meals,JPY,1700\n2026-07-12,Hotel Gracery,Tokyo work trip,Accommodation,JPY,18630";
     const link = document.createElement("a");
     link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    link.download = "receipt-archive-sample.csv";
+    link.download = "receiptsure-sample.csv";
     link.click();
     URL.revokeObjectURL(link.href);
     showToast("Sample CSV downloaded");

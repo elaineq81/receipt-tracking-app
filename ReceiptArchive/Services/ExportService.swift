@@ -10,7 +10,7 @@ enum ExportError: LocalizedError {
 final class ExportService {
     func create(format: ExportFormat, receipts: [Receipt], title: String) throws -> URL {
         let safeTitle = title.replacingOccurrences(of: #"[^A-Za-z0-9_-]"#, with: "-", options: .regularExpression)
-        let folder = FileManager.default.temporaryDirectory.appending(path: "ReceiptArchive-\(UUID().uuidString)", directoryHint: .isDirectory)
+        let folder = FileManager.default.temporaryDirectory.appending(path: "ReceiptSure-\(UUID().uuidString)", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
 
         switch format {
@@ -38,9 +38,9 @@ final class ExportService {
     }
 
     private func csv(_ receipts: [Receipt]) -> String {
-        var rows = ["Date,Merchant,Matter,Category,Currency,Subtotal,Tax,Total,Notes"]
+        var rows = ["Date,Merchant,Matter,Category,Payment Method,Reimbursement,Client or Cost Centre,Tags,Currency,Subtotal,Tax Label,Tax,Tip,Discount,Total,Reporting Currency,Exchange Rate,Rate Date,Rate Source,Reporting Total,Review Status,OCR Confidence,Validation Notes,Revision Count,Last Revised,Notes"]
         rows += receipts.map {
-            [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.currencyCode, Self.number($0.subtotal), Self.number($0.tax), Self.number($0.total), $0.notes]
+            [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.paymentMethod.rawValue, $0.reimbursementStatus.rawValue, $0.clientOrCostCentre, $0.tagsRaw, $0.currencyCode, Self.number($0.subtotal), $0.taxLabel, Self.number($0.tax), Self.number($0.tip), Self.number($0.discount), Self.number($0.total), $0.reportingCurrencyCode, Self.number($0.exchangeRate), $0.exchangeRateDate.map(Self.iso.string) ?? "", $0.exchangeRateSource, $0.reportingTotal.map(Self.number) ?? "", $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisions.count)", $0.revisions.map(\.changedAt).max().map(Self.iso.string) ?? "", $0.notes]
                 .map(Self.csvEscape).joined(separator: ",")
         }
         return "\u{FEFF}" + rows.joined(separator: "\r\n")
@@ -65,11 +65,27 @@ final class ExportService {
             }
             newPage()
             draw(title, font: .boldSystemFont(ofSize: 25))
-            draw("Expense report • \(Date.now.formatted(date: .long, time: .shortened))", font: .systemFont(ofSize: 11), color: .secondaryLabel)
+            draw("Evidence pack • \(Date.now.formatted(date: .long, time: .shortened))", font: .systemFont(ofSize: 11), color: .secondaryLabel)
+            if let first = receipts.map(\.transactionDate).min(), let last = receipts.map(\.transactionDate).max() {
+                draw("Period: \(first.formatted(date: .long, time: .omitted)) – \(last.formatted(date: .long, time: .omitted))", font: .systemFont(ofSize: 11), color: .secondaryLabel)
+            }
+            let verified = receipts.filter { $0.reviewStatus == .verified }.count
+            let reconciliationIssues = receipts.filter { abs(NSDecimalNumber(decimal: $0.reconciliationDifference).doubleValue) > 0.02 }.count
+            let incompleteRates = receipts.filter {
+                let any = !$0.reportingCurrencyCode.isEmpty || $0.exchangeRate > 0 || $0.exchangeRateDate != nil || !$0.exchangeRateSource.isEmpty
+                return any && !$0.hasCompleteConversion
+            }.count
+            draw("Readiness", font: .boldSystemFont(ofSize: 16))
+            draw("\(receipts.count) receipts • \(verified) verified • \(receipts.count - verified) need review", font: .systemFont(ofSize: 11))
+            draw("\(reconciliationIssues) figure exceptions • \(incompleteRates) incomplete conversions", font: .systemFont(ofSize: 11), color: reconciliationIssues + incompleteRates == 0 ? .systemGreen : .systemOrange)
             y += 8
             for (currency, rows) in Dictionary(grouping: receipts, by: \Receipt.currencyCode).sorted(by: { $0.key < $1.key }) {
                 let total = rows.reduce(Decimal.zero) { $0 + $1.total }
                 draw("\(currency) total: \(total.formatted(.currency(code: currency)))", font: .boldSystemFont(ofSize: 16))
+            }
+            for (currency, rows) in Dictionary(grouping: receipts.filter(\.hasCompleteConversion), by: \Receipt.reportingCurrencyCode).sorted(by: { $0.key < $1.key }) {
+                let total = rows.compactMap(\.reportingTotal).reduce(Decimal.zero, +)
+                draw("Reporting total: \(total.formatted(.currency(code: currency)))", font: .boldSystemFont(ofSize: 16), color: .systemTeal)
             }
             y += 8
             draw("By category", font: .boldSystemFont(ofSize: 15))
@@ -80,10 +96,18 @@ final class ExportService {
             for row in summaryRows(receipts).dropFirst().filter({ $0.first == "Date" }) {
                 draw(row.dropFirst().joined(separator: " • "), font: .systemFont(ofSize: 11))
             }
-            y += 12
+            newPage()
+            draw("Receipt evidence appendix", font: .boldSystemFont(ofSize: 22))
             for receipt in receipts {
                 draw("\(receipt.transactionDate.formatted(date: .abbreviated, time: .omitted))  \(receipt.merchant)", font: .boldSystemFont(ofSize: 13))
                 draw("\(receipt.category.rawValue) • \(receipt.matter?.name ?? "Unfiled") • \(receipt.total.formatted(.currency(code: receipt.currencyCode)))", font: .systemFont(ofSize: 11), color: .secondaryLabel)
+                draw("\(receipt.paymentMethod.rawValue) • \(receipt.reimbursementStatus.rawValue)\(receipt.clientOrCostCentre.isEmpty ? "" : " • " + receipt.clientOrCostCentre)", font: .systemFont(ofSize: 10), color: .secondaryLabel)
+                draw("Subtotal \(receipt.subtotal.formatted(.currency(code: receipt.currencyCode))) • \(receipt.taxLabel) \(receipt.tax.formatted(.currency(code: receipt.currencyCode))) • Tip \(receipt.tip.formatted(.currency(code: receipt.currencyCode))) • Discount \(receipt.discount.formatted(.currency(code: receipt.currencyCode)))", font: .systemFont(ofSize: 9), color: .secondaryLabel)
+                if let reportingTotal = receipt.reportingTotal {
+                    draw("Converted: \(reportingTotal.formatted(.currency(code: receipt.reportingCurrencyCode))) at \(Self.number(receipt.exchangeRate)) • \(receipt.exchangeRateSource) • \(receipt.exchangeRateDate?.formatted(date: .abbreviated, time: .omitted) ?? "")", font: .systemFont(ofSize: 9), color: .secondaryLabel)
+                }
+                draw("Evidence: \(receipt.reviewStatus.title) • OCR \(String(format: "%.0f%%", receipt.ocrConfidence * 100))", font: .systemFont(ofSize: 10), color: receipt.reviewStatus == .verified ? .systemGreen : .systemOrange)
+                if !receipt.revisions.isEmpty { draw("Audit trail: \(receipt.revisions.count) field change\(receipt.revisions.count == 1 ? "" : "s")", font: .systemFont(ofSize: 10), color: .secondaryLabel) }
                 if let pageData = receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).first?.imageData,
                    let image = UIImage(data: pageData) {
                     let maxHeight: CGFloat = 250
@@ -98,9 +122,9 @@ final class ExportService {
     }
 
     private func workbook(receipts: [Receipt]) throws -> Data {
-        let headers = ["Date", "Merchant", "Matter", "Category", "Currency", "Subtotal", "Tax", "Total", "Notes"]
+        let headers = ["Date", "Merchant", "Matter", "Category", "Payment Method", "Reimbursement", "Client or Cost Centre", "Tags", "Currency", "Subtotal", "Tax Label", "Tax", "Tip", "Discount", "Total", "Reporting Currency", "Exchange Rate", "Rate Date", "Rate Source", "Reporting Total", "Review Status", "OCR Confidence", "Validation Notes", "Revision Count", "Last Revised", "Notes"]
         var rows = [headers]
-        rows += receipts.map { [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.currencyCode, Self.number($0.subtotal), Self.number($0.tax), Self.number($0.total), $0.notes] }
+        rows += receipts.map { [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.paymentMethod.rawValue, $0.reimbursementStatus.rawValue, $0.clientOrCostCentre, $0.tagsRaw, $0.currencyCode, Self.number($0.subtotal), $0.taxLabel, Self.number($0.tax), Self.number($0.tip), Self.number($0.discount), Self.number($0.total), $0.reportingCurrencyCode, Self.number($0.exchangeRate), $0.exchangeRateDate.map(Self.iso.string) ?? "", $0.exchangeRateSource, $0.reportingTotal.map(Self.number) ?? "", $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisions.count)", $0.revisions.map(\.changedAt).max().map(Self.iso.string) ?? "", $0.notes] }
         func worksheet(_ sourceRows: [[String]]) -> String {
             let body = sourceRows.enumerated().map { rowIndex, columns in
             let cells = columns.enumerated().map { columnIndex, value in
@@ -124,7 +148,7 @@ final class ExportService {
 
     private func wordReport(receipts: [Receipt], title: String) throws -> Data {
         let rows = receipts.map { receipt in
-            "<w:tr><w:tc><w:p><w:r><w:t>\(Self.xml(Self.iso.string(from: receipt.transactionDate)))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.merchant))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.category.rawValue))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.currencyCode + " " + Self.number(receipt.total)))</w:t></w:r></w:p></w:tc></w:tr>"
+            "<w:tr><w:tc><w:p><w:r><w:t>\(Self.xml(Self.iso.string(from: receipt.transactionDate)))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.merchant))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.category.rawValue + " • " + receipt.paymentMethod.rawValue + " • " + receipt.reimbursementStatus.rawValue))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.currencyCode + " " + Self.number(receipt.total)))</w:t></w:r></w:p></w:tc></w:tr>"
         }.joined()
         let summary = summaryRows(receipts).dropFirst().map { "<w:p><w:r><w:t>\(Self.xml($0.joined(separator: " • ")))</w:t></w:r></w:p>" }.joined()
         let document = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body><w:p><w:r><w:rPr><w:b/><w:sz w:val=\"36\"/></w:rPr><w:t>\(Self.xml(title))</w:t></w:r></w:p><w:p><w:r><w:t>Expense summary generated \(Self.xml(Date.now.formatted()))</w:t></w:r></w:p>\(summary)<w:tbl><w:tr><w:tc><w:p><w:r><w:t>Date</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Merchant</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Category</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Total</w:t></w:r></w:p></w:tc></w:tr>\(rows)</w:tbl></w:body></w:document>"
@@ -151,6 +175,9 @@ final class ExportService {
         var rows = [["Breakdown", "Group", "Currency", "Total"]]
         for (currency, values) in Dictionary(grouping: receipts, by: \Receipt.currencyCode).sorted(by: { $0.key < $1.key }) {
             rows.append(["Currency", currency, currency, Self.number(values.reduce(Decimal.zero) { $0 + $1.total })])
+        }
+        for (currency, values) in Dictionary(grouping: receipts.filter(\.hasCompleteConversion), by: \Receipt.reportingCurrencyCode).sorted(by: { $0.key < $1.key }) {
+            rows.append(["Reporting currency", currency, currency, Self.number(values.compactMap(\.reportingTotal).reduce(Decimal.zero, +))])
         }
         for category in ExpenseCategory.allCases {
             for (currency, values) in Dictionary(grouping: receipts.filter { $0.category == category }, by: \Receipt.currencyCode).sorted(by: { $0.key < $1.key }) {

@@ -9,6 +9,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
     case images = "JPG bundle"
 
     var id: String { rawValue }
+    var isAdvanced: Bool { self == .xlsx || self == .docx || self == .images }
     var symbol: String {
         switch self {
         case .pdf: "doc.richtext"
@@ -21,8 +22,11 @@ enum ExportFormat: String, CaseIterable, Identifiable {
 }
 
 struct ReportsView: View {
+    @Environment(PurchaseManager.self) private var purchases
     @Query(sort: \Receipt.transactionDate, order: .reverse) private var receipts: [Receipt]
     @Query(sort: \ExpenseMatter.createdAt, order: .reverse) private var matters: [ExpenseMatter]
+    @AppStorage("freePDFReportsCreated") private var freePDFReportsCreated = 0
+    let presentPaywall: (PaywallReason) -> Void
     @State private var selectedMatter: ExpenseMatter?
     @State private var format = ExportFormat.pdf
     @State private var shareItem: ShareItem?
@@ -40,6 +44,23 @@ struct ReportsView: View {
             .sorted { $0.0 < $1.0 }
     }
 
+    private var reportingTotals: [(String, Decimal)] {
+        Dictionary(grouping: selectedReceipts.filter(\.hasCompleteConversion), by: \Receipt.reportingCurrencyCode)
+            .map { currency, values in (currency, values.compactMap(\.reportingTotal).reduce(Decimal.zero, +)) }
+            .sorted { $0.0 < $1.0 }
+    }
+
+    private var reconciliationExceptions: Int {
+        selectedReceipts.filter { abs(NSDecimalNumber(decimal: $0.reconciliationDifference).doubleValue) > 0.02 }.count
+    }
+
+    private var incompleteConversions: Int {
+        selectedReceipts.filter {
+            let hasAny = !$0.reportingCurrencyCode.isEmpty || $0.exchangeRate > 0 || $0.exchangeRateDate != nil || !$0.exchangeRateSource.isEmpty
+            return hasAny && !$0.hasCompleteConversion
+        }.count
+    }
+
     var body: some View {
         Form {
             Section("Report scope") {
@@ -49,10 +70,30 @@ struct ReportsView: View {
                 }
                 LabeledContent("Receipts", value: "\(selectedReceipts.count)")
             }
+            Section("Report readiness") {
+                let verified = selectedReceipts.filter { $0.reviewStatus == .verified }.count
+                LabeledContent("Verified", value: "\(verified)")
+                LabeledContent("Needs review", value: "\(selectedReceipts.count - verified)")
+                LabeledContent("Figure exceptions", value: "\(reconciliationExceptions)")
+                LabeledContent("Incomplete conversions", value: "\(incompleteConversions)")
+                if verified < selectedReceipts.count {
+                    Label("Unverified receipts will be clearly identified in exported records.", systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote).foregroundStyle(.orange)
+                }
+            }
             Section("Totals by currency") {
                 if totals.isEmpty { Text("No expenses in this selection").foregroundStyle(.secondary) }
                 ForEach(totals, id: \.0) { code, total in
                     LabeledContent(code, value: total.formatted(.currency(code: code)))
+                }
+            }
+            if !reportingTotals.isEmpty {
+                Section("Converted reporting totals") {
+                    ForEach(reportingTotals, id: \.0) { code, total in
+                        LabeledContent(code, value: total.formatted(.currency(code: code)))
+                    }
+                    Text("Only receipts with a complete rate, effective date, and source are included.")
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
             }
             Section("Totals by category") {
@@ -78,7 +119,9 @@ struct ReportsView: View {
             }
             Section("Export") {
                 Picker("Format", selection: $format) {
-                    ForEach(ExportFormat.allCases) { Label($0.rawValue, systemImage: $0.symbol).tag($0) }
+                    ForEach(ExportFormat.allCases) { option in
+                        Label(option.rawValue + proSuffix(for: option), systemImage: option.symbol).tag(option)
+                    }
                 }
                 Button {
                     export()
@@ -89,6 +132,10 @@ struct ReportsView: View {
                     }
                 }
                 .disabled(selectedReceipts.isEmpty || isExporting)
+                if !purchases.isPro {
+                    Text("CSV is always free. Your first PDF report is included; unlimited PDF, Excel, Word, and JPG exports are available with Pro.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
             }
         }
         .navigationTitle("Reports")
@@ -99,16 +146,37 @@ struct ReportsView: View {
     }
 
     private func export() {
+        if !purchases.isPro {
+            if format.isAdvanced {
+                presentPaywall(.advancedExport)
+                return
+            }
+            if format == .pdf && freePDFReportsCreated >= FreePlanLimits.pdfReports {
+                presentPaywall(.pdfLimit)
+                return
+            }
+        }
+
         isExporting = true
         let rows = selectedReceipts
         let title = selectedMatter?.name ?? "All Expenses"
         Task {
             do {
                 let url = try await ExportService().create(format: format, receipts: rows, title: title)
+                if !purchases.isPro && format == .pdf {
+                    freePDFReportsCreated += 1
+                }
                 shareItem = ShareItem(url: url)
             } catch { errorMessage = error.localizedDescription }
             isExporting = false
         }
+    }
+
+    private func proSuffix(for option: ExportFormat) -> String {
+        guard !purchases.isPro else { return "" }
+        if option.isAdvanced { return " · Pro" }
+        if option == .pdf && freePDFReportsCreated >= FreePlanLimits.pdfReports { return " · Pro" }
+        return ""
     }
 
     private static func totalLine(_ rows: [Receipt]) -> String {

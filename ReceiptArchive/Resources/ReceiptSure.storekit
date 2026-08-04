@@ -1,0 +1,43 @@
+{
+  "identifier" : "A7CC00E6-30EC-4D0E-A7FC-8FE1C89D67D1",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "59.98",
+      "familyShareable" : false,
+      "internalID" : "FBA679B1-41F6-4D21-8174-77EA69080EA0",
+      "localizations" : [
+        {
+          "description" : "Unlimited receipts, matters, reports, professional exports, and merchant filing rules.",
+          "displayName" : "ReceiptSure Pro Lifetime",
+          "locale" : "en_SG"
+        },
+        {
+          "description" : "Unlimited receipts, matters, reports, professional exports, and merchant filing rules.",
+          "displayName" : "ReceiptSure Pro Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.bodywiseremedy.receiptsure.pro.lifetime",
+      "referenceName" : "ReceiptSure Pro Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_SG",
+    "_storefront" : "SGP",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

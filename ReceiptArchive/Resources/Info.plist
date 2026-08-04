@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleDisplayName</key>
-    <string>Receipt Archive</string>
+    <string>ReceiptSure</string>
     <key>CFBundleIdentifier</key>
     <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
     <key>CFBundleInfoDictionaryVersion</key>
@@ -16,10 +16,43 @@
     <string>$(MARKETING_VERSION)</string>
     <key>CFBundleVersion</key>
     <string>$(CURRENT_PROJECT_VERSION)</string>
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeConformsTo</key>
+            <array><string>public.data</string></array>
+            <key>UTTypeDescription</key>
+            <string>ReceiptSure Secure Backup</string>
+            <key>UTTypeIdentifier</key>
+            <string>com.bodywiseremedy.receiptarchive.backup</string>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key>
+                <array><string>receiptarchive</string></array>
+                <key>public.mime-type</key>
+                <string>application/vnd.receiptarchive.backup</string>
+            </dict>
+        </dict>
+    </array>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>ReceiptSure Secure Backup</string>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>LSHandlerRank</key>
+            <string>Owner</string>
+            <key>LSItemContentTypes</key>
+            <array><string>com.bodywiseremedy.receiptarchive.backup</string></array>
+        </dict>
+    </array>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>NSCameraUsageDescription</key>
-    <string>Receipt Archive uses the camera to scan, detect, and crop receipts you choose to save.</string>
+    <string>ReceiptSure uses the camera to scan, detect, and crop receipts you choose to save.</string>
+    <key>NSFaceIDUsageDescription</key>
+    <string>ReceiptSure uses Face ID to protect your locally stored receipts and expense records.</string>
     <key>UIApplicationSceneManifest</key>
     <dict>
         <key>UIApplicationSupportsMultipleScenes</key>
@@ -42,4 +75,3 @@
     </array>
 </dict>
 </plist>
-

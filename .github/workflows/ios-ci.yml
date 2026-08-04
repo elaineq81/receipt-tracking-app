@@ -13,7 +13,7 @@ permissions:
 jobs:
   build:
     name: Generate and build Receipt Archive
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 20
 
     steps:
@@ -36,3 +36,39 @@ jobs:
           -destination 'generic/platform=iOS Simulator'
           CODE_SIGNING_ALLOWED=NO
           clean build
+
+      - name: Archive unsigned release for iPhone
+        run: >-
+          xcodebuild
+          -project ReceiptArchive.xcodeproj
+          -scheme ReceiptArchive
+          -configuration Release
+          -destination 'generic/platform=iOS'
+          -archivePath "$RUNNER_TEMP/ReceiptSure.xcarchive"
+          CODE_SIGNING_ALLOWED=NO
+          archive
+
+      - name: Verify release bundle contents
+        run: |
+          APPLICATIONS_DIR="$RUNNER_TEMP/ReceiptSure.xcarchive/Products/Applications"
+          find "$APPLICATIONS_DIR" -maxdepth 3 -print
+          APP_BUNDLE="$(find "$APPLICATIONS_DIR" -maxdepth 1 -type d -name '*.app' -print -quit)"
+          test -n "$APP_BUNDLE" || { echo "No archived app bundle found"; exit 1; }
+          test -f "$APP_BUNDLE/Info.plist" || { echo "Archived Info.plist is missing"; exit 1; }
+          test -f "$APP_BUNDLE/PrivacyInfo.xcprivacy" || { echo "Archived privacy manifest is missing"; exit 1; }
+          test -f "$APP_BUNDLE/Assets.car" || { echo "Compiled app icon and color assets are missing"; exit 1; }
+          BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_BUNDLE/Info.plist")"
+          DISPLAY_NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$APP_BUNDLE/Info.plist")"
+          DEVICE_FAMILY="$(/usr/libexec/PlistBuddy -c 'Print :UIDeviceFamily:0' "$APP_BUNDLE/Info.plist")"
+          CAMERA_REASON="$(/usr/libexec/PlistBuddy -c 'Print :NSCameraUsageDescription' "$APP_BUNDLE/Info.plist")"
+          FACE_ID_REASON="$(/usr/libexec/PlistBuddy -c 'Print :NSFaceIDUsageDescription' "$APP_BUNDLE/Info.plist")"
+          BACKUP_TYPE="$(/usr/libexec/PlistBuddy -c 'Print :UTExportedTypeDeclarations:0:UTTypeIdentifier' "$APP_BUNDLE/Info.plist")"
+          echo "Archived bundle identifier: $BUNDLE_ID"
+          echo "Archived display name: $DISPLAY_NAME"
+          test "$BUNDLE_ID" = "com.bodywiseremedy.receiptsure"
+          test "$DISPLAY_NAME" = "ReceiptSure"
+          test "$DEVICE_FAMILY" = "1"
+          ! /usr/libexec/PlistBuddy -c 'Print :UIDeviceFamily:1' "$APP_BUNDLE/Info.plist" >/dev/null 2>&1
+          test -n "$CAMERA_REASON"
+          test -n "$FACE_ID_REASON"
+          test "$BACKUP_TYPE" = "com.bodywiseremedy.receiptarchive.backup"
