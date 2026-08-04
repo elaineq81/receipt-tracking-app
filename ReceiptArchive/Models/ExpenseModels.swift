@@ -56,6 +56,10 @@ final class Receipt {
     var reviewedAt: Date?
     var validationNotes: String = ""
     var fingerprint: String = ""
+    var paymentMethodRaw: String = PaymentMethod.unspecified.rawValue
+    var reimbursementStatusRaw: String = ReimbursementStatus.notApplicable.rawValue
+    var tagsRaw: String = ""
+    var clientOrCostCentre: String = ""
     var matter: ExpenseMatter?
 
     @Relationship(deleteRule: .cascade, inverse: \ReceiptPage.receipt)
@@ -80,6 +84,10 @@ final class Receipt {
         reviewedAt: Date? = nil,
         validationNotes: String = "",
         fingerprint: String = "",
+        paymentMethod: PaymentMethod = .unspecified,
+        reimbursementStatus: ReimbursementStatus = .notApplicable,
+        tags: String = "",
+        clientOrCostCentre: String = "",
         matter: ExpenseMatter? = nil
     ) {
         self.id = id
@@ -98,6 +106,10 @@ final class Receipt {
         self.reviewedAt = reviewedAt
         self.validationNotes = validationNotes
         self.fingerprint = fingerprint
+        self.paymentMethodRaw = paymentMethod.rawValue
+        self.reimbursementStatusRaw = reimbursementStatus.rawValue
+        self.tagsRaw = tags
+        self.clientOrCostCentre = clientOrCostCentre
         self.matter = matter
         self.pages = []
         self.revisions = []
@@ -113,6 +125,16 @@ final class Receipt {
         set { reviewStatusRaw = newValue.rawValue }
     }
 
+    var paymentMethod: PaymentMethod {
+        get { PaymentMethod(rawValue: paymentMethodRaw) ?? .unspecified }
+        set { paymentMethodRaw = newValue.rawValue }
+    }
+
+    var reimbursementStatus: ReimbursementStatus {
+        get { ReimbursementStatus(rawValue: reimbursementStatusRaw) ?? .notApplicable }
+        set { reimbursementStatusRaw = newValue.rawValue }
+    }
+
     var attentionScore: Int {
         var score = reviewStatus == .needsReview ? 40 : 0
         score += Int(max(0, min(30, (0.85 - ocrConfidence) * 100)))
@@ -123,6 +145,72 @@ final class Receipt {
 
     var validationMessages: [String] {
         validationNotes.split(separator: ";").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+    }
+}
+
+enum PaymentMethod: String, CaseIterable, Codable, Identifiable, Sendable {
+    case unspecified = "Not specified"
+    case personalCard = "Personal card"
+    case companyCard = "Company card"
+    case cash = "Cash"
+    case bankTransfer = "Bank transfer"
+    case digitalWallet = "Digital wallet"
+
+    var id: String { rawValue }
+}
+
+enum ReimbursementStatus: String, CaseIterable, Codable, Identifiable, Sendable {
+    case notApplicable = "Not applicable"
+    case toSubmit = "To submit"
+    case submitted = "Submitted"
+    case reimbursed = "Reimbursed"
+
+    var id: String { rawValue }
+}
+
+@Model
+final class MerchantRule {
+    @Attribute(.unique) var id: UUID
+    var merchantPattern: String
+    var categoryRaw: String
+    var paymentMethodRaw: String
+    var tags: String
+    var clientOrCostCentre: String
+    var matterID: UUID?
+    var createdAt: Date
+
+    init(
+        id: UUID = UUID(),
+        merchantPattern: String,
+        category: ExpenseCategory = .other,
+        paymentMethod: PaymentMethod = .unspecified,
+        tags: String = "",
+        clientOrCostCentre: String = "",
+        matterID: UUID? = nil
+    ) {
+        self.id = id
+        self.merchantPattern = merchantPattern
+        self.categoryRaw = category.rawValue
+        self.paymentMethodRaw = paymentMethod.rawValue
+        self.tags = tags
+        self.clientOrCostCentre = clientOrCostCentre
+        self.matterID = matterID
+        self.createdAt = .now
+    }
+
+    var category: ExpenseCategory {
+        get { ExpenseCategory(rawValue: categoryRaw) ?? .other }
+        set { categoryRaw = newValue.rawValue }
+    }
+
+    var paymentMethod: PaymentMethod {
+        get { PaymentMethod(rawValue: paymentMethodRaw) ?? .unspecified }
+        set { paymentMethodRaw = newValue.rawValue }
+    }
+
+    func matches(_ merchant: String) -> Bool {
+        let pattern = merchantPattern.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !pattern.isEmpty && merchant.localizedCaseInsensitiveContains(pattern)
     }
 }
 

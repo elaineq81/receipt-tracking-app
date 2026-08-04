@@ -7,7 +7,7 @@ struct ReceiptArchiveApp: App {
         WindowGroup {
             RootView()
         }
-        .modelContainer(for: [ExpenseMatter.self, Receipt.self, ReceiptPage.self, ReceiptRevision.self])
+        .modelContainer(for: [ExpenseMatter.self, Receipt.self, ReceiptPage.self, ReceiptRevision.self, MerchantRule.self])
     }
 }
 

@@ -38,9 +38,9 @@ final class ExportService {
     }
 
     private func csv(_ receipts: [Receipt]) -> String {
-        var rows = ["Date,Merchant,Matter,Category,Currency,Subtotal,Tax,Total,Review Status,OCR Confidence,Validation Notes,Revision Count,Last Revised,Notes"]
+        var rows = ["Date,Merchant,Matter,Category,Payment Method,Reimbursement,Client or Cost Centre,Tags,Currency,Subtotal,Tax,Total,Review Status,OCR Confidence,Validation Notes,Revision Count,Last Revised,Notes"]
         rows += receipts.map {
-            [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.currencyCode, Self.number($0.subtotal), Self.number($0.tax), Self.number($0.total), $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisions.count)", $0.revisions.map(\.changedAt).max().map(Self.iso.string) ?? "", $0.notes]
+            [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.paymentMethod.rawValue, $0.reimbursementStatus.rawValue, $0.clientOrCostCentre, $0.tagsRaw, $0.currencyCode, Self.number($0.subtotal), Self.number($0.tax), Self.number($0.total), $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisions.count)", $0.revisions.map(\.changedAt).max().map(Self.iso.string) ?? "", $0.notes]
                 .map(Self.csvEscape).joined(separator: ",")
         }
         return "\u{FEFF}" + rows.joined(separator: "\r\n")
@@ -84,6 +84,7 @@ final class ExportService {
             for receipt in receipts {
                 draw("\(receipt.transactionDate.formatted(date: .abbreviated, time: .omitted))  \(receipt.merchant)", font: .boldSystemFont(ofSize: 13))
                 draw("\(receipt.category.rawValue) • \(receipt.matter?.name ?? "Unfiled") • \(receipt.total.formatted(.currency(code: receipt.currencyCode)))", font: .systemFont(ofSize: 11), color: .secondaryLabel)
+                draw("\(receipt.paymentMethod.rawValue) • \(receipt.reimbursementStatus.rawValue)\(receipt.clientOrCostCentre.isEmpty ? "" : " • " + receipt.clientOrCostCentre)", font: .systemFont(ofSize: 10), color: .secondaryLabel)
                 draw("Evidence: \(receipt.reviewStatus.title) • OCR \(String(format: "%.0f%%", receipt.ocrConfidence * 100))", font: .systemFont(ofSize: 10), color: receipt.reviewStatus == .verified ? .systemGreen : .systemOrange)
                 if !receipt.revisions.isEmpty { draw("Audit trail: \(receipt.revisions.count) field change\(receipt.revisions.count == 1 ? "" : "s")", font: .systemFont(ofSize: 10), color: .secondaryLabel) }
                 if let pageData = receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).first?.imageData,
@@ -100,9 +101,9 @@ final class ExportService {
     }
 
     private func workbook(receipts: [Receipt]) throws -> Data {
-        let headers = ["Date", "Merchant", "Matter", "Category", "Currency", "Subtotal", "Tax", "Total", "Review Status", "OCR Confidence", "Validation Notes", "Revision Count", "Last Revised", "Notes"]
+        let headers = ["Date", "Merchant", "Matter", "Category", "Payment Method", "Reimbursement", "Client or Cost Centre", "Tags", "Currency", "Subtotal", "Tax", "Total", "Review Status", "OCR Confidence", "Validation Notes", "Revision Count", "Last Revised", "Notes"]
         var rows = [headers]
-        rows += receipts.map { [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.currencyCode, Self.number($0.subtotal), Self.number($0.tax), Self.number($0.total), $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisions.count)", $0.revisions.map(\.changedAt).max().map(Self.iso.string) ?? "", $0.notes] }
+        rows += receipts.map { [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.paymentMethod.rawValue, $0.reimbursementStatus.rawValue, $0.clientOrCostCentre, $0.tagsRaw, $0.currencyCode, Self.number($0.subtotal), Self.number($0.tax), Self.number($0.total), $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisions.count)", $0.revisions.map(\.changedAt).max().map(Self.iso.string) ?? "", $0.notes] }
         func worksheet(_ sourceRows: [[String]]) -> String {
             let body = sourceRows.enumerated().map { rowIndex, columns in
             let cells = columns.enumerated().map { columnIndex, value in
@@ -126,7 +127,7 @@ final class ExportService {
 
     private func wordReport(receipts: [Receipt], title: String) throws -> Data {
         let rows = receipts.map { receipt in
-            "<w:tr><w:tc><w:p><w:r><w:t>\(Self.xml(Self.iso.string(from: receipt.transactionDate)))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.merchant))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.category.rawValue))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.currencyCode + " " + Self.number(receipt.total)))</w:t></w:r></w:p></w:tc></w:tr>"
+            "<w:tr><w:tc><w:p><w:r><w:t>\(Self.xml(Self.iso.string(from: receipt.transactionDate)))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.merchant))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.category.rawValue + " • " + receipt.paymentMethod.rawValue + " • " + receipt.reimbursementStatus.rawValue))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.currencyCode + " " + Self.number(receipt.total)))</w:t></w:r></w:p></w:tc></w:tr>"
         }.joined()
         let summary = summaryRows(receipts).dropFirst().map { "<w:p><w:r><w:t>\(Self.xml($0.joined(separator: " • ")))</w:t></w:r></w:p>" }.joined()
         let document = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body><w:p><w:r><w:rPr><w:b/><w:sz w:val=\"36\"/></w:rPr><w:t>\(Self.xml(title))</w:t></w:r></w:p><w:p><w:r><w:t>Expense summary generated \(Self.xml(Date.now.formatted()))</w:t></w:r></w:p>\(summary)<w:tbl><w:tr><w:tc><w:p><w:r><w:t>Date</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Merchant</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Category</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Total</w:t></w:r></w:p></w:tc></w:tr>\(rows)</w:tbl></w:body></w:document>"

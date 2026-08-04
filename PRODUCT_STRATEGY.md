@@ -45,6 +45,8 @@ This makes trust a product feature instead of hiding uncertainty behind automati
 - Matter, receipt, page, category, and multi-currency data model.
 - Human review, confidence score, validation warnings, verification state, and duplicate warning.
 - Risk-ranked attention inbox and editable receipts with field-level revision history.
+- Camera, Photos, image, and multi-page PDF ingestion through one evidence pipeline.
+- Payment, reimbursement, tags, client/cost-centre fields, and reusable merchant suggestion rules.
 - PDF, XLSX, CSV, DOCX, and JPG bundle exports.
 - Report readiness and evidence status in exported data.
 
@@ -52,9 +54,8 @@ This makes trust a product feature instead of hiding uncertainty behind automati
 
 - Revision export appendix with filters for material financial changes.
 - Multi-page receipt splitting and page quality checks.
-- Import receipt PDFs and images from Files, Photos, Share Sheet, and email forwarding.
-- Rules for repeat merchants, categories, payment methods, and matter assignment.
-- Tags, payment method, reimbursement state, client, cost centre, and custom fields.
+- Import through the iOS Share Sheet and optional email forwarding.
+- User-defined custom fields and reusable export mappings.
 - Line-item extraction where it materially improves tax or category reporting.
 
 ### Evidence-grade reporting

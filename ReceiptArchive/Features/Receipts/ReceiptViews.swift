@@ -1,7 +1,9 @@
+import PDFKit
 import PhotosUI
 import SwiftData
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 import VisionKit
 
 struct ReceiptsView: View {
@@ -128,6 +130,12 @@ struct ReceiptDetailView: View {
                 LabeledContent("Tax", value: receipt.tax.formatted(.currency(code: receipt.currencyCode)))
                 LabeledContent("Total", value: receipt.total.formatted(.currency(code: receipt.currencyCode))).fontWeight(.semibold)
             }
+            Section("Filing") {
+                LabeledContent("Payment", value: receipt.paymentMethod.rawValue)
+                LabeledContent("Reimbursement", value: receipt.reimbursementStatus.rawValue)
+                if !receipt.clientOrCostCentre.isEmpty { LabeledContent("Client / cost centre", value: receipt.clientOrCostCentre) }
+                if !receipt.tagsRaw.isEmpty { LabeledContent("Tags", value: receipt.tagsRaw) }
+            }
             Section("Evidence status") {
                 Label(receipt.reviewStatus.title, systemImage: receipt.reviewStatus.symbol)
                     .foregroundStyle(receipt.reviewStatus == .verified ? .green : .orange)
@@ -181,6 +189,10 @@ private struct ReceiptEditorView: View {
     @State private var tax: Decimal
     @State private var total: Decimal
     @State private var notes: String
+    @State private var paymentMethod: PaymentMethod
+    @State private var reimbursementStatus: ReimbursementStatus
+    @State private var tags: String
+    @State private var clientOrCostCentre: String
     @State private var reason = ""
     @State private var confirmedAgainstImage = false
 
@@ -195,6 +207,10 @@ private struct ReceiptEditorView: View {
         _tax = State(initialValue: receipt.tax)
         _total = State(initialValue: receipt.total)
         _notes = State(initialValue: receipt.notes)
+        _paymentMethod = State(initialValue: receipt.paymentMethod)
+        _reimbursementStatus = State(initialValue: receipt.reimbursementStatus)
+        _tags = State(initialValue: receipt.tagsRaw)
+        _clientOrCostCentre = State(initialValue: receipt.clientOrCostCentre)
     }
 
     private var warnings: [String] {
@@ -222,6 +238,12 @@ private struct ReceiptEditorView: View {
                 DecimalField("Tax", value: $tax)
                 DecimalField("Total", value: $total)
                 TextField("Notes", text: $notes, axis: .vertical)
+            }
+            Section("Filing") {
+                Picker("Payment", selection: $paymentMethod) { ForEach(PaymentMethod.allCases) { Text($0.rawValue).tag($0) } }
+                Picker("Reimbursement", selection: $reimbursementStatus) { ForEach(ReimbursementStatus.allCases) { Text($0.rawValue).tag($0) } }
+                TextField("Client or cost centre", text: $clientOrCostCentre)
+                TextField("Tags, separated by commas", text: $tags)
             }
             if !warnings.isEmpty {
                 Section("Needs attention") {
@@ -254,6 +276,10 @@ private struct ReceiptEditorView: View {
         record("Tax", NSDecimalNumber(decimal: receipt.tax).stringValue, NSDecimalNumber(decimal: tax).stringValue)
         record("Total", NSDecimalNumber(decimal: receipt.total).stringValue, NSDecimalNumber(decimal: total).stringValue)
         record("Notes", receipt.notes, notes)
+        record("Payment", receipt.paymentMethod.rawValue, paymentMethod.rawValue)
+        record("Reimbursement", receipt.reimbursementStatus.rawValue, reimbursementStatus.rawValue)
+        record("Client / cost centre", receipt.clientOrCostCentre, clientOrCostCentre)
+        record("Tags", receipt.tagsRaw, tags)
 
         receipt.merchant = merchant.trimmingCharacters(in: .whitespacesAndNewlines)
         receipt.transactionDate = transactionDate
@@ -264,6 +290,10 @@ private struct ReceiptEditorView: View {
         receipt.tax = tax
         receipt.total = total
         receipt.notes = notes
+        receipt.paymentMethod = paymentMethod
+        receipt.reimbursementStatus = reimbursementStatus
+        receipt.clientOrCostCentre = clientOrCostCentre.trimmingCharacters(in: .whitespacesAndNewlines)
+        receipt.tagsRaw = tags.trimmingCharacters(in: .whitespacesAndNewlines)
         receipt.validationNotes = warnings.joined(separator: "; ")
         receipt.fingerprint = ReceiptEvidence.fingerprint(merchant: merchant, date: transactionDate, total: total, currencyCode: currencyCode)
         receipt.reviewStatus = confirmedAgainstImage ? .verified : .needsReview
@@ -288,33 +318,49 @@ struct ScanFlowView: View {
     @State private var isReading = false
     @State private var errorMessage: String?
     @State private var didCapture = false
+    @State private var isShowingCamera = false
+    @State private var isImportingFile = false
     @State private var photoItems: [PhotosPickerItem] = []
 
     var body: some View {
         Group {
             if !didCapture {
-                if VNDocumentCameraViewController.isSupported {
+                if isShowingCamera && VNDocumentCameraViewController.isSupported {
                     DocumentScannerView { result in
                         switch result {
                         case .success(let scanned):
                             images = scanned
                             didCapture = !scanned.isEmpty
-                            if !scanned.isEmpty { readReceipt() } else { dismiss() }
+                            if !scanned.isEmpty { readReceipt() } else { isShowingCamera = false }
                         case .failure(let error): errorMessage = error.localizedDescription
                         }
                     }
                     .ignoresSafeArea()
                 } else {
-                    ContentUnavailableView {
-                        Label("Scanner unavailable", systemImage: "camera.fill")
-                    } description: {
-                        Text("Use an iPhone or iPad with a camera, or import receipt photos.")
-                    } actions: {
-                        PhotosPicker(selection: $photoItems, maxSelectionCount: 10, matching: .images) {
-                            Label("Import receipt photos", systemImage: "photo.on.rectangle")
+                    VStack(spacing: 18) {
+                        Spacer()
+                        Image(systemName: "doc.viewfinder.fill").font(.system(size: 62)).foregroundStyle(.teal)
+                        VStack(spacing: 8) {
+                            Text("Add a receipt").font(.largeTitle.bold())
+                            Text("Scan with automatic cropping, or import an existing image or PDF.")
+                                .multilineTextAlignment(.center).foregroundStyle(.secondary)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.teal)
+                        .padding(.horizontal, 28)
+                        VStack(spacing: 12) {
+                            Button { isShowingCamera = true } label: { Label("Scan with camera", systemImage: "camera.viewfinder").frame(maxWidth: .infinity) }
+                                .buttonStyle(.borderedProminent).tint(.teal).disabled(!VNDocumentCameraViewController.isSupported)
+                        PhotosPicker(selection: $photoItems, maxSelectionCount: 10, matching: .images) {
+                                Label("Choose from Photos", systemImage: "photo.on.rectangle").frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                            Button { isImportingFile = true } label: { Label("Import image or PDF", systemImage: "folder").frame(maxWidth: .infinity) }
+                                .buttonStyle(.bordered)
+                        }
+                        .controlSize(.large).padding(.horizontal, 32)
+                        if !VNDocumentCameraViewController.isSupported {
+                            Text("Camera scanning is unavailable on this device. Photos and Files still work.").font(.footnote).foregroundStyle(.secondary)
+                        }
+                        Spacer()
                     }
                 }
             } else if isReading {
@@ -323,7 +369,7 @@ struct ScanFlowView: View {
                 ReceiptReviewView(draft: draft, images: images, preselectedMatter: preselectedMatter) { dismiss() }
             }
         }
-        .navigationTitle("Scan receipt")
+        .navigationTitle("Add receipt")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
         .onChange(of: photoItems) { _, items in
@@ -339,6 +385,17 @@ struct ScanFlowView: View {
                 didCapture = !imported.isEmpty
                 if !imported.isEmpty { readReceipt() }
             }
+        }
+        .fileImporter(isPresented: $isImportingFile, allowedContentTypes: [.pdf, .image]) { result in
+            do {
+                let url = try result.get()
+                let access = url.startAccessingSecurityScopedResource()
+                defer { if access { url.stopAccessingSecurityScopedResource() } }
+                let imported = try ReceiptFileImporter.images(from: url)
+                images = imported
+                didCapture = !imported.isEmpty
+                if !imported.isEmpty { readReceipt() }
+            } catch { errorMessage = error.localizedDescription }
         }
         .alert("Couldn’t read receipt", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
             Button("Enter manually") { didCapture = true; isReading = false }
@@ -356,13 +413,44 @@ struct ScanFlowView: View {
     }
 }
 
+private enum ReceiptImportError: LocalizedError {
+    case unsupportedFile
+    case emptyPDF
+
+    var errorDescription: String? {
+        switch self {
+        case .unsupportedFile: "Choose a receipt image or PDF file."
+        case .emptyPDF: "The selected PDF does not contain any readable pages."
+        }
+    }
+}
+
+private enum ReceiptFileImporter {
+    static func images(from url: URL) throws -> [UIImage] {
+        if url.pathExtension.lowercased() == "pdf" {
+            guard let document = PDFDocument(url: url), document.pageCount > 0 else { throw ReceiptImportError.emptyPDF }
+            return (0..<min(document.pageCount, 20)).compactMap { index in
+                document.page(at: index)?.thumbnail(of: CGSize(width: 1800, height: 2400), for: .mediaBox)
+            }
+        }
+        guard let image = UIImage(contentsOfFile: url.path) else { throw ReceiptImportError.unsupportedFile }
+        return [image]
+    }
+}
+
 struct ReceiptReviewView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \ExpenseMatter.createdAt, order: .reverse) private var matters: [ExpenseMatter]
     @Query private var existingReceipts: [Receipt]
+    @Query(sort: \MerchantRule.createdAt) private var merchantRules: [MerchantRule]
     @State private var draft: OCRDraft
     @State private var selectedMatter: ExpenseMatter?
     @State private var notes = ""
+    @State private var paymentMethod = PaymentMethod.unspecified
+    @State private var reimbursementStatus = ReimbursementStatus.notApplicable
+    @State private var tags = ""
+    @State private var clientOrCostCentre = ""
+    @State private var appliedRuleID: UUID?
     @State private var confirmedAgainstImage = false
     @State private var showDuplicateAlert = false
     let images: [UIImage]
@@ -374,6 +462,10 @@ struct ReceiptReviewView: View {
 
     private var fingerprint: String {
         ReceiptEvidence.fingerprint(merchant: draft.merchant, date: draft.date, total: draft.total, currencyCode: draft.currencyCode)
+    }
+
+    private var matchingRule: MerchantRule? {
+        merchantRules.filter { $0.matches(draft.merchant) }.max { $0.merchantPattern.count < $1.merchantPattern.count }
     }
 
     init(draft: OCRDraft, images: [UIImage], preselectedMatter: ExpenseMatter?, didSave: @escaping () -> Void) {
@@ -416,6 +508,21 @@ struct ReceiptReviewView: View {
                 DecimalField("Tax", value: $draft.tax)
                 DecimalField("Total", value: $draft.total)
             }
+            if let rule = matchingRule, appliedRuleID != rule.id {
+                Section("Merchant rule available") {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Matches “\(rule.merchantPattern)”").font(.subheadline.weight(.semibold))
+                        Text("Apply its category and filing suggestions, then review them before saving.").font(.footnote).foregroundStyle(.secondary)
+                    }
+                    Button("Apply suggestions") { apply(rule) }
+                }
+            }
+            Section("Filing") {
+                Picker("Payment", selection: $paymentMethod) { ForEach(PaymentMethod.allCases) { Text($0.rawValue).tag($0) } }
+                Picker("Reimbursement", selection: $reimbursementStatus) { ForEach(ReimbursementStatus.allCases) { Text($0.rawValue).tag($0) } }
+                TextField("Client or cost centre", text: $clientOrCostCentre)
+                TextField("Tags, separated by commas", text: $tags)
+            }
             Section("Notes") { TextField("Optional notes", text: $notes, axis: .vertical) }
             Section("Verification") {
                 Toggle("I checked this against the receipt image", isOn: $confirmedAgainstImage)
@@ -444,7 +551,7 @@ struct ReceiptReviewView: View {
 
     private func saveReceipt() {
         let status: ReceiptReviewStatus = confirmedAgainstImage ? .verified : .needsReview
-        let receipt = Receipt(merchant: draft.merchant, transactionDate: draft.date, currencyCode: draft.currencyCode.uppercased(), subtotal: draft.subtotal, tax: draft.tax, total: draft.total, category: draft.category, notes: notes, ocrText: draft.fullText, ocrConfidence: draft.confidence, reviewStatus: status, reviewedAt: confirmedAgainstImage ? .now : nil, validationNotes: currentWarnings.joined(separator: "; "), fingerprint: fingerprint, matter: selectedMatter)
+        let receipt = Receipt(merchant: draft.merchant, transactionDate: draft.date, currencyCode: draft.currencyCode.uppercased(), subtotal: draft.subtotal, tax: draft.tax, total: draft.total, category: draft.category, notes: notes, ocrText: draft.fullText, ocrConfidence: draft.confidence, reviewStatus: status, reviewedAt: confirmedAgainstImage ? .now : nil, validationNotes: currentWarnings.joined(separator: "; "), fingerprint: fingerprint, paymentMethod: paymentMethod, reimbursementStatus: reimbursementStatus, tags: tags.trimmingCharacters(in: .whitespacesAndNewlines), clientOrCostCentre: clientOrCostCentre.trimmingCharacters(in: .whitespacesAndNewlines), matter: selectedMatter)
         modelContext.insert(receipt)
         for (index, image) in images.enumerated() {
             if let data = image.jpegData(compressionQuality: 0.88) {
@@ -455,6 +562,15 @@ struct ReceiptReviewView: View {
         }
         try? modelContext.save()
         didSave()
+    }
+
+    private func apply(_ rule: MerchantRule) {
+        draft.category = rule.category
+        paymentMethod = rule.paymentMethod
+        tags = rule.tags
+        clientOrCostCentre = rule.clientOrCostCentre
+        if let matterID = rule.matterID { selectedMatter = matters.first(where: { $0.id == matterID }) }
+        appliedRuleID = rule.id
     }
 }
 

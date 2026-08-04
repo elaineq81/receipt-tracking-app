@@ -13,6 +13,9 @@ Its differentiator is a **Receipt Evidence Record**: visible OCR confidence, val
 - See OCR confidence and validation warnings, verify against the image, and catch likely duplicates before saving.
 - Edit saved receipts with a permanent field-by-field before/after history and optional change reason.
 - Work through a risk-ranked Attention inbox so the most uncertain records are corrected first.
+- Import existing receipt images and multi-page PDFs from Files, or choose images through Apple’s privacy-preserving Photos picker.
+- Track payment method, reimbursement status, tags, and client or cost centre through review, editing, and exports.
+- Create reusable merchant rules that suggest trusted filing details without silently overwriting the receipt.
 - Organize and search receipts by date, merchant, category, and matter.
 - Summaries by matter, category, date, and currency. Different currencies are never silently combined.
 - Report-readiness counts and verification status embedded in PDF, XLSX, and CSV outputs.
