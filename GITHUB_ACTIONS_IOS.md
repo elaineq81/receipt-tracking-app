@@ -9,7 +9,7 @@ The `iOS Build` workflow runs on every push and pull request to `main`, and can 
 3. generates `ReceiptArchive.xcodeproj` from `project.yml`; and
 4. compiles the app for a generic iOS Simulator without code signing.
 
-This catches Xcode-generation and Swift compilation failures. Camera scanning still needs a physical iPhone or iPad, and TestFlight/App Store uploads still require the owner's Apple Developer team, signing assets, final bundle identifier, and App Store Connect record.
+This catches Xcode-generation and Swift compilation failures on the current App Store toolchain. Camera scanning still needs a physical iPhone, and TestFlight/App Store uploads still require the owner's Apple Developer team, signing assets, final bundle identifier, and App Store Connect record.
 
 ## Reading a run
 
@@ -18,4 +18,3 @@ This catches Xcode-generation and Swift compilation failures. Camera scanning st
 - The workflow does not upload builds, receipts, signing certificates, or provisioning profiles.
 
 Do not commit Apple signing certificates, provisioning profiles, API keys, or App Store Connect private keys. Use GitHub encrypted secrets only if a later release workflow is intentionally added.
-

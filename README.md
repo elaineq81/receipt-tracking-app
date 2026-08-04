@@ -33,11 +33,11 @@ Its differentiator is a **Receipt Evidence Record**: visible OCR confidence, val
 
 This repository uses [XcodeGen](https://github.com/yonaskolb/XcodeGen) to produce a deterministic Xcode project.
 
-1. On a Mac, install Xcode 16 or newer and XcodeGen (`brew install xcodegen`).
+1. On a Mac, install Xcode 26 or newer with the iOS 26 SDK and XcodeGen (`brew install xcodegen`).
 2. In this folder, run `xcodegen generate`.
 3. Open `ReceiptArchive.xcodeproj` and select the `ReceiptArchive` scheme.
 4. In Signing & Capabilities, select your Apple Developer team and register or replace `com.bodywiseremedy.receiptsure`.
-5. Run on a physical iPhone or iPad to test document scanning. The simulator cannot exercise the document camera.
+5. Run on a physical iPhone to test document scanning. The simulator cannot exercise the document camera.
 
 Minimum deployment target: iOS 17.0. No third-party runtime packages are required.
 

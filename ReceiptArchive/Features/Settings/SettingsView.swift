@@ -44,11 +44,16 @@ struct SettingsView: View {
             Section("About") {
                 LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
                 NavigationLink("Privacy summary") { PrivacySummaryView() }
+                Link("Privacy policy", destination: Self.privacyPolicyURL)
+                Link("Help & support", destination: Self.supportURL)
                 Button("Show onboarding again") { hasCompletedOnboarding = false }
             }
         }
         .navigationTitle("Settings")
     }
+
+    private static let privacyPolicyURL = URL(string: "https://receipt-tracking-app-lemon.vercel.app/privacy")!
+    private static let supportURL = URL(string: "https://receipt-tracking-app-lemon.vercel.app/support")!
 
     private var backupStatus: String {
         guard lastSecureBackupAt > 0 else { return "No secure backup created" }

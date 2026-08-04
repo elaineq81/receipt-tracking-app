@@ -8,6 +8,10 @@
 - Positioning line: **Scan it. Check it. Prove it.**
 - Primary category: Finance
 - Secondary category: Productivity
+- Suggested SKU: **BWR-RECEIPTSURE-IOS-001**
+- Marketing URL: **https://receipt-tracking-app-lemon.vercel.app**
+- Support URL: **https://receipt-tracking-app-lemon.vercel.app/support**
+- Privacy policy URL: **https://receipt-tracking-app-lemon.vercel.app/privacy**
 
 The App Store name is 26 characters and the subtitle is exactly 30 characters. Both fit Apple’s current limits. Availability must be confirmed by successfully creating and saving the app record in the owner’s App Store Connect account; public catalog screening cannot detect unpublished reservations.
 
@@ -47,3 +51,4 @@ Scan it. Check it. Prove it. ReceiptSure keeps every expense connected to the tr
 - [ ] Register `com.bodywiseremedy.receiptsure` in the Apple Developer account.
 - [ ] Save the accepted app record to reserve the localized name.
 - [ ] Recheck screenshots, icon, privacy policy, support URL, and review notes for the ReceiptSure brand.
+- [ ] Complete every owner-controlled field in `APP_STORE_CONNECT_SUBMISSION.md`.
