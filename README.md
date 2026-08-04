@@ -39,3 +39,9 @@ See `RELEASE_CHECKLIST.md` for the TestFlight and App Store Connect pathway.
 ## GitHub trail
 
 The repository is structured as a standalone public iOS project, separate from Bodywise Remedy. `.github/workflows/ios-ci.yml` generates the Xcode project and builds it on a hosted Mac for every push and pull request to `main`. See `GITHUB_ACTIONS_IOS.md` and `IOS_APP_READINESS.md` for the verification and handoff trail.
+
+## Interactive web preview
+
+The browser-based product sample lives in `web-demo/` and is deployed through the dedicated Receipt Tracking Vercel project: <https://receipt-tracking-app-lemon.vercel.app>.
+
+The preview uses sample data and simulates the proposed iPhone workflow. The native SwiftUI app remains the production implementation for camera scanning, on-device OCR, local persistence, and file exports.
