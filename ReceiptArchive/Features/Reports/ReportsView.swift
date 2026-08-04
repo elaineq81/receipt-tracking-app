@@ -1,0 +1,141 @@
+import SwiftData
+import SwiftUI
+
+enum ExportFormat: String, CaseIterable, Identifiable {
+    case pdf = "PDF report"
+    case xlsx = "Excel workbook"
+    case csv = "CSV table"
+    case docx = "Word report"
+    case images = "JPG bundle"
+
+    var id: String { rawValue }
+    var symbol: String {
+        switch self {
+        case .pdf: "doc.richtext"
+        case .xlsx: "tablecells"
+        case .csv: "text.line.first.and.arrowtriangle.forward"
+        case .docx: "doc.text"
+        case .images: "photo.stack"
+        }
+    }
+}
+
+struct ReportsView: View {
+    @Query(sort: \Receipt.transactionDate, order: .reverse) private var receipts: [Receipt]
+    @Query(sort: \ExpenseMatter.createdAt, order: .reverse) private var matters: [ExpenseMatter]
+    @State private var selectedMatter: ExpenseMatter?
+    @State private var format = ExportFormat.pdf
+    @State private var shareItem: ShareItem?
+    @State private var isExporting = false
+    @State private var errorMessage: String?
+
+    private var selectedReceipts: [Receipt] {
+        guard let selectedMatter else { return receipts }
+        return receipts.filter { $0.matter?.id == selectedMatter.id }
+    }
+
+    private var totals: [(String, Decimal)] {
+        Dictionary(grouping: selectedReceipts, by: \Receipt.currencyCode)
+            .map { ($0.key, $0.value.reduce(Decimal.zero) { $0 + $1.total }) }
+            .sorted { $0.0 < $1.0 }
+    }
+
+    var body: some View {
+        Form {
+            Section("Report scope") {
+                Picker("Matter", selection: $selectedMatter) {
+                    Text("All receipts").tag(nil as ExpenseMatter?)
+                    ForEach(matters) { Text($0.name).tag(Optional($0)) }
+                }
+                LabeledContent("Receipts", value: "\(selectedReceipts.count)")
+            }
+            Section("Totals by currency") {
+                if totals.isEmpty { Text("No expenses in this selection").foregroundStyle(.secondary) }
+                ForEach(totals, id: \.0) { code, total in
+                    LabeledContent(code, value: total.formatted(.currency(code: code)))
+                }
+            }
+            Section("Totals by category") {
+                ForEach(ExpenseCategory.allCases) { category in
+                    let rows = selectedReceipts.filter { $0.category == category }
+                    if !rows.isEmpty {
+                        NavigationLink {
+                            CategoryBreakdownView(category: category, receipts: rows)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Label(category.rawValue, systemImage: category.symbol)
+                                Text(Self.totalLine(rows)).font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+            }
+            Section("Totals by date") {
+                ForEach(Dictionary(grouping: selectedReceipts, by: { Calendar.current.startOfDay(for: $0.transactionDate) }).keys.sorted(by: >), id: \.self) { day in
+                    let rows = selectedReceipts.filter { Calendar.current.isDate($0.transactionDate, inSameDayAs: day) }
+                    LabeledContent(day.formatted(date: .abbreviated, time: .omitted), value: Self.totalLine(rows))
+                }
+            }
+            Section("Export") {
+                Picker("Format", selection: $format) {
+                    ForEach(ExportFormat.allCases) { Label($0.rawValue, systemImage: $0.symbol).tag($0) }
+                }
+                Button {
+                    export()
+                } label: {
+                    HStack {
+                        if isExporting { ProgressView() }
+                        Label(isExporting ? "Preparing…" : "Create & share report", systemImage: "square.and.arrow.up")
+                    }
+                }
+                .disabled(selectedReceipts.isEmpty || isExporting)
+            }
+        }
+        .navigationTitle("Reports")
+        .sheet(item: $shareItem) { item in ShareSheet(items: [item.url]) }
+        .alert("Export failed", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: { Text(errorMessage ?? "Unknown error") }
+    }
+
+    private func export() {
+        isExporting = true
+        let rows = selectedReceipts
+        let title = selectedMatter?.name ?? "All Expenses"
+        Task {
+            do {
+                let url = try await ExportService().create(format: format, receipts: rows, title: title)
+                shareItem = ShareItem(url: url)
+            } catch { errorMessage = error.localizedDescription }
+            isExporting = false
+        }
+    }
+
+    private static func totalLine(_ rows: [Receipt]) -> String {
+        Dictionary(grouping: rows, by: \Receipt.currencyCode)
+            .map { currency, values in
+                values.reduce(Decimal.zero) { $0 + $1.total }.formatted(.currency(code: currency))
+            }
+            .sorted().joined(separator: " • ")
+    }
+}
+
+private struct CategoryBreakdownView: View {
+    let category: ExpenseCategory
+    let receipts: [Receipt]
+    var body: some View {
+        List(receipts) { receipt in ReceiptRow(receipt: receipt) }
+            .navigationTitle(category.rawValue)
+    }
+}
+
+struct ShareItem: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    func makeUIViewController(context: Context) -> UIActivityViewController { UIActivityViewController(activityItems: items, applicationActivities: nil) }
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
