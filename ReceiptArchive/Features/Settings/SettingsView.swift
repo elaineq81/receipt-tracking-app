@@ -3,6 +3,9 @@ import SwiftUI
 
 struct SettingsView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
+    @AppStorage("deviceLockEnabled") private var deviceLockEnabled = false
+    @AppStorage("privacyScreenEnabled") private var privacyScreenEnabled = true
+    @AppStorage("lastSecureBackupAt") private var lastSecureBackupAt = 0.0
 
     var body: some View {
         Form {
@@ -10,6 +13,18 @@ struct SettingsView: View {
                 Label("Stored on this device", systemImage: "iphone.and.arrow.forward")
                 Text("Receipt images and extracted expense details stay in the app’s private local store. Nothing is uploaded by this version.")
                     .font(.footnote).foregroundStyle(.secondary)
+            }
+            Section("Security & continuity") {
+                Toggle(isOn: $deviceLockEnabled) { Label("Require Face ID or passcode", systemImage: "faceid") }
+                Toggle(isOn: $privacyScreenEnabled) { Label("Hide content in app switcher", systemImage: "eye.slash.fill") }
+                NavigationLink {
+                    SecureBackupView()
+                } label: {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Label("Encrypted backup & restore", systemImage: "externaldrive.badge.icloud")
+                        Text(backupStatus).font(.caption).foregroundStyle(backupStatusColor)
+                    }
+                }
             }
             Section("Capture & accuracy") {
                 Label("Automatic edge detection and crop", systemImage: "viewfinder")
@@ -33,6 +48,16 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("Settings")
+    }
+
+    private var backupStatus: String {
+        guard lastSecureBackupAt > 0 else { return "No secure backup created" }
+        return "Last backup \(Date(timeIntervalSince1970: lastSecureBackupAt).formatted(.relative(presentation: .named)))"
+    }
+
+    private var backupStatusColor: Color {
+        guard lastSecureBackupAt > 0 else { return .orange }
+        return Date.now.timeIntervalSince1970 - lastSecureBackupAt < 30 * 86_400 ? .green : .orange
     }
 }
 
@@ -135,6 +160,8 @@ private struct PrivacySummaryView: View {
             Section("Camera") { Text("Used only when you choose to scan a receipt. VisionKit detects the document boundary and crops the image.") }
             Section("Photos") { Text("The system photo picker can import only the images you select; the app does not request broad photo library access.") }
             Section("Files") { Text("The system file picker grants temporary access only to the image or PDF you select. Imported pages are stored inside the app’s private local database.") }
+            Section("Protection") { Text("Optional device authentication uses Face ID, Touch ID, or the device passcode. Privacy shielding hides receipt content when the app is not active.") }
+            Section("Backups") { Text("Secure archives are encrypted locally with AES-GCM and a password-derived key. The password is never stored or uploaded, and restore only adds missing records.") }
             Section("Sharing") { Text("Exports leave the app only when you choose a destination in Apple’s share sheet.") }
             Section("Collection") { Text("This version includes no accounts, analytics, advertising, tracking, or server upload.") }
         }

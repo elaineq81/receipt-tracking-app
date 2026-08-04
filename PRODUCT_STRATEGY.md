@@ -49,6 +49,7 @@ This makes trust a product feature instead of hiding uncertainty behind automati
 - Payment, reimbursement, tags, client/cost-centre fields, and reusable merchant suggestion rules.
 - Tips, discounts, named tax, arithmetic reconciliation, and explicit exchange-rate provenance.
 - Evidence-pack cover sheets with readiness, exceptions, native totals, converted totals, and receipt appendix.
+- Device-owner authentication, app-switcher privacy shielding, encrypted full-library backup, merge-only restore, and backup-health status.
 - PDF, XLSX, CSV, DOCX, and JPG bundle exports.
 - Report readiness and evidence status in exported data.
 
@@ -68,9 +69,8 @@ This makes trust a product feature instead of hiding uncertainty behind automati
 
 ### Secure continuity
 
-- Face ID app lock and privacy-screen controls.
 - Encrypted iCloud sync and device-to-device continuity as an opt-in feature.
-- Backup health indicator, archive import, and disaster-recovery test.
+- Automated restore fixtures and disaster-recovery testing in CI.
 - Optional collaboration with explicit roles and a complete audit trail.
 
 ## Success measures

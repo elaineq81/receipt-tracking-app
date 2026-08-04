@@ -19,6 +19,9 @@ Its differentiator is a **Receipt Evidence Record**: visible OCR confidence, val
 - Reconcile subtotal, named tax, tip, and discount against the final total with a visible exception when figures differ.
 - Record an optional reporting-currency rate together with its source and effective date; incomplete conversions are excluded from converted totals.
 - Produce PDF evidence packs with a readiness cover sheet, original-currency totals, supported reporting totals, exceptions, and a receipt-image appendix.
+- Protect the app with Face ID, Touch ID, or device passcode and obscure private content in the app switcher.
+- Create password-protected AES-GCM archives containing receipt images, revisions, matters, and rules; restore merges missing records without deleting current data.
+- Monitor backup health and see the last successful restore time.
 - Organize and search receipts by date, merchant, category, and matter.
 - Summaries by matter, category, date, and currency. Different currencies are never silently combined.
 - Report-readiness counts and verification status embedded in PDF, XLSX, and CSV outputs.
