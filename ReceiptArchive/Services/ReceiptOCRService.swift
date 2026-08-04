@@ -11,6 +11,31 @@ struct OCRDraft: Sendable {
     var total = Decimal.zero
     var category = ExpenseCategory.other
     var fullText = ""
+    var confidence: Double = 0
+    var warnings: [String] = []
+}
+
+struct ReceiptEvidence {
+    static func warnings(merchant: String, date: Date, subtotal: Decimal, tax: Decimal, total: Decimal, currencyCode: String, ocrConfidence: Double) -> [String] {
+        var issues: [String] = []
+        if merchant.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { issues.append("Merchant is missing") }
+        if total <= 0 { issues.append("Total must be checked") }
+        if tax < 0 || subtotal < 0 { issues.append("Negative figures need checking") }
+        if subtotal > 0, tax >= 0, abs(NSDecimalNumber(decimal: subtotal + tax - total).doubleValue) > 0.02 {
+            issues.append("Subtotal plus tax does not match total")
+        }
+        if currencyCode.count != 3 { issues.append("Currency code is incomplete") }
+        if date > Calendar.current.date(byAdding: .day, value: 1, to: .now)! { issues.append("Date appears to be in the future") }
+        if ocrConfidence < 0.72 { issues.append("Scan confidence is low") }
+        return issues
+    }
+
+    static func fingerprint(merchant: String, date: Date, total: Decimal, currencyCode: String) -> String {
+        let normalizedMerchant = merchant.lowercased().filter(\.isLetter)
+        let day = date.formatted(.iso8601.year().month().day())
+        let amount = NSDecimalNumber(decimal: total).stringValue
+        return "\(normalizedMerchant)|\(day)|\(currencyCode.uppercased())|\(amount)"
+    }
 }
 
 enum ReceiptOCRError: LocalizedError {
@@ -27,23 +52,26 @@ enum ReceiptOCRError: LocalizedError {
 
 actor ReceiptOCRService {
     func recognize(images: [UIImage]) async throws -> OCRDraft {
-        let texts = try await withThrowingTaskGroup(of: String.self) { group in
+        let pages = try await withThrowingTaskGroup(of: RecognizedPage.self) { group in
             for image in images {
                 group.addTask { try await Self.recognize(image: image) }
             }
-            var results: [String] = []
-            for try await text in group { results.append(text) }
+            var results: [RecognizedPage] = []
+            for try await page in group { results.append(page) }
             return results
         }
 
-        let text = texts.joined(separator: "\n--- PAGE ---\n")
+        let text = pages.map(\.text).joined(separator: "\n--- PAGE ---\n")
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw ReceiptOCRError.noText
         }
-        return Self.parse(text: text)
+        let confidence = pages.isEmpty ? 0 : pages.map(\.confidence).reduce(0, +) / Double(pages.count)
+        return Self.parse(text: text, confidence: confidence)
     }
 
-    private static func recognize(image: UIImage) async throws -> String {
+    private struct RecognizedPage: Sendable { let text: String; let confidence: Double }
+
+    private static func recognize(image: UIImage) async throws -> RecognizedPage {
         guard let cgImage = image.cgImage else { throw ReceiptOCRError.invalidImage }
         return try await withCheckedThrowingContinuation { continuation in
             let request = VNRecognizeTextRequest { request, error in
@@ -52,8 +80,10 @@ actor ReceiptOCRService {
                     return
                 }
                 let observations = request.results as? [VNRecognizedTextObservation] ?? []
-                let text = observations.compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
-                continuation.resume(returning: text)
+                let candidates = observations.compactMap { $0.topCandidates(1).first }
+                let text = candidates.map(\.string).joined(separator: "\n")
+                let confidence = candidates.isEmpty ? 0 : candidates.map { Double($0.confidence) }.reduce(0, +) / Double(candidates.count)
+                continuation.resume(returning: RecognizedPage(text: text, confidence: confidence))
             }
             request.recognitionLevel = .accurate
             request.usesLanguageCorrection = true
@@ -66,12 +96,13 @@ actor ReceiptOCRService {
         }
     }
 
-    private static func parse(text: String) -> OCRDraft {
+    private static func parse(text: String, confidence: Double) -> OCRDraft {
         let lines = text.components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
         var draft = OCRDraft()
         draft.fullText = text
+        draft.confidence = confidence
         draft.merchant = lines.first(where: { $0.rangeOfCharacter(from: .letters) != nil }) ?? ""
         draft.currencyCode = detectCurrency(in: text)
 
@@ -88,6 +119,7 @@ actor ReceiptOCRService {
             ?? amountsByLine.flatMap { $0.1 }.max() ?? .zero
         if draft.subtotal == .zero, draft.total >= draft.tax { draft.subtotal = draft.total - draft.tax }
         draft.category = inferCategory(from: text.lowercased())
+        draft.warnings = ReceiptEvidence.warnings(merchant: draft.merchant, date: draft.date, subtotal: draft.subtotal, tax: draft.tax, total: draft.total, currencyCode: draft.currencyCode, ocrConfidence: confidence)
         return draft
     }
 

@@ -8,11 +8,15 @@ struct ReceiptsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Receipt.transactionDate, order: .reverse) private var receipts: [Receipt]
     @State private var search = ""
+    @State private var scope = ReceiptScope.all
     let scan: () -> Void
 
     private var filtered: [Receipt] {
-        guard !search.isEmpty else { return receipts }
-        return receipts.filter { $0.merchant.localizedCaseInsensitiveContains(search) || $0.categoryRaw.localizedCaseInsensitiveContains(search) || ($0.matter?.name.localizedCaseInsensitiveContains(search) ?? false) }
+        receipts.filter { receipt in
+            let matchesScope = scope == .all || (scope == .needsReview ? receipt.reviewStatus == .needsReview : receipt.reviewStatus == .verified)
+            let matchesSearch = search.isEmpty || receipt.merchant.localizedCaseInsensitiveContains(search) || receipt.categoryRaw.localizedCaseInsensitiveContains(search) || (receipt.matter?.name.localizedCaseInsensitiveContains(search) ?? false)
+            return matchesScope && matchesSearch
+        }
     }
 
     var body: some View {
@@ -24,6 +28,11 @@ struct ReceiptsView: View {
                 actions: { Button("Scan receipt", action: scan).buttonStyle(.borderedProminent).tint(.teal) }
             } else {
                 List {
+                    Picker("Receipt status", selection: $scope) {
+                        ForEach(ReceiptScope.allCases) { Text($0.title).tag($0) }
+                    }
+                    .pickerStyle(.segmented)
+                    .listRowBackground(Color.clear)
                     ForEach(Dictionary(grouping: filtered, by: { Calendar.current.startOfDay(for: $0.transactionDate) }).keys.sorted(by: >), id: \.self) { day in
                         Section(day.formatted(date: .complete, time: .omitted)) {
                             ForEach(filtered.filter { Calendar.current.isDate($0.transactionDate, inSameDayAs: day) }) { receipt in
@@ -44,6 +53,12 @@ struct ReceiptsView: View {
     }
 }
 
+private enum ReceiptScope: String, CaseIterable, Identifiable {
+    case all, needsReview, verified
+    var id: String { rawValue }
+    var title: String { self == .all ? "All" : (self == .needsReview ? "Review" : "Verified") }
+}
+
 struct ReceiptRow: View {
     let receipt: Receipt
     var body: some View {
@@ -53,6 +68,9 @@ struct ReceiptRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(receipt.merchant.isEmpty ? "Unlabeled receipt" : receipt.merchant).font(.headline)
                 Text([receipt.category.rawValue, receipt.matter?.name].compactMap { $0 }.joined(separator: " • ")).font(.caption).foregroundStyle(.secondary)
+                Label(receipt.reviewStatus.title, systemImage: receipt.reviewStatus.symbol)
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(receipt.reviewStatus == .verified ? .green : .orange)
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 3) {
@@ -90,6 +108,15 @@ struct ReceiptDetailView: View {
                 LabeledContent("Subtotal", value: receipt.subtotal.formatted(.currency(code: receipt.currencyCode)))
                 LabeledContent("Tax", value: receipt.tax.formatted(.currency(code: receipt.currencyCode)))
                 LabeledContent("Total", value: receipt.total.formatted(.currency(code: receipt.currencyCode))).fontWeight(.semibold)
+            }
+            Section("Evidence status") {
+                Label(receipt.reviewStatus.title, systemImage: receipt.reviewStatus.symbol)
+                    .foregroundStyle(receipt.reviewStatus == .verified ? .green : .orange)
+                LabeledContent("OCR confidence", value: receipt.ocrConfidence.formatted(.percent.precision(.fractionLength(0))))
+                if let reviewedAt = receipt.reviewedAt {
+                    LabeledContent("Checked", value: reviewedAt.formatted(date: .abbreviated, time: .shortened))
+                }
+                if !receipt.validationNotes.isEmpty { Text(receipt.validationNotes).font(.footnote).foregroundStyle(.secondary) }
             }
             if !receipt.notes.isEmpty { Section("Notes") { Text(receipt.notes) } }
             if !receipt.ocrText.isEmpty { Section("Recognized text") { Text(receipt.ocrText).font(.caption).textSelection(.enabled) } }
@@ -178,11 +205,22 @@ struct ScanFlowView: View {
 struct ReceiptReviewView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \ExpenseMatter.createdAt, order: .reverse) private var matters: [ExpenseMatter]
+    @Query private var existingReceipts: [Receipt]
     @State private var draft: OCRDraft
     @State private var selectedMatter: ExpenseMatter?
     @State private var notes = ""
+    @State private var confirmedAgainstImage = false
+    @State private var showDuplicateAlert = false
     let images: [UIImage]
     let didSave: () -> Void
+
+    private var currentWarnings: [String] {
+        ReceiptEvidence.warnings(merchant: draft.merchant, date: draft.date, subtotal: draft.subtotal, tax: draft.tax, total: draft.total, currencyCode: draft.currencyCode, ocrConfidence: draft.confidence)
+    }
+
+    private var fingerprint: String {
+        ReceiptEvidence.fingerprint(merchant: draft.merchant, date: draft.date, total: draft.total, currencyCode: draft.currencyCode)
+    }
 
     init(draft: OCRDraft, images: [UIImage], preselectedMatter: ExpenseMatter?, didSave: @escaping () -> Void) {
         self._draft = State(initialValue: draft)
@@ -196,6 +234,17 @@ struct ReceiptReviewView: View {
             if let image = images.first {
                 Section { Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 220).frame(maxWidth: .infinity) }
             }
+            Section {
+                HStack {
+                    Label(draft.confidence >= 0.85 ? "Strong scan" : "Review recommended", systemImage: draft.confidence >= 0.85 ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                    Spacer()
+                    Text(draft.confidence.formatted(.percent.precision(.fractionLength(0)))).fontWeight(.semibold)
+                }
+                .foregroundStyle(draft.confidence >= 0.85 ? .green : .orange)
+                ForEach(currentWarnings, id: \.self) { warning in
+                    Label(warning, systemImage: "exclamationmark.circle").font(.footnote).foregroundStyle(.secondary)
+                }
+            } header: { Text("Scan confidence") } footer: { Text("Confidence describes text recognition quality, not whether an expense is valid.") }
             Section("Check the extracted details") {
                 TextField("Merchant", text: $draft.merchant)
                 DatePicker("Date", selection: $draft.date, displayedComponents: .date)
@@ -214,27 +263,44 @@ struct ReceiptReviewView: View {
                 DecimalField("Total", value: $draft.total)
             }
             Section("Notes") { TextField("Optional notes", text: $notes, axis: .vertical) }
-            Section { Text("OCR can make mistakes. Confirm the merchant, date, currency, and total against the image before saving.").font(.footnote).foregroundStyle(.secondary) }
+            Section("Verification") {
+                Toggle("I checked this against the receipt image", isOn: $confirmedAgainstImage)
+                Text(confirmedAgainstImage ? "This receipt will be marked Verified." : "You can save it, but it will remain in Needs Review.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
         }
         .navigationTitle("Review receipt")
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
-                    let receipt = Receipt(merchant: draft.merchant, transactionDate: draft.date, currencyCode: draft.currencyCode.uppercased(), subtotal: draft.subtotal, tax: draft.tax, total: draft.total, category: draft.category, notes: notes, ocrText: draft.fullText, matter: selectedMatter)
-                    modelContext.insert(receipt)
-                    for (index, image) in images.enumerated() {
-                        if let data = image.jpegData(compressionQuality: 0.88) {
-                            let page = ReceiptPage(imageData: data, pageIndex: index)
-                            modelContext.insert(page)
-                            receipt.pages.append(page)
-                        }
-                    }
-                    try? modelContext.save()
-                    didSave()
+                    if existingReceipts.contains(where: { $0.fingerprint == fingerprint && !$0.fingerprint.isEmpty }) {
+                        showDuplicateAlert = true
+                    } else { saveReceipt() }
                 }
                 .disabled(draft.merchant.trimmingCharacters(in: .whitespaces).isEmpty || draft.total < 0 || draft.currencyCode.count != 3)
             }
         }
+        .alert("Possible duplicate", isPresented: $showDuplicateAlert) {
+            Button("Save anyway") { saveReceipt() }
+            Button("Keep reviewing", role: .cancel) {}
+        } message: {
+            Text("A receipt with the same merchant, date, currency, and total is already saved.")
+        }
+    }
+
+    private func saveReceipt() {
+        let status: ReceiptReviewStatus = confirmedAgainstImage ? .verified : .needsReview
+        let receipt = Receipt(merchant: draft.merchant, transactionDate: draft.date, currencyCode: draft.currencyCode.uppercased(), subtotal: draft.subtotal, tax: draft.tax, total: draft.total, category: draft.category, notes: notes, ocrText: draft.fullText, ocrConfidence: draft.confidence, reviewStatus: status, reviewedAt: confirmedAgainstImage ? .now : nil, validationNotes: currentWarnings.joined(separator: "; "), fingerprint: fingerprint, matter: selectedMatter)
+        modelContext.insert(receipt)
+        for (index, image) in images.enumerated() {
+            if let data = image.jpegData(compressionQuality: 0.88) {
+                let page = ReceiptPage(imageData: data, pageIndex: index)
+                modelContext.insert(page)
+                receipt.pages.append(page)
+            }
+        }
+        try? modelContext.save()
+        didSave()
     }
 }
 

@@ -2,14 +2,18 @@
 
 Receipt Archive is a native, offline-first SwiftUI app for scanning and organizing receipts by trip, event, or matter. It uses VisionKit for automatic document detection/cropping, Vision for on-device OCR, SwiftData for local persistence, and Apple’s share sheet for exports.
 
+Its differentiator is a **Receipt Evidence Record**: visible OCR confidence, validation warnings, duplicate protection, human verification, and evidence status carried into exported reports. See `PRODUCT_STRATEGY.md` for the competitive position and delivery roadmap.
+
 ## Included in this build
 
 - Create trips, events, and matters with optional dates and notes.
 - Scan multi-page receipts with `VNDocumentCameraViewController` automatic edge detection and crop.
 - Extract merchant, date, currency, subtotal, tax, total, and a suggested category on-device.
 - Review and correct every extracted field before saving.
+- See OCR confidence and validation warnings, verify against the image, and catch likely duplicates before saving.
 - Organize and search receipts by date, merchant, category, and matter.
 - Summaries by matter, category, date, and currency. Different currencies are never silently combined.
+- Report-readiness counts and verification status embedded in PDF, XLSX, and CSV outputs.
 - Export a selection as PDF (including receipt images), valid XLSX, CSV, DOCX, or a ZIP containing JPGs and a CSV index.
 - Local-only storage, a privacy manifest, and a clear camera purpose string.
 - An original, opaque 1024×1024 App Store icon.

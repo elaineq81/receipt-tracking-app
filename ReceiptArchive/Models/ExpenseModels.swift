@@ -51,6 +51,11 @@ final class Receipt {
     var notes: String
     var createdAt: Date
     var ocrText: String
+    var ocrConfidence: Double = 0
+    var reviewStatusRaw: String = ReceiptReviewStatus.needsReview.rawValue
+    var reviewedAt: Date?
+    var validationNotes: String = ""
+    var fingerprint: String = ""
     var matter: ExpenseMatter?
 
     @Relationship(deleteRule: .cascade, inverse: \ReceiptPage.receipt)
@@ -67,6 +72,11 @@ final class Receipt {
         category: ExpenseCategory,
         notes: String = "",
         ocrText: String = "",
+        ocrConfidence: Double = 0,
+        reviewStatus: ReceiptReviewStatus = .needsReview,
+        reviewedAt: Date? = nil,
+        validationNotes: String = "",
+        fingerprint: String = "",
         matter: ExpenseMatter? = nil
     ) {
         self.id = id
@@ -80,6 +90,11 @@ final class Receipt {
         self.notes = notes
         self.createdAt = .now
         self.ocrText = ocrText
+        self.ocrConfidence = ocrConfidence
+        self.reviewStatusRaw = reviewStatus.rawValue
+        self.reviewedAt = reviewedAt
+        self.validationNotes = validationNotes
+        self.fingerprint = fingerprint
         self.matter = matter
         self.pages = []
     }
@@ -88,6 +103,19 @@ final class Receipt {
         get { ExpenseCategory(rawValue: categoryRaw) ?? .other }
         set { categoryRaw = newValue.rawValue }
     }
+
+    var reviewStatus: ReceiptReviewStatus {
+        get { ReceiptReviewStatus(rawValue: reviewStatusRaw) ?? .needsReview }
+        set { reviewStatusRaw = newValue.rawValue }
+    }
+}
+
+enum ReceiptReviewStatus: String, Codable, Sendable {
+    case needsReview
+    case verified
+
+    var title: String { self == .verified ? "Verified" : "Needs review" }
+    var symbol: String { self == .verified ? "checkmark.seal.fill" : "exclamationmark.triangle.fill" }
 }
 
 @Model

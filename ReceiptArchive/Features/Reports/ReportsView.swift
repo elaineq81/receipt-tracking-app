@@ -49,6 +49,15 @@ struct ReportsView: View {
                 }
                 LabeledContent("Receipts", value: "\(selectedReceipts.count)")
             }
+            Section("Report readiness") {
+                let verified = selectedReceipts.filter { $0.reviewStatus == .verified }.count
+                LabeledContent("Verified", value: "\(verified)")
+                LabeledContent("Needs review", value: "\(selectedReceipts.count - verified)")
+                if verified < selectedReceipts.count {
+                    Label("Unverified receipts will be clearly identified in exported records.", systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote).foregroundStyle(.orange)
+                }
+            }
             Section("Totals by currency") {
                 if totals.isEmpty { Text("No expenses in this selection").foregroundStyle(.secondary) }
                 ForEach(totals, id: \.0) { code, total in
