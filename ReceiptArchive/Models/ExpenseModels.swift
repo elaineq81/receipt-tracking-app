@@ -61,6 +61,9 @@ final class Receipt {
     @Relationship(deleteRule: .cascade, inverse: \ReceiptPage.receipt)
     var pages: [ReceiptPage]
 
+    @Relationship(deleteRule: .cascade, inverse: \ReceiptRevision.receipt)
+    var revisions: [ReceiptRevision]
+
     init(
         id: UUID = UUID(),
         merchant: String,
@@ -97,6 +100,7 @@ final class Receipt {
         self.fingerprint = fingerprint
         self.matter = matter
         self.pages = []
+        self.revisions = []
     }
 
     var category: ExpenseCategory {
@@ -108,6 +112,18 @@ final class Receipt {
         get { ReceiptReviewStatus(rawValue: reviewStatusRaw) ?? .needsReview }
         set { reviewStatusRaw = newValue.rawValue }
     }
+
+    var attentionScore: Int {
+        var score = reviewStatus == .needsReview ? 40 : 0
+        score += Int(max(0, min(30, (0.85 - ocrConfidence) * 100)))
+        score += min(24, validationMessages.count * 8)
+        if matter == nil { score += 6 }
+        return score
+    }
+
+    var validationMessages: [String] {
+        validationNotes.split(separator: ";").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+    }
 }
 
 enum ReceiptReviewStatus: String, Codable, Sendable {
@@ -116,6 +132,35 @@ enum ReceiptReviewStatus: String, Codable, Sendable {
 
     var title: String { self == .verified ? "Verified" : "Needs review" }
     var symbol: String { self == .verified ? "checkmark.seal.fill" : "exclamationmark.triangle.fill" }
+}
+
+@Model
+final class ReceiptRevision {
+    @Attribute(.unique) var id: UUID
+    var changedAt: Date
+    var fieldName: String
+    var previousValue: String
+    var newValue: String
+    var reason: String
+    var receipt: Receipt?
+
+    init(
+        id: UUID = UUID(),
+        changedAt: Date = .now,
+        fieldName: String,
+        previousValue: String,
+        newValue: String,
+        reason: String = "",
+        receipt: Receipt? = nil
+    ) {
+        self.id = id
+        self.changedAt = changedAt
+        self.fieldName = fieldName
+        self.previousValue = previousValue
+        self.newValue = newValue
+        self.reason = reason
+        self.receipt = receipt
+    }
 }
 
 @Model

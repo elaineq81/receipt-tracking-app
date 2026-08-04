@@ -11,6 +11,8 @@ Its differentiator is a **Receipt Evidence Record**: visible OCR confidence, val
 - Extract merchant, date, currency, subtotal, tax, total, and a suggested category on-device.
 - Review and correct every extracted field before saving.
 - See OCR confidence and validation warnings, verify against the image, and catch likely duplicates before saving.
+- Edit saved receipts with a permanent field-by-field before/after history and optional change reason.
+- Work through a risk-ranked Attention inbox so the most uncertain records are corrected first.
 - Organize and search receipts by date, merchant, category, and matter.
 - Summaries by matter, category, date, and currency. Different currencies are never silently combined.
 - Report-readiness counts and verification status embedded in PDF, XLSX, and CSV outputs.

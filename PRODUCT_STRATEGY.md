@@ -44,13 +44,13 @@ This makes trust a product feature instead of hiding uncertainty behind automati
 - On-device Vision OCR and field extraction.
 - Matter, receipt, page, category, and multi-currency data model.
 - Human review, confidence score, validation warnings, verification state, and duplicate warning.
+- Risk-ranked attention inbox and editable receipts with field-level revision history.
 - PDF, XLSX, CSV, DOCX, and JPG bundle exports.
 - Report readiness and evidence status in exported data.
 
 ### Professional workflow
 
-- Edit existing receipts with a durable field-by-field revision history.
-- Smart “Needs attention” inbox ordered by risk, not capture date.
+- Revision export appendix with filters for material financial changes.
 - Multi-page receipt splitting and page quality checks.
 - Import receipt PDFs and images from Files, Photos, Share Sheet, and email forwarding.
 - Rules for repeat merchants, categories, payment methods, and matter assignment.

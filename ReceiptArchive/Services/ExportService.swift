@@ -38,9 +38,9 @@ final class ExportService {
     }
 
     private func csv(_ receipts: [Receipt]) -> String {
-        var rows = ["Date,Merchant,Matter,Category,Currency,Subtotal,Tax,Total,Review Status,OCR Confidence,Validation Notes,Notes"]
+        var rows = ["Date,Merchant,Matter,Category,Currency,Subtotal,Tax,Total,Review Status,OCR Confidence,Validation Notes,Revision Count,Last Revised,Notes"]
         rows += receipts.map {
-            [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.currencyCode, Self.number($0.subtotal), Self.number($0.tax), Self.number($0.total), $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, $0.notes]
+            [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.currencyCode, Self.number($0.subtotal), Self.number($0.tax), Self.number($0.total), $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisions.count)", $0.revisions.map(\.changedAt).max().map(Self.iso.string) ?? "", $0.notes]
                 .map(Self.csvEscape).joined(separator: ",")
         }
         return "\u{FEFF}" + rows.joined(separator: "\r\n")
@@ -85,6 +85,7 @@ final class ExportService {
                 draw("\(receipt.transactionDate.formatted(date: .abbreviated, time: .omitted))  \(receipt.merchant)", font: .boldSystemFont(ofSize: 13))
                 draw("\(receipt.category.rawValue) • \(receipt.matter?.name ?? "Unfiled") • \(receipt.total.formatted(.currency(code: receipt.currencyCode)))", font: .systemFont(ofSize: 11), color: .secondaryLabel)
                 draw("Evidence: \(receipt.reviewStatus.title) • OCR \(String(format: "%.0f%%", receipt.ocrConfidence * 100))", font: .systemFont(ofSize: 10), color: receipt.reviewStatus == .verified ? .systemGreen : .systemOrange)
+                if !receipt.revisions.isEmpty { draw("Audit trail: \(receipt.revisions.count) field change\(receipt.revisions.count == 1 ? "" : "s")", font: .systemFont(ofSize: 10), color: .secondaryLabel) }
                 if let pageData = receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).first?.imageData,
                    let image = UIImage(data: pageData) {
                     let maxHeight: CGFloat = 250
@@ -99,9 +100,9 @@ final class ExportService {
     }
 
     private func workbook(receipts: [Receipt]) throws -> Data {
-        let headers = ["Date", "Merchant", "Matter", "Category", "Currency", "Subtotal", "Tax", "Total", "Review Status", "OCR Confidence", "Validation Notes", "Notes"]
+        let headers = ["Date", "Merchant", "Matter", "Category", "Currency", "Subtotal", "Tax", "Total", "Review Status", "OCR Confidence", "Validation Notes", "Revision Count", "Last Revised", "Notes"]
         var rows = [headers]
-        rows += receipts.map { [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.currencyCode, Self.number($0.subtotal), Self.number($0.tax), Self.number($0.total), $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, $0.notes] }
+        rows += receipts.map { [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.currencyCode, Self.number($0.subtotal), Self.number($0.tax), Self.number($0.total), $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisions.count)", $0.revisions.map(\.changedAt).max().map(Self.iso.string) ?? "", $0.notes] }
         func worksheet(_ sourceRows: [[String]]) -> String {
             let body = sourceRows.enumerated().map { rowIndex, columns in
             let cells = columns.enumerated().map { columnIndex, value in

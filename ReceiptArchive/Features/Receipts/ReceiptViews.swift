@@ -19,6 +19,13 @@ struct ReceiptsView: View {
         }
     }
 
+    private var attentionReceipts: [Receipt] {
+        filtered.sorted {
+            if $0.attentionScore == $1.attentionScore { return $0.transactionDate > $1.transactionDate }
+            return $0.attentionScore > $1.attentionScore
+        }
+    }
+
     var body: some View {
         Group {
             if receipts.isEmpty {
@@ -33,14 +40,22 @@ struct ReceiptsView: View {
                     }
                     .pickerStyle(.segmented)
                     .listRowBackground(Color.clear)
-                    ForEach(Dictionary(grouping: filtered, by: { Calendar.current.startOfDay(for: $0.transactionDate) }).keys.sorted(by: >), id: \.self) { day in
-                        Section(day.formatted(date: .complete, time: .omitted)) {
-                            ForEach(filtered.filter { Calendar.current.isDate($0.transactionDate, inSameDayAs: day) }) { receipt in
+                    if scope == .needsReview {
+                        Section("Highest risk first") {
+                            ForEach(attentionReceipts) { receipt in
                                 NavigationLink { ReceiptDetailView(receipt: receipt) } label: { ReceiptRow(receipt: receipt) }
                             }
-                            .onDelete { offsets in
-                                let rows = filtered.filter { Calendar.current.isDate($0.transactionDate, inSameDayAs: day) }
-                                offsets.map { rows[$0] }.forEach(modelContext.delete)
+                        }
+                    } else {
+                        ForEach(Dictionary(grouping: filtered, by: { Calendar.current.startOfDay(for: $0.transactionDate) }).keys.sorted(by: >), id: \.self) { day in
+                            Section(day.formatted(date: .complete, time: .omitted)) {
+                                ForEach(filtered.filter { Calendar.current.isDate($0.transactionDate, inSameDayAs: day) }) { receipt in
+                                    NavigationLink { ReceiptDetailView(receipt: receipt) } label: { ReceiptRow(receipt: receipt) }
+                                }
+                                .onDelete { offsets in
+                                    let rows = filtered.filter { Calendar.current.isDate($0.transactionDate, inSameDayAs: day) }
+                                    offsets.map { rows[$0] }.forEach(modelContext.delete)
+                                }
                             }
                         }
                     }
@@ -56,7 +71,7 @@ struct ReceiptsView: View {
 private enum ReceiptScope: String, CaseIterable, Identifiable {
     case all, needsReview, verified
     var id: String { rawValue }
-    var title: String { self == .all ? "All" : (self == .needsReview ? "Review" : "Verified") }
+    var title: String { self == .all ? "All" : (self == .needsReview ? "Attention" : "Verified") }
 }
 
 struct ReceiptRow: View {
@@ -71,6 +86,9 @@ struct ReceiptRow: View {
                 Label(receipt.reviewStatus.title, systemImage: receipt.reviewStatus.symbol)
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(receipt.reviewStatus == .verified ? .green : .orange)
+                if receipt.reviewStatus == .needsReview {
+                    Text("Risk \(receipt.attentionScore)").font(.caption2).foregroundStyle(.secondary)
+                }
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 3) {
@@ -85,6 +103,7 @@ struct ReceiptRow: View {
 struct ReceiptDetailView: View {
     let receipt: Receipt
     @State private var selectedPage = 0
+    @State private var editorReceipt: Receipt?
 
     var body: some View {
         List {
@@ -118,11 +137,146 @@ struct ReceiptDetailView: View {
                 }
                 if !receipt.validationNotes.isEmpty { Text(receipt.validationNotes).font(.footnote).foregroundStyle(.secondary) }
             }
+            if !receipt.revisions.isEmpty {
+                Section("Revision history") {
+                    ForEach(receipt.revisions.sorted(by: { $0.changedAt > $1.changedAt })) { revision in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(revision.fieldName).font(.subheadline.weight(.semibold))
+                                Spacer()
+                                Text(revision.changedAt, format: .dateTime.day().month(.abbreviated).hour().minute()).font(.caption).foregroundStyle(.secondary)
+                            }
+                            Text("\(revision.previousValue) → \(revision.newValue)").font(.footnote)
+                            if !revision.reason.isEmpty { Text(revision.reason).font(.caption).foregroundStyle(.secondary) }
+                        }
+                    }
+                }
+            }
             if !receipt.notes.isEmpty { Section("Notes") { Text(receipt.notes) } }
             if !receipt.ocrText.isEmpty { Section("Recognized text") { Text(receipt.ocrText).font(.caption).textSelection(.enabled) } }
         }
         .navigationTitle(receipt.merchant.isEmpty ? "Receipt" : receipt.merchant)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            Button("Edit", systemImage: "pencil") { editorReceipt = receipt }
+        }
+        .sheet(item: $editorReceipt) { selected in
+            NavigationStack { ReceiptEditorView(receipt: selected) }
+        }
+    }
+}
+
+private struct ReceiptEditorView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \ExpenseMatter.createdAt, order: .reverse) private var matters: [ExpenseMatter]
+    let receipt: Receipt
+
+    @State private var merchant: String
+    @State private var transactionDate: Date
+    @State private var selectedMatter: ExpenseMatter?
+    @State private var category: ExpenseCategory
+    @State private var currencyCode: String
+    @State private var subtotal: Decimal
+    @State private var tax: Decimal
+    @State private var total: Decimal
+    @State private var notes: String
+    @State private var reason = ""
+    @State private var confirmedAgainstImage = false
+
+    init(receipt: Receipt) {
+        self.receipt = receipt
+        _merchant = State(initialValue: receipt.merchant)
+        _transactionDate = State(initialValue: receipt.transactionDate)
+        _selectedMatter = State(initialValue: receipt.matter)
+        _category = State(initialValue: receipt.category)
+        _currencyCode = State(initialValue: receipt.currencyCode)
+        _subtotal = State(initialValue: receipt.subtotal)
+        _tax = State(initialValue: receipt.tax)
+        _total = State(initialValue: receipt.total)
+        _notes = State(initialValue: receipt.notes)
+    }
+
+    private var warnings: [String] {
+        ReceiptEvidence.warnings(merchant: merchant, date: transactionDate, subtotal: subtotal, tax: tax, total: total, currencyCode: currencyCode, ocrConfidence: receipt.ocrConfidence)
+    }
+
+    var body: some View {
+        Form {
+            if let data = receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).first?.imageData,
+               let image = UIImage(data: data) {
+                Section { Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 220).frame(maxWidth: .infinity) }
+            }
+            Section("Expense details") {
+                TextField("Merchant", text: $merchant)
+                DatePicker("Date", selection: $transactionDate, displayedComponents: .date)
+                Picker("Matter", selection: $selectedMatter) {
+                    Text("Unfiled").tag(nil as ExpenseMatter?)
+                    ForEach(matters) { Text($0.name).tag(Optional($0)) }
+                }
+                Picker("Category", selection: $category) {
+                    ForEach(ExpenseCategory.allCases) { Label($0.rawValue, systemImage: $0.symbol).tag($0) }
+                }
+                TextField("Currency", text: $currencyCode).textInputAutocapitalization(.characters)
+                DecimalField("Subtotal", value: $subtotal)
+                DecimalField("Tax", value: $tax)
+                DecimalField("Total", value: $total)
+                TextField("Notes", text: $notes, axis: .vertical)
+            }
+            if !warnings.isEmpty {
+                Section("Needs attention") {
+                    ForEach(warnings, id: \.self) { Label($0, systemImage: "exclamationmark.circle").font(.footnote) }
+                }
+            }
+            Section("Change record") {
+                TextField("Reason for changes (optional)", text: $reason, axis: .vertical)
+                Toggle("I checked the updated details against the image", isOn: $confirmedAgainstImage)
+            }
+        }
+        .navigationTitle("Edit receipt")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") { save() }
+                    .disabled(merchant.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || currencyCode.count != 3 || total < 0)
+            }
+        }
+    }
+
+    private func save() {
+        record("Merchant", receipt.merchant, merchant)
+        record("Date", receipt.transactionDate.formatted(date: .numeric, time: .omitted), transactionDate.formatted(date: .numeric, time: .omitted))
+        record("Matter", receipt.matter?.name ?? "Unfiled", selectedMatter?.name ?? "Unfiled")
+        record("Category", receipt.category.rawValue, category.rawValue)
+        record("Currency", receipt.currencyCode, currencyCode.uppercased())
+        record("Subtotal", NSDecimalNumber(decimal: receipt.subtotal).stringValue, NSDecimalNumber(decimal: subtotal).stringValue)
+        record("Tax", NSDecimalNumber(decimal: receipt.tax).stringValue, NSDecimalNumber(decimal: tax).stringValue)
+        record("Total", NSDecimalNumber(decimal: receipt.total).stringValue, NSDecimalNumber(decimal: total).stringValue)
+        record("Notes", receipt.notes, notes)
+
+        receipt.merchant = merchant.trimmingCharacters(in: .whitespacesAndNewlines)
+        receipt.transactionDate = transactionDate
+        receipt.matter = selectedMatter
+        receipt.category = category
+        receipt.currencyCode = currencyCode.uppercased()
+        receipt.subtotal = subtotal
+        receipt.tax = tax
+        receipt.total = total
+        receipt.notes = notes
+        receipt.validationNotes = warnings.joined(separator: "; ")
+        receipt.fingerprint = ReceiptEvidence.fingerprint(merchant: merchant, date: transactionDate, total: total, currencyCode: currencyCode)
+        receipt.reviewStatus = confirmedAgainstImage ? .verified : .needsReview
+        receipt.reviewedAt = confirmedAgainstImage ? .now : nil
+        try? modelContext.save()
+        dismiss()
+    }
+
+    private func record(_ field: String, _ before: String, _ after: String) {
+        guard before != after else { return }
+        let revision = ReceiptRevision(fieldName: field, previousValue: before, newValue: after, reason: reason, receipt: receipt)
+        modelContext.insert(revision)
+        receipt.revisions.append(revision)
     }
 }
 
