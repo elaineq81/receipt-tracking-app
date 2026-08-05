@@ -1,0 +1,211 @@
+name: ReceiptSure TestFlight Upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: "Unique positive integer build number"
+        required: true
+        default: "1"
+        type: string
+      upload_to_testflight:
+        description: "Upload this build to TestFlight"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: receiptsure-testflight-upload
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    name: Sign, validate, and upload ReceiptSure
+    if: ${{ inputs.upload_to_testflight == true && github.ref == 'refs/heads/main' }}
+    runs-on: macos-26
+    timeout-minutes: 60
+    environment: app-store-production
+
+    steps:
+      - name: Check out ReceiptSure
+        uses: actions/checkout@v5
+
+      - name: Validate requested build number
+        env:
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          [[ "$BUILD_NUMBER" =~ ^[1-9][0-9]*$ ]] || {
+            echo "build_number must be a positive integer"
+            exit 1
+          }
+
+      - name: Run release preflight
+        run: bash scripts/release-preflight.sh
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Require App Store Connect secrets
+        env:
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          test -n "$APPSTORE_PRIVATE_KEY"
+          test -n "$APPSTORE_KEY_ID"
+          test -n "$APPSTORE_ISSUER_ID"
+          test -n "$APPLE_TEAM_ID"
+          mkdir -p "$RUNNER_TEMP/appstore" "$HOME/.appstoreconnect/private_keys"
+          printf "%s" "$APPSTORE_PRIVATE_KEY" > "$RUNNER_TEMP/appstore/AuthKey_${APPSTORE_KEY_ID}.p8"
+          cp "$RUNNER_TEMP/appstore/AuthKey_${APPSTORE_KEY_ID}.p8" "$HOME/.appstoreconnect/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8"
+
+      - name: Import optional manual signing assets
+        id: manual-signing
+        env:
+          IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          IOS_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
+        run: |
+          if [ -z "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" ] || [ -z "$IOS_CERTIFICATE_PASSWORD" ] || [ -z "$IOS_PROVISION_PROFILE_BASE64" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+          CERTIFICATE_PATH="$RUNNER_TEMP/apple_distribution.p12"
+          PROFILE_PATH="$RUNNER_TEMP/receiptsure_app_store.mobileprovision"
+          KEYCHAIN_PATH="$RUNNER_TEMP/receiptsure-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+
+          echo "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+          echo "$IOS_PROVISION_PROFILE_BASE64" | base64 --decode > "$PROFILE_PATH"
+          security cms -D -i "$PROFILE_PATH" > "$RUNNER_TEMP/profile.plist"
+          PROFILE_UUID="$(/usr/libexec/PlistBuddy -c 'Print UUID' "$RUNNER_TEMP/profile.plist")"
+          PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print Name' "$RUNNER_TEMP/profile.plist")"
+          PROFILE_APP_ID="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$RUNNER_TEMP/profile.plist")"
+          [[ "$PROFILE_APP_ID" = *.com.bodywiseremedy.receiptsure ]] || {
+            echo "Provisioning profile does not belong to ReceiptSure: $PROFILE_APP_ID"
+            exit 1
+          }
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" -P "$IOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH" login.keychain-db
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+          echo "IOS_PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
+
+      - name: Archive with manual App Store signing
+        if: steps.manual-signing.outputs.enabled == 'true'
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          xcodebuild archive \
+            -project ReceiptArchive.xcodeproj \
+            -scheme ReceiptArchive \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/ReceiptSure.xcarchive" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            MARKETING_VERSION="1.0" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="$IOS_PROFILE_NAME"
+
+      - name: Archive with automatic App Store signing
+        if: steps.manual-signing.outputs.enabled != 'true'
+        env:
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          xcodebuild archive \
+            -project ReceiptArchive.xcodeproj \
+            -scheme ReceiptArchive \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/ReceiptSure.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/appstore/AuthKey_${APPSTORE_KEY_ID}.p8" \
+            -authenticationKeyID "$APPSTORE_KEY_ID" \
+            -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            MARKETING_VERSION="1.0" \
+            CODE_SIGN_STYLE=Automatic
+
+      - name: Verify signed archive
+        env:
+          EXPECTED_BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          APP_BUNDLE="$RUNNER_TEMP/ReceiptSure.xcarchive/Products/Applications/ReceiptSure.app"
+          test -d "$APP_BUNDLE"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_BUNDLE/Info.plist")" = "com.bodywiseremedy.receiptsure"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_BUNDLE/Info.plist")" = "1.0"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_BUNDLE/Info.plist")" = "$EXPECTED_BUILD_NUMBER"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :ITSAppUsesNonExemptEncryption' "$APP_BUNDLE/Info.plist")" = "false"
+          test -f "$APP_BUNDLE/PrivacyInfo.xcprivacy"
+          codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
+
+      - name: Create export options
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          MANUAL_SIGNING_ENABLED: ${{ steps.manual-signing.outputs.enabled }}
+        run: |
+          SIGNING_STYLE="automatic"
+          PROFILE_BLOCK=""
+          if [ "$MANUAL_SIGNING_ENABLED" = "true" ]; then
+            SIGNING_STYLE="manual"
+            PROFILE_BLOCK="<key>provisioningProfiles</key><dict><key>com.bodywiseremedy.receiptsure</key><string>${IOS_PROFILE_NAME}</string></dict>"
+          fi
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>signingStyle</key><string>${SIGNING_STYLE}</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            ${PROFILE_BLOCK}
+            <key>uploadSymbols</key><true/>
+          </dict></plist>
+          EOF
+
+      - name: Export IPA
+        env:
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/ReceiptSure.xcarchive" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/appstore/AuthKey_${APPSTORE_KEY_ID}.p8" \
+            -authenticationKeyID "$APPSTORE_KEY_ID" \
+            -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID"
+
+      - name: Upload to App Store Connect
+        env:
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+        run: |
+          IPA_PATH="$(find "$RUNNER_TEMP/export" -maxdepth 1 -name '*.ipa' -print -quit)"
+          test -n "$IPA_PATH"
+          xcrun altool --upload-app \
+            --type ios \
+            --file "$IPA_PATH" \
+            --apiKey "$APPSTORE_KEY_ID" \
+            --apiIssuer "$APPSTORE_ISSUER_ID"

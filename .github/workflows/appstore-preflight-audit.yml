@@ -1,0 +1,38 @@
+name: App Store preflight audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_store_version:
+        description: "App Store version to audit"
+        required: true
+        default: "1.0"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Read-only ReceiptSure submission audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out ReceiptSure
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Audit App Store submission readiness
+        env:
+          APP_STORE_CONNECT_APP_ID: "6798071503"
+          APP_STORE_VERSION: ${{ inputs.app_store_version }}
+          APP_STORE_PLATFORM: "IOS"
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+        run: node scripts/appstore-preflight-audit.mjs
