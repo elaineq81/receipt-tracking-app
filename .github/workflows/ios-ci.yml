@@ -58,6 +58,9 @@ jobs:
           APP_BUNDLE="$(find "$APPLICATIONS_DIR" -maxdepth 1 -type d -name '*.app' -print -quit)"
           test -n "$APP_BUNDLE" || { echo "No archived app bundle found"; exit 1; }
           test -f "$APP_BUNDLE/Info.plist" || { echo "Archived Info.plist is missing"; exit 1; }
+          EXECUTABLE_NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP_BUNDLE/Info.plist")"
+          test -n "$EXECUTABLE_NAME" || { echo "CFBundleExecutable is missing"; exit 1; }
+          test -x "$APP_BUNDLE/$EXECUTABLE_NAME" || { echo "Archived app executable is missing"; exit 1; }
           test -f "$APP_BUNDLE/PrivacyInfo.xcprivacy" || { echo "Archived privacy manifest is missing"; exit 1; }
           test -f "$APP_BUNDLE/Assets.car" || { echo "Compiled app icon and color assets are missing"; exit 1; }
           BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_BUNDLE/Info.plist")"
