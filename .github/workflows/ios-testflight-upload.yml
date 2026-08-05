@@ -27,7 +27,7 @@ jobs:
     if: ${{ inputs.upload_to_testflight == true && github.ref == 'refs/heads/main' }}
     runs-on: macos-26
     timeout-minutes: 60
-    environment: app-store-production
+    environment: Production
 
     steps:
       - name: Check out ReceiptSure
