@@ -1,0 +1,138 @@
+name: ReceiptSure Apple Platform Compatibility
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    name: Test Apple silicon Mac and Vision Pro
+    runs-on: macos-26
+    timeout-minutes: 40
+
+    steps:
+      - name: Check out ReceiptSure
+        uses: actions/checkout@v5
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Record Xcode destinations and runtimes
+        run: |
+          mkdir -p "$RUNNER_TEMP/ReceiptSureCompatibility"
+          uname -a | tee "$RUNNER_TEMP/ReceiptSureCompatibility/host.txt"
+          xcodebuild -version | tee -a "$RUNNER_TEMP/ReceiptSureCompatibility/host.txt"
+          xcodebuild \
+            -project ReceiptArchive.xcodeproj \
+            -scheme ReceiptArchive \
+            -showdestinations \
+            | tee "$RUNNER_TEMP/ReceiptSureCompatibility/destinations.txt"
+          xcrun simctl list runtimes | tee "$RUNNER_TEMP/ReceiptSureCompatibility/runtimes.txt"
+          xcrun simctl list devicetypes | tee "$RUNNER_TEMP/ReceiptSureCompatibility/device-types.txt"
+
+      - name: Build and launch as Designed for iPhone on Mac
+        id: mac
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          LOG="$RUNNER_TEMP/ReceiptSureCompatibility/mac-build.log"
+          if ! xcodebuild build \
+            -project ReceiptArchive.xcodeproj \
+            -scheme ReceiptArchive \
+            -configuration Release \
+            -destination 'platform=macOS,variant=Designed for [iPad,iPhone]' \
+            -derivedDataPath "$RUNNER_TEMP/ReceiptSureMacDerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee "$LOG"; then
+            echo "result=build-failed" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+          APP_PATH="$(find "$RUNNER_TEMP/ReceiptSureMacDerivedData/Build/Products" -type d -name 'ReceiptSure.app' -print -quit)"
+          test -d "$APP_PATH"
+          open -n "$APP_PATH" --args -ReceiptSureScreenshotMode 1 -ReceiptSureScreenshotTab matters
+          sleep 8
+          if ! pgrep -f '/ReceiptSure.app/ReceiptSure' >/dev/null; then
+            echo "result=launch-failed" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          screencapture -x "$RUNNER_TEMP/ReceiptSureCompatibility/mac-launch.png" || true
+          pkill -f '/ReceiptSure.app/ReceiptSure' || true
+          echo "result=passed" >> "$GITHUB_OUTPUT"
+
+      - name: Build and launch in Apple Vision Pro simulator
+        id: vision
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          LOG="$RUNNER_TEMP/ReceiptSureCompatibility/vision-build.log"
+          RUNTIME="$(xcrun simctl list runtimes -j | jq -r '[.runtimes[] | select(.isAvailable == true and (.identifier | contains("xrOS")))] | sort_by(.version) | last.identifier // empty')"
+          DEVICE_TYPE="$(xcrun simctl list devicetypes -j | jq -r '[.devicetypes[] | select(.name | contains("Apple Vision Pro"))] | first.identifier // empty')"
+          if [ -z "$RUNTIME" ] || [ -z "$DEVICE_TYPE" ]; then
+            echo "Vision Pro simulator runtime or device type is unavailable on this Xcode runner." | tee "$LOG"
+            echo "result=runtime-unavailable" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+          UDID="$(xcrun simctl create 'ReceiptSure Vision Pro Compatibility' "$DEVICE_TYPE" "$RUNTIME")"
+          trap 'xcrun simctl shutdown "$UDID" >/dev/null 2>&1 || true; xcrun simctl delete "$UDID" >/dev/null 2>&1 || true' EXIT
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+
+          if ! xcodebuild build \
+            -project ReceiptArchive.xcodeproj \
+            -scheme ReceiptArchive \
+            -configuration Release \
+            -destination "platform=visionOS Simulator,id=$UDID" \
+            -derivedDataPath "$RUNNER_TEMP/ReceiptSureVisionDerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee "$LOG"; then
+            echo "result=build-failed" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+          APP_PATH="$(find "$RUNNER_TEMP/ReceiptSureVisionDerivedData/Build/Products" -type d -name 'ReceiptSure.app' -print -quit)"
+          test -d "$APP_PATH"
+          xcrun simctl install "$UDID" "$APP_PATH"
+          xcrun simctl launch "$UDID" com.bodywiseremedy.receiptsure \
+            -ReceiptSureScreenshotMode 1 \
+            -ReceiptSureScreenshotTab matters
+          sleep 8
+          xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ReceiptSureCompatibility/vision-launch.png"
+          echo "result=passed" >> "$GITHUB_OUTPUT"
+
+      - name: Publish compatibility summary
+        if: always()
+        env:
+          MAC_RESULT: ${{ steps.mac.outputs.result || 'not-completed' }}
+          VISION_RESULT: ${{ steps.vision.outputs.result || 'not-completed' }}
+        run: |
+          {
+            echo "## ReceiptSure compatibility results"
+            echo ""
+            echo "- Apple silicon Mac (Designed for iPhone): **$MAC_RESULT**"
+            echo "- Apple Vision Pro simulator: **$VISION_RESULT**"
+          } | tee -a "$GITHUB_STEP_SUMMARY" "$RUNNER_TEMP/ReceiptSureCompatibility/summary.md"
+
+      - name: Upload compatibility evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReceiptSure-Apple-Platform-Compatibility
+          path: ${{ runner.temp }}/ReceiptSureCompatibility
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Require both platforms to pass
+        if: always()
+        env:
+          MAC_RESULT: ${{ steps.mac.outputs.result || 'not-completed' }}
+          VISION_RESULT: ${{ steps.vision.outputs.result || 'not-completed' }}
+        run: |
+          test "$MAC_RESULT" = "passed"
+          test "$VISION_RESULT" = "passed"
