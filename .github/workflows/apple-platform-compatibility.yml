@@ -56,16 +56,18 @@ jobs:
           fi
 
           APP_PATH="$(find "$RUNNER_TEMP/ReceiptSureMacDerivedData/Build/Products" -type d -name 'ReceiptSure.app' -print -quit)"
-          test -d "$APP_PATH"
-          open -n "$APP_PATH" --args -ReceiptSureScreenshotMode 1 -ReceiptSureScreenshotTab matters
-          sleep 8
-          if ! pgrep -f '/ReceiptSure.app/ReceiptSure' >/dev/null; then
-            echo "result=launch-failed" >> "$GITHUB_OUTPUT"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "result=app-missing" >> "$GITHUB_OUTPUT"
             exit 1
           fi
-          screencapture -x "$RUNNER_TEMP/ReceiptSureCompatibility/mac-launch.png" || true
-          pkill -f '/ReceiptSure.app/ReceiptSure' || true
-          echo "result=passed" >> "$GITHUB_OUTPUT"
+
+          # GitHub-hosted Macs can compile an iPhone-on-Mac product, but macOS
+          # will not directly open the raw iphoneos .app. Runtime proof must use
+          # the App Store/TestFlight-wrapped build on an Apple silicon Mac.
+          file "$APP_PATH/ReceiptSure" | tee "$RUNNER_TEMP/ReceiptSureCompatibility/mac-product.txt"
+          echo "A TestFlight install on an Apple silicon Mac is required for runtime verification." \
+            | tee "$RUNNER_TEMP/ReceiptSureCompatibility/mac-runtime-note.txt"
+          echo "result=build-passed-testflight-required" >> "$GITHUB_OUTPUT"
 
       - name: Build and launch in Apple Vision Pro simulator
         id: vision
@@ -103,11 +105,28 @@ jobs:
           APP_PATH="$(find "$RUNNER_TEMP/ReceiptSureVisionDerivedData/Build/Products" -type d -name 'ReceiptSure.app' -print -quit)"
           test -d "$APP_PATH"
           xcrun simctl install "$UDID" "$APP_PATH"
-          xcrun simctl launch "$UDID" com.bodywiseremedy.receiptsure \
+          LAUNCH_OUTPUT="$(xcrun simctl launch "$UDID" com.bodywiseremedy.receiptsure \
             -ReceiptSureScreenshotMode 1 \
-            -ReceiptSureScreenshotTab matters
-          sleep 8
-          xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ReceiptSureCompatibility/vision-launch.png"
+            -ReceiptSureScreenshotTab matters)"
+          echo "$LAUNCH_OUTPUT" | tee "$RUNNER_TEMP/ReceiptSureCompatibility/vision-launch.log"
+          APP_PID="$(echo "$LAUNCH_OUTPUT" | awk -F ': ' 'NF > 1 { print $NF }' | tail -1)"
+          if ! [[ "$APP_PID" =~ ^[0-9]+$ ]]; then
+            echo "result=pid-unavailable" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          sleep 30
+          xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ReceiptSureCompatibility/vision-launch-30s.png"
+          echo "$APP_PID" > "$RUNNER_TEMP/ReceiptSureCompatibility/vision-process.txt"
+          xcrun simctl spawn "$UDID" log show --last 3m \
+            --predicate 'process == "ReceiptSure"' \
+            > "$RUNNER_TEMP/ReceiptSureCompatibility/vision-system.log" 2>&1 || true
+          if ! xcrun simctl terminate "$UDID" com.bodywiseremedy.receiptsure; then
+            xcrun simctl spawn "$UDID" log show --last 3m \
+              --predicate 'process == "ReceiptSure"' \
+              > "$RUNNER_TEMP/ReceiptSureCompatibility/vision-system.log" 2>&1 || true
+            echo "result=process-exited" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
           echo "result=passed" >> "$GITHUB_OUTPUT"
 
       - name: Publish compatibility summary
@@ -138,5 +157,5 @@ jobs:
           MAC_RESULT: ${{ steps.mac.outputs.result || 'not-completed' }}
           VISION_RESULT: ${{ steps.vision.outputs.result || 'not-completed' }}
         run: |
-          test "$MAC_RESULT" = "passed"
+          test "$MAC_RESULT" = "build-passed-testflight-required"
           test "$VISION_RESULT" = "passed"
