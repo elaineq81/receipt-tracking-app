@@ -73,6 +73,7 @@ jobs:
           BUILD_NUMBER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_BUNDLE/Info.plist")"
           MINIMUM_OS="$(/usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' "$APP_BUNDLE/Info.plist")"
           NON_EXEMPT_ENCRYPTION="$(/usr/libexec/PlistBuddy -c 'Print :ITSAppUsesNonExemptEncryption' "$APP_BUNDLE/Info.plist")"
+          OPENS_DOCUMENTS_IN_PLACE="$(/usr/libexec/PlistBuddy -c 'Print :LSSupportsOpeningDocumentsInPlace' "$APP_BUNDLE/Info.plist")"
           echo "Archived bundle identifier: $BUNDLE_ID"
           echo "Archived display name: $DISPLAY_NAME"
           echo "Archived version: $MARKETING_VERSION ($BUILD_NUMBER), iOS $MINIMUM_OS+"
@@ -82,6 +83,7 @@ jobs:
           test "$BUILD_NUMBER" = "1"
           test "$MINIMUM_OS" = "17.0"
           test "$NON_EXEMPT_ENCRYPTION" = "false"
+          test "$OPENS_DOCUMENTS_IN_PLACE" = "false"
           test "$DEVICE_FAMILY" = "1"
           ! /usr/libexec/PlistBuddy -c 'Print :UIDeviceFamily:1' "$APP_BUNDLE/Info.plist" >/dev/null 2>&1
           test -n "$CAMERA_REASON"
