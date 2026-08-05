@@ -17,6 +17,13 @@ ReceiptArchive.xcodeproj/
 *.mobileprovision
 *.p12
 *.cer
+*.p8
+*.pem
+*.key
+*.certSigningRequest
+*.csr
+AuthKey_*.p8
+ExportOptions.private.plist
+SigningAssets/
 .env
 .env.*
-

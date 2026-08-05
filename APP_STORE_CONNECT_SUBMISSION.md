@@ -66,11 +66,14 @@ Create this product before the TestFlight purchase test and submit it with versi
 | Product ID | `com.bodywiseremedy.receiptsure.pro.lifetime` |
 | Singapore launch price | S$59.98, using the closest available Apple price point |
 | Display name | ReceiptSure Pro Lifetime |
-| Description | Unlimited receipts, matters, reports, professional exports, and merchant filing rules. |
+| Description | Unlimited receipts, reports, and exports. |
+| App Review screenshot | Real ReceiptSure Pro sheet at an accepted iPhone screenshot size |
+| Review notes | No login. Open Settings → ReceiptSure Pro, or reach a free-plan limit, to display the purchase. This one-time non-consumable unlocks unlimited receipts, matters, PDF reports, Excel/Word/JPG exports, and merchant rules. Restore Purchases is available on the same sheet and in Settings. |
+| Tax category | Match parent app / App Store software unless the account’s tax adviser directs otherwise |
 
 The app itself remains free to download. The free plan includes 15 concurrently stored receipts, two matters, one complete PDF report, and unlimited CSV export. Existing records, receipt images, device security, backups, corrections, and viewing are never locked. Pro is a one-time purchase that adds unlimited receipt and matter creation, unlimited PDF reports, Excel/Word/JPG exports, and merchant rules.
 
-Add the required in-app-purchase review screenshot showing the ReceiptSure Pro sheet and explain the free allowances in the review notes. Mark the product available for sale, complete tax/banking agreements, and attach the product to the 1.0 submission. Apple localizes the actual checkout price; the app displays StoreKit’s returned `displayPrice` rather than a hard-coded amount.
+The customer-facing localized IAP description must be **Unlimited receipts, reports, and exports.** (41 characters; Apple’s limit is 45). Add the required review screenshot showing the ReceiptSure Pro sheet and use the review notes above. Mark the product available for sale, complete tax/banking agreements, and attach this first non-consumable to the 1.0 app-version submission. Apple localizes the actual checkout price; the app displays StoreKit’s returned `displayPrice` rather than a hard-coded amount.
 
 For local testing, the generated Xcode scheme uses `ReceiptArchive/Resources/ReceiptSure.storekit`. Before release, also test with a sandbox Apple Account against the App Store Connect product and verify purchase, cancellation, pending approval, offline launch after purchase, refund/revocation, and Restore Purchases.
 
@@ -94,6 +97,10 @@ Suggested review note:
 - [ ] Complete Apple’s encryption questionnaire and record its result.
 - [ ] Approve the final icon and screenshots.
 - [ ] Complete physical-device and TestFlight release gates.
+- [ ] Declare EU Digital Services Act trader status. Version 1’s recommended first wave excludes EU storefronts until the owner has made and, if applicable, verified that legal declaration.
+- [ ] Confirm the App Store tax category; default recommendation is App Store software with the IAP matching its parent.
+- [ ] Complete the current multi-step age-rating questionnaire; expected result is the lowest general rating, but Apple’s calculated regional results control.
+- [ ] Prepare—but do not publish until common tasks pass physical-device testing—the iPhone Accessibility Nutrition Label.
 
 ## 10. Upload route on the Mac
 

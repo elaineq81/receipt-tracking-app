@@ -82,6 +82,7 @@ struct SettingsView: View {
                 LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
                 NavigationLink("Privacy summary") { PrivacySummaryView() }
                 Link("Privacy policy", destination: Self.privacyPolicyURL)
+                Link("Terms of Use", destination: Self.termsOfUseURL)
                 Link("Help & support", destination: Self.supportURL)
                 Button("Show onboarding again") { hasCompletedOnboarding = false }
             }
@@ -95,6 +96,7 @@ struct SettingsView: View {
     }
 
     private static let privacyPolicyURL = URL(string: "https://receipt-tracking-app-lemon.vercel.app/privacy")!
+    private static let termsOfUseURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
     private static let supportURL = URL(string: "https://receipt-tracking-app-lemon.vercel.app/support")!
 
     private var backupStatus: String {

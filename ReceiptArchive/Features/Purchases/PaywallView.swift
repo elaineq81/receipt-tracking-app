@@ -68,6 +68,12 @@ struct PaywallView: View {
                             }
                         }
                         .disabled(purchases.isLoading)
+
+                        HStack(spacing: 18) {
+                            Link("Privacy Policy", destination: Self.privacyPolicyURL)
+                            Link("Terms of Use", destination: Self.termsOfUseURL)
+                        }
+                        .font(.footnote)
                     }
                 }
                 .padding(24)
@@ -86,6 +92,9 @@ struct PaywallView: View {
             }
         }
     }
+
+    private static let privacyPolicyURL = URL(string: "https://receipt-tracking-app-lemon.vercel.app/privacy")!
+    private static let termsOfUseURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
 
     private var purchaseButtonTitle: String {
         if let price = purchases.product?.displayPrice {

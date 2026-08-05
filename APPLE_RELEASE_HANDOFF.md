@@ -54,8 +54,9 @@ The Account Holder must accept the current Paid Apps Agreement and complete tax 
 | Base country or region | Singapore |
 | Target customer price | Closest selectable Apple price point to S$59.98 |
 | Display name | ReceiptSure Pro Lifetime |
-| Description | Unlimited receipts, matters, reports, professional exports, and merchant filing rules. |
+| Description | Unlimited receipts, reports, and exports. |
 | Family Sharing | Off for version 1; reconsider before submission because enabling it later is a product-policy decision |
+| Tax category | Match parent app / App Store software unless professional tax advice requires another category |
 
 Use Apple’s automatic equivalent pricing for other storefronts. Do not hard-code regional prices in metadata or screenshots; the app displays StoreKit’s localized price.
 
@@ -66,12 +67,11 @@ Use a controlled English-language first wave:
 - Singapore
 - Australia
 - Canada
-- Ireland
 - New Zealand
 - United Kingdom
 - United States
 
-Do not automatically include future storefronts in version 1. This gives support and privacy materials one language, keeps the Singapore base price intentional, and still covers a meaningful market. Expand after the first release is stable and metadata is localized. The app contains no country-specific tax advice.
+Do not automatically include future storefronts in version 1. This gives support and privacy materials one language, keeps the Singapore base price intentional, and still covers a meaningful market. It also excludes EU storefronts until the owner completes the required Digital Services Act trader self-assessment and any resulting public-contact verification. Apple still requires a trader-status declaration even when the app is not distributed in the EU. Expand after the first release is stable, metadata is localized, and the relevant compliance work is complete. The app contains no country-specific tax advice.
 
 ## 5. Export-compliance submission
 
@@ -101,7 +101,42 @@ These details are required in App Store Connect but must not be committed to the
 
 Use the prepared review note in `APP_STORE_CONNECT_SUBMISSION.md`. The public support URL is `https://receipt-tracking-app-lemon.vercel.app/support` and the privacy URL is `https://receipt-tracking-app-lemon.vercel.app/privacy`.
 
-## 7. Signed archive and TestFlight gate
+The Bodywise Remedy submission used the same owner’s private App Review contact. Reuse that contact only after confirming it is still current; never add its email address or telephone number to this public repository.
+
+### Bodywise release lessons applied
+
+- Keep version, build, bundle ID, and App Store metadata synchronized before selecting a build.
+- Include the Terms of Use in both the store description and the purchase interface; ReceiptSure uses Apple’s Standard EULA.
+- Complete every App Review contact field, including surname, while keeping private details out of this repository.
+- State clearly that no login or demo account is required and give the reviewer a short path to the purchase screen.
+- Submit the first non-consumable with the same version 1.0 submission and include its review screenshot.
+- Use one complete, matching App Store Connect API key set if automated upload is enabled. Never mix key IDs, issuer IDs, or private keys from different keys.
+- Store certificates, provisioning profiles, API private keys, and passwords only in the owner’s secure credential store or encrypted GitHub Secrets—not in source control.
+- Re-answer ReceiptSure’s encryption questionnaire from its actual AES-GCM backup behavior. Do not copy Bodywise’s earlier answer.
+
+If GitHub-based upload is enabled later, create encrypted repository secrets named `APPSTORE_KEY_ID`, `APPSTORE_ISSUER_ID`, `APPSTORE_PRIVATE_KEY`, and `APPLE_TEAM_ID`. The private key value must be entered directly by the owner and must never be pasted into a tracked file or release note.
+
+## 7. Additional App Store declarations
+
+Complete these before selecting the build for review:
+
+| Area | Prepared answer / action |
+| --- | --- |
+| Content rights | ReceiptSure does not stream, display, or sell a third-party content catalog. |
+| Advertising identifier | Not used. |
+| Accounts | No account, login, or account deletion flow. |
+| Made for Kids | No. |
+| Age rating | Answer all content, capability, and in-app-control questions truthfully; expected lowest general rating, with no override. |
+| DSA | Complete trader self-assessment. Initial availability excludes EU storefronts pending any required verification. |
+| App price | Free. |
+| Release method | Manual release after approval for version 1. |
+| Pre-order | Off. |
+| Tax category | App Store software; IAP matches parent unless tax advice requires otherwise. |
+| Accessibility | Prepare iPhone declarations for features that pass the complete-task test; do not overclaim before physical-device QA. |
+
+Potential accessibility declarations to test are VoiceOver, Voice Control, Larger Text, Dark Interface, Differentiate Without Color Alone, and Reduced Motion. A feature may be declared only if users can complete every common ReceiptSure task with it. The onboarding animation now respects Reduce Motion, but that alone is not enough to publish the label.
+
+## 8. Signed archive and TestFlight gate
 
 On a Mac with Xcode 26 or later:
 

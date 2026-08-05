@@ -35,6 +35,8 @@ Core receipt processing and storage remain on your device. No account is require
 
 ReceiptSure is free to download. The free plan includes up to 15 stored receipts, two matters, one complete PDF report, and CSV export. A one-time ReceiptSure Pro purchase unlocks unlimited receipts and matters, unlimited PDF reports, Excel/Word/JPG exports, and merchant rules. No subscription is required.
 
+Terms of Use (Apple Standard EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
 ## Keywords
 
 receipt,scanner,expense,OCR,reimbursement,trip,tax,invoice,report,PDF,Excel,claims,organizer
