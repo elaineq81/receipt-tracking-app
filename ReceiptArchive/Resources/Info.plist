@@ -53,6 +53,8 @@
     </array>
     <key>LSRequiresIPhoneOS</key>
     <true/>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <false/>
     <key>NSCameraUsageDescription</key>
     <string>ReceiptSure uses the camera to scan, detect, and crop receipts you choose to save.</string>
     <key>NSFaceIDUsageDescription</key>

@@ -161,6 +161,7 @@ jobs:
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_BUNDLE/Info.plist")" = "1.0"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_BUNDLE/Info.plist")" = "$EXPECTED_BUILD_NUMBER"
           test "$(/usr/libexec/PlistBuddy -c 'Print :ITSAppUsesNonExemptEncryption' "$APP_BUNDLE/Info.plist")" = "false"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :LSSupportsOpeningDocumentsInPlace' "$APP_BUNDLE/Info.plist")" = "false"
           test -f "$APP_BUNDLE/PrivacyInfo.xcprivacy"
           codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
 
