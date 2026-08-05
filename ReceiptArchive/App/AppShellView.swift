@@ -83,6 +83,7 @@ struct AppShellView: View {
 }
 
 struct OnboardingView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let finish: () -> Void
     @State private var page = 0
 
@@ -98,7 +99,7 @@ struct OnboardingView: View {
             Image(systemName: pages[page].2)
                 .font(.system(size: 72, weight: .semibold))
                 .foregroundStyle(.teal)
-                .symbolEffect(.bounce, value: page)
+                .symbolEffect(.bounce, value: reduceMotion ? 0 : page)
                 .accessibilityHidden(true)
             VStack(spacing: 12) {
                 Text(pages[page].0).font(.largeTitle.bold()).multilineTextAlignment(.center)
@@ -107,7 +108,13 @@ struct OnboardingView: View {
             .padding(.horizontal, 28)
             Spacer()
             Button(page == pages.count - 1 ? "Start organizing" : "Continue") {
-                if page == pages.count - 1 { finish() } else { withAnimation { page += 1 } }
+                if page == pages.count - 1 {
+                    finish()
+                } else if reduceMotion {
+                    page += 1
+                } else {
+                    withAnimation { page += 1 }
+                }
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)

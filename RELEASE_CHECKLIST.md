@@ -5,6 +5,7 @@
 - [ ] Generate and open the Xcode project; confirm the iOS deployment target is 17.0.
 - [ ] Confirm version 1 is intentionally iPhone-only and remove any unplanned iPad availability from the product record.
 - [ ] Set the final app name, unique bundle identifier, Apple Developer team, version, and build number.
+- [ ] Confirm Xcode resolves Apple team `B5DJ69S32C`, version `1.0`, build `1`, and bundle ID `com.bodywiseremedy.receiptsure` before the first signed archive.
 - [ ] Review the included original 1024×1024 opaque AppIcon, confirm it as the final brand choice, and verify all appearance variants in Xcode.
 - [ ] Reserve **ReceiptSure: Expense Proof** in App Store Connect and complete professional trademark clearance for ReceiptSure in every intended launch market.
 - [ ] Run on a physical iPhone: scan in bright, dim, skewed, long-receipt, and multi-page conditions.
@@ -32,6 +33,11 @@
 - [ ] Prepare iPhone screenshots from real app states using `APP_STORE_SCREENSHOTS.md`; do not use the browser preview as a submitted screenshot.
 - [ ] Add review notes explaining: no login; scanning requires a physical camera; OCR runs on-device; exports are user initiated.
 - [ ] Create the non-consumable **ReceiptSure Pro Lifetime** product with ID `com.bodywiseremedy.receiptsure.pro.lifetime`, choose the closest Singapore price point to S$59.98, localize it, and attach its review screenshot.
+- [ ] Add the first non-consumable to the same version 1.0 review submission; Apple requires the first product of that type to accompany a new app version.
+- [ ] Verify the IAP localized description is no more than 45 characters and use: **Unlimited receipts, reports, and exports.**
+- [ ] Complete EU DSA trader status. Keep EU storefronts out of the initial availability until any required verification is complete.
+- [ ] Complete the current age-rating flow and save Apple’s calculated global and regional results.
+- [ ] Test all common tasks with each proposed accessibility feature before publishing the iPhone Accessibility Nutrition Label.
 
 ## 3. Archive and TestFlight
 
@@ -48,6 +54,7 @@
 
 - [ ] Increment the build number for every upload and select the final processed build on the app-version page.
 - [ ] Reconfirm pricing/availability, content rights, privacy answers, encryption/export compliance, and release method.
+- [ ] Confirm manual release is selected for version 1 so approval does not publish before support and launch readiness are confirmed.
 - [ ] Submit for review and monitor App Review messages.
 - [ ] After approval, use manual or phased release as appropriate and keep a rollback/support plan.
 
