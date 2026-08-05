@@ -22,7 +22,7 @@ Record the selected values here:
 | --- | --- |
 | Legal developer/account name | **Required from owner** |
 | Apple Developer Team name | **Required from signed-in account** |
-| Team ID | **Required from signed-in account** |
+| Team ID | `B5DJ69S32C` |
 
 ## 2. App Store Connect record
 
@@ -42,6 +42,8 @@ Create the app only after the explicit Bundle ID appears in App Store Connect.
 
 Successful creation reserves the localized name in that account and changes the app status to **Prepare for Submission**. If Apple rejects the name as unavailable, stop before creating a differently named record so the public brand, metadata, and bundle trail can be updated together.
 
+The ReceiptSure record is created with Apple ID `6798071503` and version 1.0 remains **Prepare for Submission**.
+
 ## 3. ReceiptSure Pro Lifetime
 
 The Account Holder must accept the current Paid Apps Agreement and complete tax and banking setup before paid content can be sold.
@@ -52,7 +54,7 @@ The Account Holder must accept the current Paid Apps Agreement and complete tax 
 | Reference name | ReceiptSure Pro Lifetime |
 | Product ID | `com.bodywiseremedy.receiptsure.pro.lifetime` |
 | Base country or region | Singapore |
-| Target customer price | Closest selectable Apple price point to S$59.98 |
+| Target customer price | S$59.98 |
 | Display name | ReceiptSure Pro Lifetime |
 | Description | Unlimited receipts, reports, and exports. |
 | Family Sharing | Off for version 1; reconsider before submission because enabling it later is a product-policy decision |
@@ -83,9 +85,18 @@ ReceiptSure uses encryption for an optional user-created backup archive:
 - Local encryption and decryption only; no developer server receives the archive, password, key, or receipt data.
 - No proprietary or unpublished cryptographic algorithm.
 
-In **App Information → App Encryption Documentation**, answer the live questionnaire according to those facts. The app does use encryption. It uses standard algorithms and Apple cryptographic APIs, and it performs password-based protection of user data at rest. Do not select “no encryption” merely because CryptoKit supplies AES-GCM.
+The current implementation uses only cryptography supplied by Apple’s operating system through `CryptoKit` and `Security`; it does not bundle another standard or proprietary cryptographic implementation. Apple’s current reference says this case does not require App Store Connect documentation. `Info.plist` declares `ITSAppUsesNonExemptEncryption` as `NO`.
 
-Allow Apple’s questionnaire to determine whether an exemption applies or documentation is required. If Apple requests documentation, upload it before TestFlight external review or App Review. If Apple approves documentation and supplies a compliance key, add that exact value to the app’s Info.plist. If Apple determines the app is exempt, record the result and only then add the exemption value Apple instructs. Preserve a screenshot/PDF of the result in the private release records; do not commit owner or account identifiers to this public repository.
+Do not use the **Upload** button in App Encryption Documentation for the current binary. Before archiving, confirm the source and linked frameworks still match these facts. If upload processing presents an export-compliance prompt, answer it against the actual binary. If a future release adds bundled cryptography, reassess the declaration and provide any documentation Apple requests.
+
+## 5A. Live App Store Connect preflight
+
+Apple’s **Add for Review** validation currently reports exactly two unresolved metadata/build gates:
+
+1. Version 1.0: **You must choose a build.**
+2. ReceiptSure Pro Lifetime: **You must add a Review Information screenshot.**
+
+The app version must also receive real iPhone product-page screenshots before final submission. Do not use the Vercel preview or fabricated device frames for either screenshot requirement.
 
 ## 6. Private App Review contact
 
