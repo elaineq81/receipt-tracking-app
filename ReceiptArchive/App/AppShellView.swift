@@ -23,7 +23,7 @@ struct AppShellView: View {
     @Environment(PurchaseManager.self) private var purchases
     @Query private var matters: [ExpenseMatter]
     @Query private var receipts: [Receipt]
-    @State private var selectedTab: AppTab = ScreenshotSupport.requestedTab
+    @State private var selectedTab: AppTab = .matters
     @State private var sheet: SheetDestination?
 
     var body: some View {
@@ -52,6 +52,11 @@ struct AppShellView: View {
                 .tag(AppTab.settings)
         }
         .tint(.teal)
+        .task {
+            guard ScreenshotSupport.isEnabled else { return }
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            selectedTab = ScreenshotSupport.requestedTab
+        }
         .sheet(item: $sheet) { destination in
             switch destination {
             case .newMatter:
