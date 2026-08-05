@@ -116,23 +116,17 @@ jobs:
           fi
           sleep 30
           xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ReceiptSureCompatibility/vision-launch-30s.png"
-          if ! xcrun simctl spawn "$UDID" /bin/kill -0 "$APP_PID"; then
+          echo "$APP_PID" > "$RUNNER_TEMP/ReceiptSureCompatibility/vision-process.txt"
+          xcrun simctl spawn "$UDID" log show --last 3m \
+            --predicate 'process == "ReceiptSure"' \
+            > "$RUNNER_TEMP/ReceiptSureCompatibility/vision-system.log" 2>&1 || true
+          if ! xcrun simctl terminate "$UDID" com.bodywiseremedy.receiptsure; then
             xcrun simctl spawn "$UDID" log show --last 3m \
               --predicate 'process == "ReceiptSure"' \
               > "$RUNNER_TEMP/ReceiptSureCompatibility/vision-system.log" 2>&1 || true
             echo "result=process-exited" >> "$GITHUB_OUTPUT"
             exit 1
           fi
-          echo "$APP_PID" > "$RUNNER_TEMP/ReceiptSureCompatibility/vision-process.txt"
-          sleep 15
-          if ! xcrun simctl spawn "$UDID" /bin/kill -0 "$APP_PID"; then
-            echo "result=process-exited" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
-          xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ReceiptSureCompatibility/vision-launch-45s.png"
-          xcrun simctl spawn "$UDID" log show --last 3m \
-            --predicate 'process == "ReceiptSure"' \
-            > "$RUNNER_TEMP/ReceiptSureCompatibility/vision-system.log" 2>&1 || true
           echo "result=passed" >> "$GITHUB_OUTPUT"
 
       - name: Publish compatibility summary
