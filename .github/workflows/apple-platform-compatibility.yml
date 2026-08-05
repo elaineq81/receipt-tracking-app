@@ -105,26 +105,31 @@ jobs:
           APP_PATH="$(find "$RUNNER_TEMP/ReceiptSureVisionDerivedData/Build/Products" -type d -name 'ReceiptSure.app' -print -quit)"
           test -d "$APP_PATH"
           xcrun simctl install "$UDID" "$APP_PATH"
-          xcrun simctl launch "$UDID" com.bodywiseremedy.receiptsure \
+          LAUNCH_OUTPUT="$(xcrun simctl launch "$UDID" com.bodywiseremedy.receiptsure \
             -ReceiptSureScreenshotMode 1 \
-            -ReceiptSureScreenshotTab matters \
-            | tee "$RUNNER_TEMP/ReceiptSureCompatibility/vision-launch.log"
-          sleep 15
-          if ! xcrun simctl spawn "$UDID" pgrep -x ReceiptSure \
-            | tee "$RUNNER_TEMP/ReceiptSureCompatibility/vision-process.txt"; then
+            -ReceiptSureScreenshotTab matters)"
+          echo "$LAUNCH_OUTPUT" | tee "$RUNNER_TEMP/ReceiptSureCompatibility/vision-launch.log"
+          APP_PID="$(echo "$LAUNCH_OUTPUT" | awk -F ': ' 'NF > 1 { print $NF }' | tail -1)"
+          if ! [[ "$APP_PID" =~ ^[0-9]+$ ]]; then
+            echo "result=pid-unavailable" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          sleep 30
+          xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ReceiptSureCompatibility/vision-launch-30s.png"
+          if ! xcrun simctl spawn "$UDID" /bin/kill -0 "$APP_PID"; then
             xcrun simctl spawn "$UDID" log show --last 3m \
               --predicate 'process == "ReceiptSure"' \
               > "$RUNNER_TEMP/ReceiptSureCompatibility/vision-system.log" 2>&1 || true
             echo "result=process-exited" >> "$GITHUB_OUTPUT"
             exit 1
           fi
-          xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ReceiptSureCompatibility/vision-launch-15s.png"
+          echo "$APP_PID" > "$RUNNER_TEMP/ReceiptSureCompatibility/vision-process.txt"
           sleep 15
-          if ! xcrun simctl spawn "$UDID" pgrep -x ReceiptSure >/dev/null; then
+          if ! xcrun simctl spawn "$UDID" /bin/kill -0 "$APP_PID"; then
             echo "result=process-exited" >> "$GITHUB_OUTPUT"
             exit 1
           fi
-          xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ReceiptSureCompatibility/vision-launch-30s.png"
+          xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ReceiptSureCompatibility/vision-launch-45s.png"
           xcrun simctl spawn "$UDID" log show --last 3m \
             --predicate 'process == "ReceiptSure"' \
             > "$RUNNER_TEMP/ReceiptSureCompatibility/vision-system.log" 2>&1 || true
