@@ -43,8 +43,8 @@
 
 - [ ] In Xcode, select **Any iOS Device (arm64)**, then Product → Archive.
 - [ ] In Organizer, Validate App, resolve signing/privacy issues, then Distribute App → App Store Connect → Upload.
-- [ ] Complete the App Encryption Documentation questionnaire for the AES-GCM/PBKDF2 secure-backup feature before setting any permanent export-compliance key.
-- [ ] Wait for processing, answer export-compliance questions, and add TestFlight beta details.
+- [ ] Confirm the final source still uses only Apple CryptoKit/Security cryptography and that the archive contains `ITSAppUsesNonExemptEncryption = NO`; reassess if another cryptographic implementation is added.
+- [ ] Wait for processing, resolve any export-compliance prompt against the actual binary, and add TestFlight beta details.
 - [ ] Test internally first. Confirm install, persistence after relaunch/update, camera permission copy, and every export on a clean device.
 - [ ] With a sandbox Apple Account, verify the free allowances, purchase, cancellation, Ask to Buy/pending state, entitlement persistence, Restore Purchases, Family Sharing choice, and refund/revocation behavior.
 - [ ] Add external testers only after the beta review information and contact details are complete.

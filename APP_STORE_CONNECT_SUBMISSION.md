@@ -43,7 +43,9 @@ Reassess the answers before submission if any analytics, crash-reporting SDK, cl
 
 ReceiptSure uses CryptoKit AES-GCM plus PBKDF2-HMAC-SHA256 to protect optional user-created backup archives. It does not currently operate a network service.
 
-Do not guess the export-compliance result. In App Store Connect, open **App Information → App Encryption Documentation**, describe the standard encryption above, and complete Apple’s questionnaire. If Apple determines the use is exempt, set `ITSAppUsesNonExemptEncryption` to `NO` in `Info.plist` for later uploads. If documentation or a compliance code is required, obtain it first and add the code Apple provides. The key is intentionally absent from the current project until that determination is recorded.
+The implementation imports only Apple `CryptoKit` and `Security` APIs for cryptography and does not bundle a third-party or proprietary cryptographic implementation. Apple’s current export-compliance reference says that encryption limited to the Apple operating system requires no App Store Connect documentation. The project therefore declares `ITSAppUsesNonExemptEncryption` as `NO` in `Info.plist`.
+
+Do not upload encryption documentation for the current binary. Before every release, confirm the final source and linked frameworks still use only Apple-provided cryptography. If a future version bundles another cryptographic implementation or Apple’s upload processing asks for more information, remove the assumption, answer the live questions from the final binary, and supply any documentation Apple requests.
 
 ## 6. Age rating and content declarations
 
@@ -88,18 +90,18 @@ Suggested review note:
 ## 9. Owner decisions before submission
 
 - [ ] Confirm Apple Developer team and public developer/legal name.
-- [ ] Confirm the SKU before creating the record; it cannot be changed afterward.
+- [x] Confirm the SKU before creating the record; it cannot be changed afterward.
 - [x] Free download with ReceiptSure Pro Lifetime as a one-time non-consumable purchase.
-- [ ] Select the closest Apple price point to S$59.98 and review automatic international pricing.
-- [ ] Select launch countries and regions.
+- [x] Select the closest Apple price point to S$59.98 and review automatic international pricing.
+- [x] Select launch countries and regions.
 - [ ] Supply App Review contact name, telephone, and email.
 - [ ] Complete trademark clearance and reserve the accepted localized name.
-- [ ] Complete Apple’s encryption questionnaire and record its result.
+- [x] Record the current Apple-only cryptography determination in `Info.plist`; verify the processed build does not request additional documentation.
 - [ ] Approve the final icon and screenshots.
 - [ ] Complete physical-device and TestFlight release gates.
-- [ ] Declare EU Digital Services Act trader status. Version 1’s recommended first wave excludes EU storefronts until the owner has made and, if applicable, verified that legal declaration.
-- [ ] Confirm the App Store tax category; default recommendation is App Store software with the IAP matching its parent.
-- [ ] Complete the current multi-step age-rating questionnaire; expected result is the lowest general rating, but Apple’s calculated regional results control.
+- [x] Declare EU Digital Services Act trader status. Version 1’s recommended first wave excludes EU storefronts.
+- [x] Confirm the App Store tax category; the IAP matches its parent.
+- [x] Complete the current multi-step age-rating questionnaire; Apple calculated 4+ globally with regional exceptions.
 - [ ] Prepare—but do not publish until common tasks pass physical-device testing—the iPhone Accessibility Nutrition Label.
 
 ## 10. Upload route on the Mac
