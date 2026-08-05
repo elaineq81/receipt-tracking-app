@@ -16,6 +16,7 @@ struct ReceiptArchiveApp: App {
 }
 
 struct RootView: View {
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("deviceLockEnabled") private var deviceLockEnabled = false
@@ -53,6 +54,7 @@ struct RootView: View {
             }
         }
         .task(id: scenePhase) {
+            ScreenshotSupport.prepare(modelContext: modelContext)
             guard scenePhase == .active else {
                 if deviceLockEnabled { isUnlocked = false }
                 return
