@@ -66,7 +66,7 @@ versionsUrl.searchParams.set("filter[platform]", platform);
 versionsUrl.searchParams.set("limit", "50");
 versionsUrl.searchParams.set("include", "build,appStoreVersionLocalizations,appStoreReviewDetail");
 versionsUrl.searchParams.set("fields[appStoreVersions]", "platform,versionString,appStoreState,build,appStoreVersionLocalizations,appStoreReviewDetail");
-versionsUrl.searchParams.set("fields[builds]", "version,processingState,usesNonExemptEncryption,uploadedDate,expired");
+versionsUrl.searchParams.set("fields[builds]", "version,processingState,usesNonExemptEncryption,uploadedDate,expired,iconAssetToken");
 versionsUrl.searchParams.set("fields[appStoreVersionLocalizations]", "locale,description,marketingUrl,promotionalText,supportUrl");
 
 const response = await api(`${versionsUrl.pathname}${versionsUrl.search}`);
@@ -107,6 +107,9 @@ if (!build) {
     ? pass("Build processing is valid")
     : fail("Build processing is valid", attributes.processingState || "unknown");
   attributes.expired ? fail("Build is not expired") : pass("Build is not expired");
+  attributes.iconAssetToken
+    ? pass("App icon is present in processed build")
+    : fail("App icon is present in processed build", "iconAssetToken is missing");
   attributes.usesNonExemptEncryption === false
     ? pass("Export compliance is exempt", "usesNonExemptEncryption=false")
     : fail("Export compliance is exempt", `usesNonExemptEncryption=${attributes.usesNonExemptEncryption}`);

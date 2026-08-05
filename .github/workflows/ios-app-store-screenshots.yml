@@ -1,0 +1,100 @@
+name: ReceiptSure App Store Screenshots
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: receiptsure-app-store-screenshots
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    name: Capture genuine ReceiptSure simulator screens
+    runs-on: macos-26
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out ReceiptSure
+        uses: actions/checkout@v5
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Create 6.5-inch screenshot simulator
+        id: simulator
+        run: |
+          DEVICE_TYPE="$(xcrun simctl list devicetypes -j | jq -r '.devicetypes[] | select(.name == "iPhone 14 Plus") | .identifier' | head -1)"
+          test -n "$DEVICE_TYPE"
+          RUNTIME="$(xcrun simctl list runtimes -j | jq -r '[.runtimes[] | select(.platform == "iOS" and .isAvailable == true)] | sort_by(.version) | last.identifier')"
+          test -n "$RUNTIME"
+          UDID="$(xcrun simctl create 'ReceiptSure App Store Screenshots' "$DEVICE_TYPE" "$RUNTIME")"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time 9:41 --batteryState charged --batteryLevel 100 --wifiBars 3 --cellularBars 4
+
+      - name: Build and install simulator app
+        env:
+          UDID: ${{ steps.simulator.outputs.udid }}
+        run: |
+          xcodebuild build \
+            -project ReceiptArchive.xcodeproj \
+            -scheme ReceiptArchive \
+            -configuration Release \
+            -destination "platform=iOS Simulator,id=$UDID" \
+            -derivedDataPath "$RUNNER_TEMP/ReceiptSureDerivedData" \
+            CODE_SIGNING_ALLOWED=NO
+          APP_PATH="$(find "$RUNNER_TEMP/ReceiptSureDerivedData/Build/Products/Release-iphonesimulator" -maxdepth 1 -name '*.app' -print -quit)"
+          test -d "$APP_PATH"
+          xcrun simctl install "$UDID" "$APP_PATH"
+
+      - name: Capture App Store screenshots
+        env:
+          UDID: ${{ steps.simulator.outputs.udid }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/ReceiptSureScreenshots"
+          capture() {
+            local order="$1"
+            local tab="$2"
+            xcrun simctl terminate "$UDID" com.bodywiseremedy.receiptsure >/dev/null 2>&1 || true
+            xcrun simctl launch "$UDID" com.bodywiseremedy.receiptsure \
+              -ReceiptSureScreenshotMode 1 \
+              -ReceiptSureScreenshotTab "$tab"
+            sleep 4
+            xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ReceiptSureScreenshots/${order}-${tab}.png"
+          }
+          capture 01 matters
+          capture 02 receipts
+          capture 03 reports
+          capture 04 settings
+
+          for screenshot in "$RUNNER_TEMP"/ReceiptSureScreenshots/*.png; do
+            WIDTH="$(sips -g pixelWidth "$screenshot" | awk '/pixelWidth/ {print $2}')"
+            HEIGHT="$(sips -g pixelHeight "$screenshot" | awk '/pixelHeight/ {print $2}')"
+            test "$WIDTH" = "1284"
+            test "$HEIGHT" = "2778"
+          done
+
+      - name: Upload screenshot artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReceiptSure-App-Store-Screenshots-6.5-inch
+          path: ${{ runner.temp }}/ReceiptSureScreenshots/*.png
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove temporary simulator
+        if: always()
+        env:
+          UDID: ${{ steps.simulator.outputs.udid }}
+        run: |
+          if [ -n "$UDID" ]; then
+            xcrun simctl shutdown "$UDID" >/dev/null 2>&1 || true
+            xcrun simctl delete "$UDID" >/dev/null 2>&1 || true
+          fi

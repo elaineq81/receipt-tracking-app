@@ -23,7 +23,7 @@ struct AppShellView: View {
     @Environment(PurchaseManager.self) private var purchases
     @Query private var matters: [ExpenseMatter]
     @Query private var receipts: [Receipt]
-    @State private var selectedTab: AppTab = .matters
+    @State private var selectedTab: AppTab = ScreenshotSupport.requestedTab
     @State private var sheet: SheetDestination?
 
     var body: some View {
