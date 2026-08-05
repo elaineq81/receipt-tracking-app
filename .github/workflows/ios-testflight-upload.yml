@@ -154,6 +154,9 @@ jobs:
         run: |
           APP_BUNDLE="$RUNNER_TEMP/ReceiptSure.xcarchive/Products/Applications/ReceiptSure.app"
           test -d "$APP_BUNDLE"
+          EXECUTABLE_NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP_BUNDLE/Info.plist")"
+          test -n "$EXECUTABLE_NAME"
+          test -x "$APP_BUNDLE/$EXECUTABLE_NAME"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_BUNDLE/Info.plist")" = "com.bodywiseremedy.receiptsure"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_BUNDLE/Info.plist")" = "1.0"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_BUNDLE/Info.plist")" = "$EXPECTED_BUILD_NUMBER"
