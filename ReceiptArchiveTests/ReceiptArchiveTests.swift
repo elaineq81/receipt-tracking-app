@@ -50,4 +50,57 @@ final class ReceiptArchiveTests: XCTestCase {
 
         XCTAssertTrue(warnings.contains("Subtotal, tax, tip and discount do not reconcile to total"))
     }
+
+    func testInternationalAmountParsingHandlesDecimalAndThousandsSeparators() {
+        XCTAssertEqual(ReceiptTextParsing.amounts(in: "Total EUR 1.234,56"), [Decimal(string: "1234.56")!])
+        XCTAssertEqual(ReceiptTextParsing.amounts(in: "Total USD 1,234.56"), [Decimal(string: "1234.56")!])
+        XCTAssertEqual(ReceiptTextParsing.amounts(in: "Total CHF 12'345.67"), [Decimal(string: "12345.67")!])
+        XCTAssertEqual(ReceiptTextParsing.amounts(in: "Total 12 345,67 €"), [Decimal(string: "12345.67")!])
+    }
+
+    func testCurrencyDetectionSupportsCodesAndRegionalSymbols() {
+        XCTAssertEqual(ReceiptTextParsing.currency(in: ["TOTAL HK$ 42.00"], defaultCode: "USD").code, "HKD")
+        XCTAssertEqual(ReceiptTextParsing.currency(in: ["TOTAL ₹ 850.00"], defaultCode: "USD").code, "INR")
+        XCTAssertEqual(ReceiptTextParsing.currency(in: ["TOTAL CHF 19.90"], defaultCode: "EUR").code, "CHF")
+        XCTAssertEqual(ReceiptTextParsing.currency(in: ["TOTAL $ 19.90"], defaultCode: "SGD").code, "SGD")
+    }
+
+    func testProofPackManifestHashesEveryFileDeterministically() throws {
+        let generatedAt = Date(timeIntervalSince1970: 1_767_225_600)
+        let files = ["expenses.csv": Data("amount\n12.50".utf8), "summary.pdf": Data("pdf".utf8)]
+        let data = try ProofPackManifestBuilder.manifestData(for: files, title: "Trip", generatedAt: generatedAt)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let manifest = try decoder.decode(ProofPackManifest.self, from: data)
+
+        XCTAssertEqual(manifest.schemaVersion, 1)
+        XCTAssertEqual(manifest.title, "Trip")
+        XCTAssertEqual(manifest.files.map(\.path), ["expenses.csv", "summary.pdf"])
+        XCTAssertEqual(manifest.files[0].sha256, ProofPackManifestBuilder.sha256Hex(files["expenses.csv"]!))
+        XCTAssertEqual(manifest.files[0].sha256.count, 64)
+    }
+
+    func testReceiptTrashCanBeRestoredWithoutLosingEvidence() {
+        let receipt = Receipt(
+            merchant: "Merchant",
+            transactionDate: .now,
+            currencyCode: "USD",
+            subtotal: 10,
+            tax: 1,
+            total: 11,
+            category: .other,
+            originalEvidenceDigest: "original",
+            currentEvidenceDigest: "current"
+        )
+
+        receipt.moveToTrash(at: Date(timeIntervalSince1970: 1_767_225_600))
+        XCTAssertTrue(receipt.isTrashed)
+        XCTAssertNotNil(receipt.trashedAt)
+        XCTAssertEqual(receipt.currentEvidenceDigest, "current")
+
+        receipt.restoreFromTrash()
+        XCTAssertFalse(receipt.isTrashed)
+        XCTAssertNil(receipt.trashedAt)
+        XCTAssertEqual(receipt.originalEvidenceDigest, "original")
+    }
 }

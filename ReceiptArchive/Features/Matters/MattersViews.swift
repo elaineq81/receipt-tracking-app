@@ -22,7 +22,7 @@ struct MattersView: View {
                         HStack {
                             SummaryMetric(title: "Matters", value: "\(matters.count)", symbol: "folder")
                             Divider()
-                            SummaryMetric(title: "Receipts", value: "\(matters.reduce(0) { $0 + $1.receipts.count })", symbol: "doc.text")
+                            SummaryMetric(title: "Receipts", value: "\(matters.reduce(0) { $0 + $1.receipts.filter { !$0.isTrashed }.count })", symbol: "doc.text")
                         }
                         .frame(height: 72)
                     }
@@ -56,7 +56,8 @@ private struct MatterRow: View {
             Image(systemName: "folder.fill").font(.title2).foregroundStyle(.teal)
             VStack(alignment: .leading, spacing: 4) {
                 Text(matter.name).font(.headline)
-                Text("\(matter.receipts.count) receipt\(matter.receipts.count == 1 ? "" : "s") • \(matter.startDate.formatted(date: .abbreviated, time: .omitted))")
+                let activeCount = matter.receipts.filter { !$0.isTrashed }.count
+                Text("\(activeCount) receipt\(activeCount == 1 ? "" : "s") • \(matter.startDate.formatted(date: .abbreviated, time: .omitted))")
                     .font(.subheadline).foregroundStyle(.secondary)
                 if let first = matter.totalByCurrency.sorted(by: { $0.key < $1.key }).first {
                     Text(first.value.formatted(.currency(code: first.key))).font(.subheadline.weight(.semibold))
@@ -71,8 +72,10 @@ struct MatterDetailView: View {
     @Environment(\.modelContext) private var modelContext
     let matter: ExpenseMatter
     let scan: () -> Void
+    @State private var pendingTrash: [Receipt] = []
+    @State private var persistenceError: String?
 
-    var sortedReceipts: [Receipt] { matter.receipts.sorted { $0.transactionDate > $1.transactionDate } }
+    var sortedReceipts: [Receipt] { matter.receipts.filter { !$0.isTrashed }.sorted { $0.transactionDate > $1.transactionDate } }
 
     var body: some View {
         List {
@@ -89,11 +92,37 @@ struct MatterDetailView: View {
                 ForEach(sortedReceipts) { receipt in
                     NavigationLink { ReceiptDetailView(receipt: receipt) } label: { ReceiptRow(receipt: receipt) }
                 }
-                .onDelete { offsets in offsets.map { sortedReceipts[$0] }.forEach(modelContext.delete) }
+                .onDelete { offsets in pendingTrash = offsets.map { sortedReceipts[$0] } }
             }
         }
         .navigationTitle(matter.name)
         .toolbar { Button("Scan", systemImage: "camera.viewfinder", action: scan) }
+        .confirmationDialog(
+            "Move \(pendingTrash.count == 1 ? "receipt" : "receipts") to Recently Deleted?",
+            isPresented: Binding(get: { !pendingTrash.isEmpty }, set: { if !$0 { pendingTrash = [] } }),
+            titleVisibility: .visible
+        ) {
+            Button("Move to Recently Deleted", role: .destructive) { movePendingToTrash() }
+            Button("Cancel", role: .cancel) { pendingTrash = [] }
+        } message: {
+            Text("You can restore \(pendingTrash.count == 1 ? "it" : "them") from the Receipts tab.")
+        }
+        .alert("Couldn’t update receipts", isPresented: Binding(get: { persistenceError != nil }, set: { if !$0 { persistenceError = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(persistenceError ?? "Please try again.")
+        }
+    }
+
+    private func movePendingToTrash() {
+        let receipts = pendingTrash
+        pendingTrash = []
+        receipts.forEach { $0.moveToTrash() }
+        do {
+            try PersistenceService.save(modelContext)
+        } catch {
+            persistenceError = error.localizedDescription
+        }
     }
 }
 
@@ -105,6 +134,7 @@ struct MatterEditorView: View {
     @State private var startDate = Date.now
     @State private var hasEndDate = false
     @State private var endDate = Date.now
+    @State private var saveError: String?
 
     var body: some View {
         Form {
@@ -124,11 +154,25 @@ struct MatterEditorView: View {
             ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
-                    modelContext.insert(ExpenseMatter(name: name.trimmingCharacters(in: .whitespacesAndNewlines), details: details, startDate: startDate, endDate: hasEndDate ? endDate : nil))
-                    dismiss()
+                    save()
                 }
                 .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
+        }
+        .alert("Couldn’t save matter", isPresented: Binding(get: { saveError != nil }, set: { if !$0 { saveError = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(saveError ?? "Please try again.")
+        }
+    }
+
+    private func save() {
+        modelContext.insert(ExpenseMatter(name: name.trimmingCharacters(in: .whitespacesAndNewlines), details: details, startDate: startDate, endDate: hasEndDate ? endDate : nil))
+        do {
+            try PersistenceService.save(modelContext)
+            dismiss()
+        } catch {
+            saveError = error.localizedDescription
         }
     }
 }

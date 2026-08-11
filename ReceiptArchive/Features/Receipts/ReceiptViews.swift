@@ -11,10 +11,14 @@ struct ReceiptsView: View {
     @Query(sort: \Receipt.transactionDate, order: .reverse) private var receipts: [Receipt]
     @State private var search = ""
     @State private var scope = ReceiptScope.all
+    @State private var pendingTrash: [Receipt] = []
+    @State private var persistenceError: String?
     let scan: () -> Void
 
+    private var activeReceipts: [Receipt] { receipts.filter { !$0.isTrashed } }
+
     private var filtered: [Receipt] {
-        receipts.filter { receipt in
+        activeReceipts.filter { receipt in
             let matchesScope = scope == .all || (scope == .needsReview ? receipt.reviewStatus == .needsReview : receipt.reviewStatus == .verified)
             let matchesSearch = search.isEmpty || receipt.merchant.localizedCaseInsensitiveContains(search) || receipt.categoryRaw.localizedCaseInsensitiveContains(search) || (receipt.matter?.name.localizedCaseInsensitiveContains(search) ?? false)
             return matchesScope && matchesSearch
@@ -36,7 +40,7 @@ struct ReceiptsView: View {
 
     var body: some View {
         Group {
-            if receipts.isEmpty {
+            if activeReceipts.isEmpty {
                 ContentUnavailableView {
                     Label("No receipts yet", systemImage: "doc.text.viewfinder")
                 } description: { Text("Scan a receipt and confirm the extracted figures.") }
@@ -53,6 +57,7 @@ struct ReceiptsView: View {
                             ForEach(attentionReceipts) { receipt in
                                 NavigationLink { ReceiptDetailView(receipt: receipt) } label: { ReceiptRow(receipt: receipt) }
                             }
+                            .onDelete { pendingTrash = $0.map { attentionReceipts[$0] } }
                         }
                     } else {
                         ForEach(daySections) { section in
@@ -61,7 +66,7 @@ struct ReceiptsView: View {
                                     NavigationLink { ReceiptDetailView(receipt: receipt) } label: { ReceiptRow(receipt: receipt) }
                                 }
                                 .onDelete { offsets in
-                                    offsets.map { section.receipts[$0] }.forEach(modelContext.delete)
+                                    pendingTrash = offsets.map { section.receipts[$0] }
                                 }
                             }
                         }
@@ -71,7 +76,108 @@ struct ReceiptsView: View {
         }
         .navigationTitle("Receipts")
         .searchable(text: $search, prompt: "Merchant, category, or matter")
-        .toolbar { Button("Scan", systemImage: "camera.viewfinder", action: scan) }
+        .toolbar {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                NavigationLink {
+                    RecentlyDeletedReceiptsView()
+                } label: {
+                    Label("Recently Deleted", systemImage: "trash")
+                }
+                Button("Scan", systemImage: "camera.viewfinder", action: scan)
+            }
+        }
+        .confirmationDialog(
+            "Move (pendingTrash.count == 1 ? "receipt" : "receipts") to Recently Deleted?",
+            isPresented: Binding(get: { !pendingTrash.isEmpty }, set: { if !$0 { pendingTrash = [] } }),
+            titleVisibility: .visible
+        ) {
+            Button("Move to Recently Deleted", role: .destructive) { movePendingToTrash() }
+            Button("Cancel", role: .cancel) { pendingTrash = [] }
+        } message: {
+            Text("You can restore (pendingTrash.count == 1 ? "it" : "them") later.")
+        }
+        .alert("Couldn’t update receipts", isPresented: Binding(get: { persistenceError != nil }, set: { if !$0 { persistenceError = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(persistenceError ?? "Please try again.")
+        }
+    }
+
+    private func movePendingToTrash() {
+        let receipts = pendingTrash
+        pendingTrash = []
+        receipts.forEach { $0.moveToTrash() }
+        do {
+            try PersistenceService.save(modelContext)
+        } catch {
+            persistenceError = error.localizedDescription
+        }
+    }
+}
+
+private struct RecentlyDeletedReceiptsView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Receipt.trashedAt, order: .reverse) private var receipts: [Receipt]
+    @State private var pendingPermanentDelete: Receipt?
+    @State private var persistenceError: String?
+
+    private var trashedReceipts: [Receipt] { receipts.filter(\.isTrashed) }
+
+    var body: some View {
+        List {
+            if trashedReceipts.isEmpty {
+                ContentUnavailableView("Recently Deleted is empty", systemImage: "trash", description: Text("Receipts moved here can be restored or deleted permanently."))
+            } else {
+                ForEach(trashedReceipts) { receipt in
+                    ReceiptRow(receipt: receipt)
+                        .swipeActions(edge: .leading) {
+                            Button("Restore", systemImage: "arrow.uturn.backward") { restore(receipt) }
+                                .tint(.teal)
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button("Delete permanently", systemImage: "trash", role: .destructive) {
+                                pendingPermanentDelete = receipt
+                            }
+                        }
+                }
+            }
+        }
+        .navigationTitle("Recently Deleted")
+        .confirmationDialog(
+            "Delete this receipt permanently?",
+            isPresented: Binding(get: { pendingPermanentDelete != nil }, set: { if !$0 { pendingPermanentDelete = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button("Delete Permanently", role: .destructive) { permanentlyDelete() }
+            Button("Cancel", role: .cancel) { pendingPermanentDelete = nil }
+        } message: {
+            Text("The receipt image and audit history cannot be recovered after this action.")
+        }
+        .alert("Couldn’t update receipt", isPresented: Binding(get: { persistenceError != nil }, set: { if !$0 { persistenceError = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(persistenceError ?? "Please try again.")
+        }
+    }
+
+    private func restore(_ receipt: Receipt) {
+        receipt.restoreFromTrash()
+        save()
+    }
+
+    private func permanentlyDelete() {
+        guard let receipt = pendingPermanentDelete else { return }
+        pendingPermanentDelete = nil
+        modelContext.delete(receipt)
+        save()
+    }
+
+    private func save() {
+        do {
+            try PersistenceService.save(modelContext)
+        } catch {
+            persistenceError = error.localizedDescription
+        }
     }
 }
 
@@ -121,6 +227,7 @@ struct ReceiptDetailView: View {
     @State private var cropPage: ReceiptPage?
     @State private var sharePayload: ReceiptSharePayload?
     @State private var shareError: String?
+    @State private var persistenceError: String?
     @State private var isPreparingShare = false
     @State private var integrityStatus = EvidenceIntegrityStatus.notSealed
 
@@ -286,7 +393,7 @@ struct ReceiptDetailView: View {
                     }
                     EvidenceIntegrityService.seal(receipt)
                     integrityStatus = .verified
-                    try? modelContext.save()
+                    saveReceiptChange()
                 }
             }
         }
@@ -300,6 +407,14 @@ struct ReceiptDetailView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(shareError ?? "Please try again.")
+        }
+        .alert("Couldn’t save receipt", isPresented: Binding(
+            get: { persistenceError != nil },
+            set: { if !$0 { persistenceError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(persistenceError ?? "Please try again.")
         }
         .task(id: receipt.currentEvidenceDigest) {
             integrityStatus = EvidenceIntegrityService.verify(receipt)
@@ -358,7 +473,16 @@ struct ReceiptDetailView: View {
     private func sealEvidence() {
         EvidenceIntegrityService.seal(receipt)
         integrityStatus = .verified
-        try? modelContext.save()
+        saveReceiptChange()
+    }
+
+    private func saveReceiptChange() {
+        do {
+            try PersistenceService.save(modelContext)
+        } catch {
+            integrityStatus = EvidenceIntegrityService.verify(receipt)
+            persistenceError = error.localizedDescription
+        }
     }
 }
 
@@ -418,6 +542,7 @@ private struct ReceiptEditorView: View {
     @State private var lineItems: [ReceiptLineItem]
     @State private var reason = ""
     @State private var confirmedAgainstImage = false
+    @State private var saveError: String?
 
     init(receipt: Receipt) {
         self.receipt = receipt
@@ -530,6 +655,11 @@ private struct ReceiptEditorView: View {
                     .disabled(merchant.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || currencyCode.count != 3 || total < 0)
             }
         }
+        .alert("Couldn’t save receipt", isPresented: Binding(get: { saveError != nil }, set: { if !$0 { saveError = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(saveError ?? "Please try again.")
+        }
     }
 
     private func save() {
@@ -583,8 +713,12 @@ private struct ReceiptEditorView: View {
         receipt.fingerprint = ReceiptEvidence.fingerprint(merchant: merchant, date: transactionDate, total: total, currencyCode: currencyCode)
         receipt.reviewStatus = confirmedAgainstImage ? .verified : .needsReview
         receipt.reviewedAt = confirmedAgainstImage ? .now : nil
-        try? modelContext.save()
-        dismiss()
+        do {
+            try PersistenceService.save(modelContext)
+            dismiss()
+        } catch {
+            saveError = error.localizedDescription
+        }
     }
 
     private func record(_ field: String, _ before: String, _ after: String) {
@@ -835,6 +969,7 @@ struct ReceiptReviewView: View {
     @State private var cropSelection: ReceiptCropSelection?
     @State private var isRereading = false
     @State private var rereadError: String?
+    @State private var saveError: String?
     let didSave: () -> Void
 
     private var currentWarnings: [String] {
@@ -974,7 +1109,7 @@ struct ReceiptReviewView: View {
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
-                    if existingReceipts.contains(where: { $0.fingerprint == fingerprint && !$0.fingerprint.isEmpty }) {
+                    if existingReceipts.contains(where: { !$0.isTrashed && $0.fingerprint == fingerprint && !$0.fingerprint.isEmpty }) {
                         showDuplicateAlert = true
                     } else { saveReceipt() }
                 }
@@ -1002,6 +1137,14 @@ struct ReceiptReviewView: View {
         } message: {
             Text(rereadError ?? "The crop was kept. Enter or correct the details manually.")
         }
+        .alert("Couldn’t save receipt", isPresented: Binding(
+            get: { saveError != nil },
+            set: { if !$0 { saveError = nil } }
+        )) {
+            Button("Keep reviewing", role: .cancel) {}
+        } message: {
+            Text(saveError ?? "Please try again.")
+        }
     }
 
     private func saveReceipt() {
@@ -1025,8 +1168,12 @@ struct ReceiptReviewView: View {
         }
         receipt.fieldConfidence = draft.fieldConfidence
         EvidenceIntegrityService.seal(receipt)
-        try? modelContext.save()
-        didSave()
+        do {
+            try PersistenceService.save(modelContext)
+            didSave()
+        } catch {
+            saveError = error.localizedDescription
+        }
     }
 
     private func rereadReceipt() {

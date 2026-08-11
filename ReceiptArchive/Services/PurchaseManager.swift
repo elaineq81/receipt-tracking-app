@@ -41,7 +41,7 @@ enum PaywallReason: String, Identifiable {
         case .pdfLimit:
             "Your first complete PDF report is included. ReceiptSure Pro adds unlimited PDF reports."
         case .advancedExport:
-            "Excel, Word, and JPG bundles are included with ReceiptSure Pro. CSV remains available for free."
+            "Excel, Word, JPG bundles, and verifiable ReceiptSure Proof Packs are included with ReceiptSure Pro. CSV remains available for free."
         case .automation:
             "ReceiptSure Pro learns your trusted filing choices with reusable merchant rules."
         case .settings:

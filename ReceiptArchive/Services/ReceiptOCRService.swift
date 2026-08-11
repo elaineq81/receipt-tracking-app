@@ -114,7 +114,18 @@ actor ReceiptOCRService {
             }
             request.recognitionLevel = .accurate
             request.usesLanguageCorrection = true
-            request.recognitionLanguages = ["en-US", "en-GB", "zh-Hans", "zh-Hant"]
+            request.automaticallyDetectsLanguage = true
+            if let supported = try? request.supportedRecognitionLanguages() {
+                let preferredLanguageCodes = Locale.preferredLanguages.map {
+                    String($0.prefix(2)).lowercased()
+                }
+                let preferred = supported.filter { language in
+                    preferredLanguageCodes.contains(String(language.prefix(2)).lowercased())
+                }
+                let common = ["en-US", "en-GB", "zh-Hans", "zh-Hant", "fr-FR", "de-DE", "es-ES", "it-IT", "pt-BR", "nl-NL", "ja-JP", "ko-KR"]
+                    .filter(supported.contains)
+                request.recognitionLanguages = Array((preferred + common).uniqued().prefix(12))
+            }
             do {
                 try VNImageRequestHandler(cgImage: cgImage, orientation: image.cgImageOrientation).perform([request])
             } catch {
@@ -150,7 +161,7 @@ actor ReceiptOCRService {
             }
         }
 
-        let amountsByLine = lines.map { ($0, amounts(in: $0.text)) }
+        let amountsByLine = lines.map { ($0, ReceiptTextParsing.amounts(in: $0.text)) }
         let tax = bestAmount(in: amountsByLine, labels: ["tax", "gst", "vat", "service charge"])
         draft.tax = tax?.value ?? .zero
         draft.fieldConfidence.tax = tax?.confidence ?? 0
@@ -183,21 +194,6 @@ actor ReceiptOCRService {
         return draft
     }
 
-    private static func amounts(in line: String) -> [Decimal] {
-        let pattern = #"(?<!\d)(?:\d{1,3}(?:[ ,.']\d{3})*|\d+)[.,]\d{2}(?!\d)"#
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
-        return regex.matches(in: line, range: NSRange(line.startIndex..., in: line)).compactMap { match in
-            guard let range = Range(match.range, in: line) else { return nil }
-            var value = String(line[range]).replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "'", with: "")
-            if value.filter({ $0 == "," }).count == 1 && !value.contains(".") {
-                value = value.replacingOccurrences(of: ",", with: ".")
-            } else {
-                value = value.replacingOccurrences(of: ",", with: "")
-            }
-            return Decimal(string: value, locale: Locale(identifier: "en_US_POSIX"))
-        }
-    }
-
     private static func bestAmount(in lines: [(RecognizedLine, [Decimal])], labels: [String]) -> (value: Decimal, confidence: Double)? {
         for label in labels {
             if let match = lines.reversed().first(where: { $0.0.text.lowercased().contains(label) }),
@@ -207,15 +203,10 @@ actor ReceiptOCRService {
     }
 
     private static func detectCurrency(in lines: [RecognizedLine]) -> (value: String, confidence: Double) {
-        for code in ["SGD", "USD", "EUR", "GBP", "AUD", "CAD", "JPY", "CNY", "HKD", "MYR", "THB", "IDR", "INR"] {
-            if let line = lines.first(where: { $0.text.uppercased().contains(code) }) { return (code, line.confidence) }
-        }
-        if let line = lines.first(where: { $0.text.contains("S$") }) { return ("SGD", line.confidence) }
-        if let line = lines.first(where: { $0.text.contains("€") }) { return ("EUR", line.confidence) }
-        if let line = lines.first(where: { $0.text.contains("£") }) { return ("GBP", line.confidence) }
-        if let line = lines.first(where: { $0.text.contains("¥") }) { return ("JPY", line.confidence) }
-        if let line = lines.first(where: { $0.text.contains("$") }) { return (Locale.current.currency?.identifier ?? "USD", line.confidence * 0.75) }
-        return (Locale.current.currency?.identifier ?? "USD", 0.35)
+        let fallback = Locale.current.currency?.identifier ?? "USD"
+        let detection = ReceiptTextParsing.currency(in: lines.map(\.text), defaultCode: fallback)
+        let confidence = detection.lineIndex.flatMap { lines.indices.contains($0) ? lines[$0].confidence : nil } ?? 1
+        return (detection.code, confidence * detection.confidenceMultiplier)
     }
 
     private static func extractLineItems(from lines: [RecognizedLine]) -> [ReceiptLineItem] {
@@ -224,10 +215,10 @@ actor ReceiptOCRService {
             let lower = line.text.lowercased()
             guard !excludedLabels.contains(where: lower.contains),
                   line.text.rangeOfCharacter(from: .letters) != nil,
-                  let regex = try? NSRegularExpression(pattern: #"(?<!\d)(?:\d{1,3}(?:[ ,.']\d{3})*|\d+)[.,]\d{2}(?!\d)"#),
+                  let regex = try? NSRegularExpression(pattern: ReceiptTextParsing.amountPattern),
                   let match = regex.matches(in: line.text, range: NSRange(line.text.startIndex..., in: line.text)).last,
                   let amountRange = Range(match.range, in: line.text),
-                  let total = amounts(in: String(line.text[amountRange])).first,
+                  let total = ReceiptTextParsing.amounts(in: String(line.text[amountRange])).first,
                   total > 0 else { return nil }
 
             var description = String(line.text[..<amountRange.lowerBound])
@@ -270,6 +261,100 @@ actor ReceiptOCRService {
             (.fees, ["fee", "toll", "commission"])
         ]
         return rules.first(where: { $0.1.contains(where: text.contains) })?.0 ?? .other
+    }
+}
+
+struct ReceiptCurrencyDetection: Equatable, Sendable {
+    let code: String
+    let lineIndex: Int?
+    let confidenceMultiplier: Double
+}
+
+enum ReceiptTextParsing {
+    static let amountPattern = #"(?<!\d)(?:\d{1,3}(?:[ ,.']\d{3})*|\d+)[.,]\d{2}(?!\d)"#
+
+    static func amounts(in line: String) -> [Decimal] {
+        guard let regex = try? NSRegularExpression(pattern: amountPattern) else { return [] }
+        return regex.matches(in: line, range: NSRange(line.startIndex..., in: line)).compactMap { match in
+            guard let range = Range(match.range, in: line) else { return nil }
+            return decimal(from: String(line[range]))
+        }
+    }
+
+    static func decimal(from source: String) -> Decimal? {
+        var value = source
+            .replacingOccurrences(of: " ", with: "")
+            .replacingOccurrences(of: "'", with: "")
+        let lastComma = value.lastIndex(of: ",")
+        let lastDot = value.lastIndex(of: ".")
+
+        if let lastComma, let lastDot {
+            if lastComma > lastDot {
+                value = value.replacingOccurrences(of: ".", with: "")
+                value = replacingLastOccurrence(of: ",", with: ".", in: value)
+                value = value.replacingOccurrences(of: ",", with: "")
+            } else {
+                value = value.replacingOccurrences(of: ",", with: "")
+            }
+        } else if lastComma != nil {
+            value = replacingLastOccurrence(of: ",", with: ".", in: value)
+            value = value.replacingOccurrences(of: ",", with: "")
+        } else if value.filter({ $0 == "." }).count > 1 {
+            value = replacingLastOccurrence(of: ".", with: "#", in: value)
+            value = value.replacingOccurrences(of: ".", with: "")
+            value = value.replacingOccurrences(of: "#", with: ".")
+        }
+        return Decimal(string: value, locale: Locale(identifier: "en_US_POSIX"))
+    }
+
+    static func currency(in lines: [String], defaultCode: String) -> ReceiptCurrencyDetection {
+        let codes = [
+            "AED", "ARS", "AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EGP", "EUR", "GBP",
+            "HKD", "HUF", "IDR", "ILS", "INR", "JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PHP", "PLN", "RON",
+            "RUB", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "USD", "VND", "ZAR"
+        ]
+        for (index, line) in lines.enumerated() {
+            let upper = line.uppercased()
+            if let code = codes.first(where: { upper.range(of: #"\b"# + $0 + #"\b"#, options: .regularExpression) != nil }) {
+                return ReceiptCurrencyDetection(code: code, lineIndex: index, confidenceMultiplier: 1)
+            }
+        }
+
+        let symbols: [(String, String)] = [
+            ("HK$", "HKD"), ("NZ$", "NZD"), ("US$", "USD"), ("S$", "SGD"), ("A$", "AUD"), ("C$", "CAD"),
+            ("R$", "BRL"), ("€", "EUR"), ("£", "GBP"), ("₹", "INR"), ("₩", "KRW"), ("₱", "PHP"), ("฿", "THB"),
+            ("₫", "VND"), ("₽", "RUB"), ("₺", "TRY"), ("₪", "ILS"), ("د.إ", "AED"), ("ر.س", "SAR")
+        ]
+        for (index, line) in lines.enumerated() {
+            if let match = symbols.first(where: { line.localizedCaseInsensitiveContains($0.0) }) {
+                return ReceiptCurrencyDetection(code: match.1, lineIndex: index, confidenceMultiplier: 0.95)
+            }
+            if line.contains("¥") {
+                let code = ["CNY", "JPY"].contains(defaultCode.uppercased()) ? defaultCode.uppercased() : "JPY"
+                return ReceiptCurrencyDetection(code: code, lineIndex: index, confidenceMultiplier: 0.8)
+            }
+        }
+
+        if let index = lines.firstIndex(where: { $0.contains("$") }) {
+            let dollarCodes = ["AUD", "CAD", "HKD", "NZD", "SGD", "TWD", "USD"]
+            let code = dollarCodes.contains(defaultCode.uppercased()) ? defaultCode.uppercased() : "USD"
+            return ReceiptCurrencyDetection(code: code, lineIndex: index, confidenceMultiplier: 0.7)
+        }
+        return ReceiptCurrencyDetection(code: defaultCode.uppercased(), lineIndex: nil, confidenceMultiplier: 0.35)
+    }
+
+    private static func replacingLastOccurrence(of target: Character, with replacement: Character, in source: String) -> String {
+        guard let index = source.lastIndex(of: target) else { return source }
+        var value = source
+        value.replaceSubrange(index...index, with: String(replacement))
+        return value
+    }
+}
+
+private extension Sequence where Element: Hashable {
+    func uniqued() -> [Element] {
+        var seen = Set<Element>()
+        return filter { seen.insert($0).inserted }
     }
 }
 

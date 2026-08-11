@@ -47,7 +47,7 @@ enum SecureBackupService {
             let clear = try SecureArchiveCrypto.open(encrypted, password: password)
             return try JSONDecoder.backupDecoder.decode(BackupPayload.self, from: clear)
         }.value
-        guard [1, 2].contains(decoded.version) else { throw SecureBackupError.unsupportedVersion }
+        guard [1, 2, 3].contains(decoded.version) else { throw SecureBackupError.unsupportedVersion }
         return try merge(decoded, into: modelContext)
     }
 
@@ -55,7 +55,7 @@ enum SecureBackupService {
         let matters = try modelContext.fetch(FetchDescriptor<ExpenseMatter>()).map(MatterRecord.init)
         let receipts = try modelContext.fetch(FetchDescriptor<Receipt>()).map(ReceiptRecord.init)
         let rules = try modelContext.fetch(FetchDescriptor<MerchantRule>()).map(RuleRecord.init)
-        return BackupPayload(version: 2, createdAt: .now, matters: matters, receipts: receipts, rules: rules)
+        return BackupPayload(version: 3, createdAt: .now, matters: matters, receipts: receipts, rules: rules)
     }
 
     private static func merge(_ payload: BackupPayload, into modelContext: ModelContext) throws -> RestoreSummary {
@@ -184,6 +184,8 @@ private struct ReceiptRecord: Codable, Sendable {
     let originalEvidenceDigest: String?
     let currentEvidenceDigest: String?
     let evidenceSealedAt: Date?
+    let isTrashed: Bool?
+    let trashedAt: Date?
 
     init(_ value: Receipt) {
         id = value.id; merchant = value.merchant; transactionDate = value.transactionDate; currencyCode = value.currencyCode
@@ -196,11 +198,14 @@ private struct ReceiptRecord: Codable, Sendable {
         originalPages = value.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).map(\.originalImageData)
         lineItems = value.lineItems; fieldConfidence = value.fieldConfidence
         originalEvidenceDigest = value.originalEvidenceDigest; currentEvidenceDigest = value.currentEvidenceDigest; evidenceSealedAt = value.evidenceSealedAt
+        isTrashed = value.isTrashed; trashedAt = value.trashedAt
     }
 
     func makeReceipt(matter: ExpenseMatter?) -> Receipt {
         let value = Receipt(id: id, merchant: merchant, transactionDate: transactionDate, currencyCode: currencyCode, subtotal: subtotal, tax: tax, tip: tip, discount: discount, taxLabel: taxLabel, total: total, category: ExpenseCategory(rawValue: categoryRaw) ?? .other, notes: notes, ocrText: ocrText, ocrConfidence: ocrConfidence, reviewStatus: ReceiptReviewStatus(rawValue: reviewStatusRaw) ?? .needsReview, reviewedAt: reviewedAt, validationNotes: validationNotes, fingerprint: fingerprint, paymentMethod: PaymentMethod(rawValue: paymentMethodRaw) ?? .unspecified, reimbursementStatus: ReimbursementStatus(rawValue: reimbursementStatusRaw) ?? .notApplicable, tags: tagsRaw, clientOrCostCentre: clientOrCostCentre, reportingCurrencyCode: reportingCurrencyCode, exchangeRate: exchangeRate, exchangeRateDate: exchangeRateDate, exchangeRateSource: exchangeRateSource, lineItems: lineItems ?? [], fieldConfidence: fieldConfidence ?? .empty, originalEvidenceDigest: originalEvidenceDigest ?? "", currentEvidenceDigest: currentEvidenceDigest ?? "", evidenceSealedAt: evidenceSealedAt, matter: matter)
         value.createdAt = createdAt
+        value.isTrashed = isTrashed ?? false
+        value.trashedAt = trashedAt
         return value
     }
 }
