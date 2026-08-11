@@ -113,6 +113,7 @@ struct SettingsView: View {
 private struct MerchantRulesView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \MerchantRule.merchantPattern) private var rules: [MerchantRule]
+    @State private var saveError: String?
 
     var body: some View {
         List {
@@ -130,13 +131,22 @@ private struct MerchantRulesView: View {
                 }
                 .onDelete { offsets in
                     offsets.map { rules[$0] }.forEach(modelContext.delete)
-                    try? modelContext.save()
+                    do {
+                        try PersistenceService.save(modelContext)
+                    } catch {
+                        saveError = error.localizedDescription
+                    }
                 }
             }
         }
         .navigationTitle("Merchant rules")
         .toolbar {
             NavigationLink { MerchantRuleEditorView(rule: nil) } label: { Label("Add rule", systemImage: "plus") }
+        }
+        .alert("Couldn’t update merchant rules", isPresented: Binding(get: { saveError != nil }, set: { if !$0 { saveError = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(saveError ?? "Please try again.")
         }
     }
 }
@@ -152,6 +162,7 @@ private struct MerchantRuleEditorView: View {
     @State private var tags: String
     @State private var clientOrCostCentre: String
     @State private var matterID: UUID?
+    @State private var saveError: String?
 
     init(rule: MerchantRule?) {
         self.rule = rule
@@ -187,6 +198,11 @@ private struct MerchantRuleEditorView: View {
                 Button("Save") { save() }.disabled(merchantPattern.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
+        .alert("Couldn’t save merchant rule", isPresented: Binding(get: { saveError != nil }, set: { if !$0 { saveError = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(saveError ?? "Please try again.")
+        }
     }
 
     private func save() {
@@ -198,8 +214,12 @@ private struct MerchantRuleEditorView: View {
         target.matterID = matterID
         target.clientOrCostCentre = clientOrCostCentre.trimmingCharacters(in: .whitespacesAndNewlines)
         target.tags = tags.trimmingCharacters(in: .whitespacesAndNewlines)
-        try? modelContext.save()
-        dismiss()
+        do {
+            try PersistenceService.save(modelContext)
+            dismiss()
+        } catch {
+            saveError = error.localizedDescription
+        }
     }
 }
 

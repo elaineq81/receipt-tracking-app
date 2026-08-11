@@ -33,7 +33,7 @@ final class ExpenseMatter {
     }
 
     var totalByCurrency: [String: Decimal] {
-        Dictionary(grouping: receipts, by: \Receipt.currencyCode)
+        Dictionary(grouping: receipts.filter { !$0.isTrashed }, by: \Receipt.currencyCode)
             .mapValues { rows in rows.reduce(Decimal.zero) { $0 + $1.total } }
     }
 }
@@ -72,6 +72,8 @@ final class Receipt {
     var originalEvidenceDigest: String = ""
     var currentEvidenceDigest: String = ""
     var evidenceSealedAt: Date?
+    var isTrashed: Bool = false
+    var trashedAt: Date?
     var matter: ExpenseMatter?
 
     @Relationship(deleteRule: .cascade, inverse: \ReceiptPage.receipt)
@@ -190,6 +192,16 @@ final class Receipt {
     }
 
     var reportingTotal: Decimal? { hasCompleteConversion ? total * exchangeRate : nil }
+
+    func moveToTrash(at date: Date = .now) {
+        isTrashed = true
+        trashedAt = date
+    }
+
+    func restoreFromTrash() {
+        isTrashed = false
+        trashedAt = nil
+    }
 
     var lineItems: [ReceiptLineItem] {
         get { Self.decode([ReceiptLineItem].self, from: lineItemsData) ?? [] }

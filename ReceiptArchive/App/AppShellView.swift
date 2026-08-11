@@ -79,7 +79,8 @@ struct AppShellView: View {
     }
 
     private func requestScan(_ matter: ExpenseMatter?) {
-        if purchases.isPro || receipts.count < FreePlanLimits.receipts {
+        let activeReceiptCount = receipts.filter { !$0.isTrashed }.count
+        if purchases.isPro || activeReceiptCount < FreePlanLimits.receipts {
             sheet = .scan(matter: matter)
         } else {
             sheet = .paywall(.receiptLimit)

@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import UIKit
 
@@ -47,6 +48,10 @@ final class ExportService: @unchecked Sendable {
         case .images:
             let url = folder.appending(path: "\(safeTitle)-JPGs.zip")
             try imageBundle(receipts: receipts).write(to: url)
+            return url
+        case .proof:
+            let url = folder.appending(path: "\(safeTitle)-ReceiptSure-Proof-Pack.zip")
+            try proofPack(receipts: receipts, title: title).write(to: url)
             return url
         }
     }
@@ -226,6 +231,42 @@ final class ExportService: @unchecked Sendable {
         return ZipStoreArchive(files: files).data()
     }
 
+    private func proofPack(receipts: [ExportReceiptSnapshot], title: String) throws -> Data {
+        var files: [String: Data] = [
+            "README.txt": Self.data(
+                """
+                ReceiptSure Proof Pack
+
+                This archive preserves the selected receipt records, images, revision history, and a SHA-256 manifest.
+                The manifest verifies that included files have not changed since this pack was generated. It does not certify the commercial, legal, or tax validity of an expense.
+                """
+            ),
+            "expenses.csv": Self.data(csv(receipts)),
+            "summary.pdf": try pdf(receipts: receipts, title: title)
+        ]
+
+        let auditRecords = receipts.map(ProofReceiptRecord.init)
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        files["audit/receipt-records.json"] = try encoder.encode(auditRecords)
+
+        for (receiptIndex, receipt) in receipts.enumerated() {
+            let merchant = safeFilename(receipt.merchant.isEmpty ? "Receipt" : receipt.merchant)
+            let folder = String(format: "receipts/%03d-%@-%@", receiptIndex + 1, Self.iso.string(from: receipt.transactionDate), merchant)
+            for page in receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex }) {
+                let pageNumber = page.pageIndex + 1
+                files[String(format: "%@/current-page-%02d.jpg", folder, pageNumber)] = page.imageData
+                if let original = page.originalImageData {
+                    files[String(format: "%@/original-page-%02d.jpg", folder, pageNumber)] = original
+                }
+            }
+        }
+
+        files["manifest.json"] = try ProofPackManifestBuilder.manifestData(for: files, title: title)
+        return ZipStoreArchive(files: files).data()
+    }
+
     private func summaryRows(_ receipts: [ExportReceiptSnapshot]) -> [[String]] {
         var rows = [["Breakdown", "Group", "Currency", "Total"]]
         for (currency, values) in Dictionary(grouping: receipts, by: \.currencyCode).sorted(by: { $0.key < $1.key }) {
@@ -265,6 +306,7 @@ final class ExportService: @unchecked Sendable {
 }
 
 private struct ExportReceiptSnapshot: Sendable {
+    let id: UUID
     let merchant: String
     let transactionDate: Date
     let currencyCode: String
@@ -289,7 +331,7 @@ private struct ExportReceiptSnapshot: Sendable {
     let exchangeRateSource: String
     let matterName: String?
     let pages: [ExportPageSnapshot]
-    let revisionDates: [Date]
+    let revisions: [ExportRevisionSnapshot]
     let lineItems: [ReceiptLineItem]
     let fieldConfidence: ReceiptFieldConfidence
     let originalEvidenceDigest: String
@@ -298,6 +340,7 @@ private struct ExportReceiptSnapshot: Sendable {
 
     @MainActor
     init(_ receipt: Receipt) {
+        id = receipt.id
         merchant = receipt.merchant
         transactionDate = receipt.transactionDate
         currencyCode = receipt.currencyCode
@@ -321,8 +364,8 @@ private struct ExportReceiptSnapshot: Sendable {
         exchangeRateDate = receipt.exchangeRateDate
         exchangeRateSource = receipt.exchangeRateSource
         matterName = receipt.matter?.name
-        pages = receipt.pages.map { ExportPageSnapshot(imageData: $0.imageData, pageIndex: $0.pageIndex) }
-        revisionDates = receipt.revisions.map(\.changedAt)
+        pages = receipt.pages.map { ExportPageSnapshot(imageData: $0.imageData, originalImageData: $0.originalImageData, pageIndex: $0.pageIndex) }
+        revisions = receipt.revisions.map(ExportRevisionSnapshot.init)
         lineItems = receipt.lineItems
         fieldConfidence = receipt.fieldConfidence
         originalEvidenceDigest = receipt.originalEvidenceDigest
@@ -336,11 +379,101 @@ private struct ExportReceiptSnapshot: Sendable {
     }
     var reportingTotal: Decimal? { hasCompleteConversion ? total * exchangeRate : nil }
     var lineItemTotal: Decimal { lineItems.reduce(.zero) { $0 + $1.total } }
+    var revisionDates: [Date] { revisions.map(\.changedAt) }
 }
 
 private struct ExportPageSnapshot: Sendable {
     let imageData: Data
+    let originalImageData: Data?
     let pageIndex: Int
+}
+
+private struct ExportRevisionSnapshot: Codable, Sendable {
+    let changedAt: Date
+    let fieldName: String
+    let previousValue: String
+    let newValue: String
+    let reason: String
+
+    @MainActor
+    init(_ revision: ReceiptRevision) {
+        changedAt = revision.changedAt
+        fieldName = revision.fieldName
+        previousValue = revision.previousValue
+        newValue = revision.newValue
+        reason = revision.reason
+    }
+}
+
+private struct ProofReceiptRecord: Codable, Sendable {
+    let receiptID: UUID
+    let merchant: String
+    let transactionDate: Date
+    let currencyCode: String
+    let total: String
+    let matter: String?
+    let category: String
+    let reviewStatus: String
+    let ocrConfidence: Double
+    let originalEvidenceDigest: String
+    let currentEvidenceDigest: String
+    let evidenceSealedAt: Date?
+    let revisions: [ExportRevisionSnapshot]
+
+    init(_ receipt: ExportReceiptSnapshot) {
+        receiptID = receipt.id
+        merchant = receipt.merchant
+        transactionDate = receipt.transactionDate
+        currencyCode = receipt.currencyCode
+        total = NSDecimalNumber(decimal: receipt.total).stringValue
+        matter = receipt.matterName
+        category = receipt.category.rawValue
+        reviewStatus = receipt.reviewStatus.title
+        ocrConfidence = receipt.ocrConfidence
+        originalEvidenceDigest = receipt.originalEvidenceDigest
+        currentEvidenceDigest = receipt.currentEvidenceDigest
+        evidenceSealedAt = receipt.evidenceSealedAt
+        revisions = receipt.revisions
+    }
+}
+
+struct ProofPackManifest: Codable, Equatable, Sendable {
+    struct FileRecord: Codable, Equatable, Sendable {
+        let path: String
+        let byteCount: Int
+        let sha256: String
+    }
+
+    let schemaVersion: Int
+    let product: String
+    let title: String
+    let generatedAt: Date
+    let hashAlgorithm: String
+    let files: [FileRecord]
+}
+
+enum ProofPackManifestBuilder {
+    static func manifestData(for files: [String: Data], title: String, generatedAt: Date = .now) throws -> Data {
+        let manifest = ProofPackManifest(
+            schemaVersion: 1,
+            product: "ReceiptSure: Expense Proof",
+            title: title,
+            generatedAt: generatedAt,
+            hashAlgorithm: "SHA-256",
+            files: files.keys.sorted().compactMap { path in
+                guard let data = files[path] else { return nil }
+                return ProofPackManifest.FileRecord(path: path, byteCount: data.count, sha256: sha256Hex(data))
+            }
+        )
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        return try encoder.encode(manifest)
+    }
+
+    static func sha256Hex(_ data: Data) -> String {
+        SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+    }
 }
 
 enum SpreadsheetColumnReference {

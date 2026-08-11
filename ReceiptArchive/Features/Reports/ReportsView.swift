@@ -7,9 +7,10 @@ enum ExportFormat: String, CaseIterable, Identifiable, Sendable {
     case csv = "CSV table"
     case docx = "Word report"
     case images = "JPG bundle"
+    case proof = "ReceiptSure Proof Pack"
 
     var id: String { rawValue }
-    var isAdvanced: Bool { self == .xlsx || self == .docx || self == .images }
+    var isAdvanced: Bool { self == .xlsx || self == .docx || self == .images || self == .proof }
     var symbol: String {
         switch self {
         case .pdf: "doc.richtext"
@@ -17,6 +18,7 @@ enum ExportFormat: String, CaseIterable, Identifiable, Sendable {
         case .csv: "text.line.first.and.arrowtriangle.forward"
         case .docx: "doc.text"
         case .images: "photo.stack"
+        case .proof: "checkmark.shield"
         }
     }
 }
@@ -34,62 +36,40 @@ struct ReportsView: View {
     @State private var errorMessage: String?
 
     private var selectedReceipts: [Receipt] {
-        guard let selectedMatter else { return receipts }
-        return receipts.filter { $0.matter?.id == selectedMatter.id }
-    }
-
-    private var totals: [(String, Decimal)] {
-        Dictionary(grouping: selectedReceipts, by: \Receipt.currencyCode)
-            .map { ($0.key, $0.value.reduce(Decimal.zero) { $0 + $1.total }) }
-            .sorted { $0.0 < $1.0 }
-    }
-
-    private var reportingTotals: [(String, Decimal)] {
-        Dictionary(grouping: selectedReceipts.filter(\.hasCompleteConversion), by: \Receipt.reportingCurrencyCode)
-            .map { currency, values in (currency, values.compactMap(\.reportingTotal).reduce(Decimal.zero, +)) }
-            .sorted { $0.0 < $1.0 }
-    }
-
-    private var reconciliationExceptions: Int {
-        selectedReceipts.filter { abs(NSDecimalNumber(decimal: $0.reconciliationDifference).doubleValue) > 0.02 }.count
-    }
-
-    private var incompleteConversions: Int {
-        selectedReceipts.filter {
-            let hasAny = !$0.reportingCurrencyCode.isEmpty || $0.exchangeRate > 0 || $0.exchangeRateDate != nil || !$0.exchangeRateSource.isEmpty
-            return hasAny && !$0.hasCompleteConversion
-        }.count
+        let active = receipts.filter { !$0.isTrashed }
+        guard let selectedMatter else { return active }
+        return active.filter { $0.matter?.id == selectedMatter.id }
     }
 
     var body: some View {
+        let report = ReportSummary(receipts: selectedReceipts)
         Form {
             Section("Report scope") {
                 Picker("Matter", selection: $selectedMatter) {
                     Text("All receipts").tag(nil as ExpenseMatter?)
                     ForEach(matters) { Text($0.name).tag(Optional($0)) }
                 }
-                LabeledContent("Receipts", value: "\(selectedReceipts.count)")
+                LabeledContent("Receipts", value: "\(report.receipts.count)")
             }
             Section("Report readiness") {
-                let verified = selectedReceipts.filter { $0.reviewStatus == .verified }.count
-                LabeledContent("Verified", value: "\(verified)")
-                LabeledContent("Needs review", value: "\(selectedReceipts.count - verified)")
-                LabeledContent("Figure exceptions", value: "\(reconciliationExceptions)")
-                LabeledContent("Incomplete conversions", value: "\(incompleteConversions)")
-                if verified < selectedReceipts.count {
+                LabeledContent("Verified", value: "\(report.verifiedCount)")
+                LabeledContent("Needs review", value: "\(report.receipts.count - report.verifiedCount)")
+                LabeledContent("Figure exceptions", value: "\(report.reconciliationExceptions)")
+                LabeledContent("Incomplete conversions", value: "\(report.incompleteConversions)")
+                if report.verifiedCount < report.receipts.count {
                     Label("Unverified receipts will be clearly identified in exported records.", systemImage: "exclamationmark.triangle.fill")
                         .font(.footnote).foregroundStyle(.orange)
                 }
             }
             Section("Totals by currency") {
-                if totals.isEmpty { Text("No expenses in this selection").foregroundStyle(.secondary) }
-                ForEach(totals, id: \.0) { code, total in
+                if report.totals.isEmpty { Text("No expenses in this selection").foregroundStyle(.secondary) }
+                ForEach(report.totals, id: \.0) { code, total in
                     LabeledContent(code, value: total.formatted(.currency(code: code)))
                 }
             }
-            if !reportingTotals.isEmpty {
+            if !report.reportingTotals.isEmpty {
                 Section("Converted reporting totals") {
-                    ForEach(reportingTotals, id: \.0) { code, total in
+                    ForEach(report.reportingTotals, id: \.0) { code, total in
                         LabeledContent(code, value: total.formatted(.currency(code: code)))
                     }
                     Text("Only receipts with a complete rate, effective date, and source are included.")
@@ -97,24 +77,20 @@ struct ReportsView: View {
                 }
             }
             Section("Totals by category") {
-                ForEach(ExpenseCategory.allCases) { category in
-                    let rows = selectedReceipts.filter { $0.category == category }
-                    if !rows.isEmpty {
-                        NavigationLink {
-                            CategoryBreakdownView(category: category, receipts: rows)
-                        } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Label(category.rawValue, systemImage: category.symbol)
-                                Text(Self.totalLine(rows)).font(.caption).foregroundStyle(.secondary)
-                            }
+                ForEach(report.categories) { section in
+                    NavigationLink {
+                        CategoryBreakdownView(category: section.category, receipts: section.receipts)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Label(section.category.rawValue, systemImage: section.category.symbol)
+                            Text(section.totalLine).font(.caption).foregroundStyle(.secondary)
                         }
                     }
                 }
             }
             Section("Totals by date") {
-                ForEach(Dictionary(grouping: selectedReceipts, by: { Calendar.current.startOfDay(for: $0.transactionDate) }).keys.sorted(by: >), id: \.self) { day in
-                    let rows = selectedReceipts.filter { Calendar.current.isDate($0.transactionDate, inSameDayAs: day) }
-                    LabeledContent(day.formatted(date: .abbreviated, time: .omitted), value: Self.totalLine(rows))
+                ForEach(report.dates) { section in
+                    LabeledContent(section.day.formatted(date: .abbreviated, time: .omitted), value: section.totalLine)
                 }
             }
             Section("Export") {
@@ -131,9 +107,9 @@ struct ReportsView: View {
                         Label(isExporting ? "Preparing…" : "Create & share report", systemImage: "square.and.arrow.up")
                     }
                 }
-                .disabled(selectedReceipts.isEmpty || isExporting)
+                .disabled(report.receipts.isEmpty || isExporting)
                 if !purchases.isPro {
-                    Text("CSV is always free. Your first PDF report is included; unlimited PDF, Excel, Word, and JPG exports are available with Pro.")
+                    Text("CSV is always free. Your first PDF report is included; unlimited PDF, Excel, Word, JPG, and verifiable Proof Pack exports are available with Pro.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
@@ -179,12 +155,74 @@ struct ReportsView: View {
         return ""
     }
 
-    private static func totalLine(_ rows: [Receipt]) -> String {
+    fileprivate static func totalLine(_ rows: [Receipt]) -> String {
         Dictionary(grouping: rows, by: \Receipt.currencyCode)
             .map { currency, values in
                 values.reduce(Decimal.zero) { $0 + $1.total }.formatted(.currency(code: currency))
             }
             .sorted().joined(separator: " • ")
+    }
+}
+
+private struct ReportSummary {
+    struct CategorySection: Identifiable {
+        let category: ExpenseCategory
+        let receipts: [Receipt]
+        let totalLine: String
+        var id: ExpenseCategory { category }
+    }
+
+    struct DateSection: Identifiable {
+        let day: Date
+        let totalLine: String
+        var id: Date { day }
+    }
+
+    let receipts: [Receipt]
+    let verifiedCount: Int
+    let reconciliationExceptions: Int
+    let incompleteConversions: Int
+    let totals: [(String, Decimal)]
+    let reportingTotals: [(String, Decimal)]
+    let categories: [CategorySection]
+    let dates: [DateSection]
+
+    init(receipts: [Receipt]) {
+        self.receipts = receipts
+        var verifiedCount = 0
+        var reconciliationExceptions = 0
+        var incompleteConversions = 0
+        var totals: [String: Decimal] = [:]
+        var reportingTotals: [String: Decimal] = [:]
+        var categories: [ExpenseCategory: [Receipt]] = [:]
+        var dates: [Date: [Receipt]] = [:]
+
+        for receipt in receipts {
+            if receipt.reviewStatus == .verified { verifiedCount += 1 }
+            if abs(NSDecimalNumber(decimal: receipt.reconciliationDifference).doubleValue) > 0.02 { reconciliationExceptions += 1 }
+            let hasAnyConversion = !receipt.reportingCurrencyCode.isEmpty || receipt.exchangeRate > 0 || receipt.exchangeRateDate != nil || !receipt.exchangeRateSource.isEmpty
+            if hasAnyConversion && !receipt.hasCompleteConversion { incompleteConversions += 1 }
+            totals[receipt.currencyCode, default: .zero] += receipt.total
+            if let reportingTotal = receipt.reportingTotal {
+                reportingTotals[receipt.reportingCurrencyCode, default: .zero] += reportingTotal
+            }
+            categories[receipt.category, default: []].append(receipt)
+            let day = Calendar.current.startOfDay(for: receipt.transactionDate)
+            dates[day, default: []].append(receipt)
+        }
+
+        self.verifiedCount = verifiedCount
+        self.reconciliationExceptions = reconciliationExceptions
+        self.incompleteConversions = incompleteConversions
+        self.totals = totals.sorted { $0.key < $1.key }
+        self.reportingTotals = reportingTotals.sorted { $0.key < $1.key }
+        self.categories = ExpenseCategory.allCases.compactMap { category in
+            guard let rows = categories[category], !rows.isEmpty else { return nil }
+            return CategorySection(category: category, receipts: rows, totalLine: ReportsView.totalLine(rows))
+        }
+        self.dates = dates.sorted { $0.key > $1.key }.map {
+            DateSection(day: $0.key, totalLine: ReportsView.totalLine($0.value))
+        }
     }
 }
 
