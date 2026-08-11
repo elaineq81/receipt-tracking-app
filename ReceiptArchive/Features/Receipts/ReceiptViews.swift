@@ -103,9 +103,11 @@ struct ReceiptRow: View {
 }
 
 struct ReceiptDetailView: View {
+    @Environment(\.modelContext) private var modelContext
     let receipt: Receipt
     @State private var selectedPage = 0
     @State private var editorReceipt: Receipt?
+    @State private var cropPage: ReceiptPage?
 
     var body: some View {
         List {
@@ -183,10 +185,37 @@ struct ReceiptDetailView: View {
         .navigationTitle(receipt.merchant.isEmpty ? "Receipt" : receipt.merchant)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            if let page = receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).first(where: { $0.pageIndex == selectedPage }) {
+                Button("Adjust crop", systemImage: "crop") { cropPage = page }
+            }
             Button("Edit", systemImage: "pencil") { editorReceipt = receipt }
         }
         .sheet(item: $editorReceipt) { selected in
             NavigationStack { ReceiptEditorView(receipt: selected) }
+        }
+        .sheet(item: $cropPage) { page in
+            if let image = UIImage(data: page.imageData) {
+                ReceiptCropEditor(image: image, pageNumber: page.pageIndex + 1) { cropped in
+                    guard let data = cropped.jpegData(compressionQuality: 0.9) else { return }
+                    page.imageData = data
+                    let revision = ReceiptRevision(
+                        fieldName: "Receipt image",
+                        previousValue: "Previous crop",
+                        newValue: "Adjusted crop",
+                        reason: "Receipt edges corrected",
+                        receipt: receipt
+                    )
+                    modelContext.insert(revision)
+                    receipt.revisions.append(revision)
+                    receipt.reviewStatus = .needsReview
+                    receipt.reviewedAt = nil
+                    let cropWarning = "Receipt image was recropped; check the extracted details"
+                    if !receipt.validationMessages.contains(cropWarning) {
+                        receipt.validationNotes = ([cropWarning] + receipt.validationMessages).joined(separator: "; ")
+                    }
+                    try? modelContext.save()
+                }
+            }
         }
     }
 }
@@ -379,9 +408,11 @@ struct ScanFlowView: View {
     @State private var isReading = false
     @State private var errorMessage: String?
     @State private var didCapture = false
+    @State private var didExtract = false
     @State private var isShowingCamera = false
     @State private var isImportingFile = false
     @State private var photoItems: [PhotosPickerItem] = []
+    @State private var cropSelection: ReceiptCropSelection?
 
     var body: some View {
         Group {
@@ -390,9 +421,8 @@ struct ScanFlowView: View {
                     DocumentScannerView { result in
                         switch result {
                         case .success(let scanned):
-                            images = scanned
-                            didCapture = !scanned.isEmpty
-                            if !scanned.isEmpty { readReceipt() } else { isShowingCamera = false }
+                            accept(scanned)
+                            isShowingCamera = false
                         case .failure(let error): errorMessage = error.localizedDescription
                         }
                     }
@@ -426,6 +456,15 @@ struct ScanFlowView: View {
                 }
             } else if isReading {
                 ProgressView("Reading receipt…").controlSize(.large)
+            } else if !didExtract {
+                ReceiptCapturePreview(
+                    images: images,
+                    adjustCrop: { index in
+                        cropSelection = ReceiptCropSelection(index: index, image: images[index])
+                    },
+                    readReceipt: readReceipt,
+                    startOver: startOver
+                )
             } else {
                 ReceiptReviewView(draft: draft, images: images, preselectedMatter: preselectedMatter) { dismiss() }
             }
@@ -442,9 +481,7 @@ struct ScanFlowView: View {
                         imported.append(image)
                     }
                 }
-                images = imported
-                didCapture = !imported.isEmpty
-                if !imported.isEmpty { readReceipt() }
+                accept(imported)
             }
         }
         .fileImporter(isPresented: $isImportingFile, allowedContentTypes: [.pdf, .image]) { result in
@@ -453,13 +490,17 @@ struct ScanFlowView: View {
                 let access = url.startAccessingSecurityScopedResource()
                 defer { if access { url.stopAccessingSecurityScopedResource() } }
                 let imported = try ReceiptFileImporter.images(from: url)
-                images = imported
-                didCapture = !imported.isEmpty
-                if !imported.isEmpty { readReceipt() }
+                accept(imported)
             } catch { errorMessage = error.localizedDescription }
         }
+        .sheet(item: $cropSelection) { selection in
+            ReceiptCropEditor(image: selection.image, pageNumber: selection.index + 1) { cropped in
+                guard images.indices.contains(selection.index) else { return }
+                images[selection.index] = cropped
+            }
+        }
         .alert("Couldn’t read receipt", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-            Button("Enter manually") { didCapture = true; isReading = false }
+            Button("Enter manually") { didCapture = true; didExtract = true; isReading = false }
             Button("Cancel", role: .cancel) { dismiss() }
         } message: { Text(errorMessage ?? "Unknown error") }
     }
@@ -467,9 +508,81 @@ struct ScanFlowView: View {
     private func readReceipt() {
         isReading = true
         Task {
-            do { draft = try await ReceiptOCRService().recognize(images: images) }
+            do {
+                draft = try await ReceiptOCRService().recognize(images: images)
+                didExtract = true
+            }
             catch { errorMessage = error.localizedDescription }
             isReading = false
+        }
+    }
+
+    private func accept(_ imported: [UIImage]) {
+        images = imported
+        didCapture = !imported.isEmpty
+        didExtract = false
+    }
+
+    private func startOver() {
+        images = []
+        draft = OCRDraft()
+        didCapture = false
+        didExtract = false
+        isShowingCamera = false
+        photoItems = []
+    }
+}
+
+private struct ReceiptCropSelection: Identifiable {
+    let index: Int
+    let image: UIImage
+    var id: Int { index }
+}
+
+private struct ReceiptCapturePreview: View {
+    let images: [UIImage]
+    let adjustCrop: (Int) -> Void
+    let readReceipt: () -> Void
+    let startOver: () -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Check receipt edges").font(.title2.bold())
+                    Text("Make sure every amount is visible. Adjust the four corners on any page before ReceiptSure reads it.")
+                        .foregroundStyle(.secondary)
+                }
+
+                ForEach(Array(images.enumerated()), id: \.offset) { index, image in
+                    VStack(spacing: 10) {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: 360)
+                            .frame(maxWidth: .infinity)
+                            .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+
+                        Button("Adjust crop for page \(index + 1)", systemImage: "crop") {
+                            adjustCrop(index)
+                        }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("receiptPreview.adjustCrop.\(index)")
+                    }
+                }
+
+                Button("Read receipt", systemImage: "text.viewfinder", action: readReceipt)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.teal)
+                    .controlSize(.large)
+                    .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("receiptPreview.readReceipt")
+
+                Button("Start over", role: .destructive, action: startOver)
+                    .frame(maxWidth: .infinity)
+            }
+            .padding()
         }
     }
 }
@@ -519,7 +632,10 @@ struct ReceiptReviewView: View {
     @State private var appliedRuleID: UUID?
     @State private var confirmedAgainstImage = false
     @State private var showDuplicateAlert = false
-    let images: [UIImage]
+    @State private var images: [UIImage]
+    @State private var cropSelection: ReceiptCropSelection?
+    @State private var isRereading = false
+    @State private var rereadError: String?
     let didSave: () -> Void
 
     private var currentWarnings: [String] {
@@ -537,14 +653,30 @@ struct ReceiptReviewView: View {
     init(draft: OCRDraft, images: [UIImage], preselectedMatter: ExpenseMatter?, didSave: @escaping () -> Void) {
         self._draft = State(initialValue: draft)
         self._selectedMatter = State(initialValue: preselectedMatter)
-        self.images = images
+        self._images = State(initialValue: images)
         self.didSave = didSave
     }
 
     var body: some View {
         Form {
-            if let image = images.first {
-                Section { Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 220).frame(maxWidth: .infinity) }
+            if !images.isEmpty {
+                Section {
+                    ForEach(Array(images.enumerated()), id: \.offset) { index, image in
+                        VStack(spacing: 8) {
+                            Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 220).frame(maxWidth: .infinity)
+                            Button("Adjust crop for page \(index + 1)", systemImage: "crop") {
+                                cropSelection = ReceiptCropSelection(index: index, image: image)
+                            }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("receiptReview.adjustCrop.\(index)")
+                        }
+                    }
+                    if isRereading {
+                        HStack { Spacer(); ProgressView("Reading corrected image…"); Spacer() }
+                    }
+                } footer: {
+                    Text("After a crop change, ReceiptSure reads all pages again. Check the refreshed values before saving.")
+                }
             }
             Section {
                 HStack {
@@ -625,11 +757,26 @@ struct ReceiptReviewView: View {
                 .disabled(draft.merchant.trimmingCharacters(in: .whitespaces).isEmpty || draft.total < 0 || draft.currencyCode.count != 3)
             }
         }
+        .sheet(item: $cropSelection) { selection in
+            ReceiptCropEditor(image: selection.image, pageNumber: selection.index + 1) { cropped in
+                guard images.indices.contains(selection.index) else { return }
+                images[selection.index] = cropped
+                rereadReceipt()
+            }
+        }
         .alert("Possible duplicate", isPresented: $showDuplicateAlert) {
             Button("Save anyway") { saveReceipt() }
             Button("Keep reviewing", role: .cancel) {}
         } message: {
             Text("A receipt with the same merchant, date, currency, and total is already saved.")
+        }
+        .alert("Couldn’t re-read receipt", isPresented: Binding(
+            get: { rereadError != nil },
+            set: { if !$0 { rereadError = nil } }
+        )) {
+            Button("Keep editing", role: .cancel) {}
+        } message: {
+            Text(rereadError ?? "The crop was kept. Enter or correct the details manually.")
         }
     }
 
@@ -646,6 +793,19 @@ struct ReceiptReviewView: View {
         }
         try? modelContext.save()
         didSave()
+    }
+
+    private func rereadReceipt() {
+        isRereading = true
+        confirmedAgainstImage = false
+        Task {
+            do {
+                draft = try await ReceiptOCRService().recognize(images: images)
+            } catch {
+                rereadError = error.localizedDescription
+            }
+            isRereading = false
+        }
     }
 
     private func apply(_ rule: MerchantRule) {
