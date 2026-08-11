@@ -67,6 +67,11 @@ final class Receipt {
     var exchangeRate: Decimal = 0
     var exchangeRateDate: Date?
     var exchangeRateSource: String = ""
+    var lineItemsData: Data = Data()
+    var fieldConfidenceData: Data = Data()
+    var originalEvidenceDigest: String = ""
+    var currentEvidenceDigest: String = ""
+    var evidenceSealedAt: Date?
     var matter: ExpenseMatter?
 
     @Relationship(deleteRule: .cascade, inverse: \ReceiptPage.receipt)
@@ -102,6 +107,11 @@ final class Receipt {
         exchangeRate: Decimal = 0,
         exchangeRateDate: Date? = nil,
         exchangeRateSource: String = "",
+        lineItems: [ReceiptLineItem] = [],
+        fieldConfidence: ReceiptFieldConfidence = .empty,
+        originalEvidenceDigest: String = "",
+        currentEvidenceDigest: String = "",
+        evidenceSealedAt: Date? = nil,
         matter: ExpenseMatter? = nil
     ) {
         self.id = id
@@ -131,6 +141,11 @@ final class Receipt {
         self.exchangeRate = exchangeRate
         self.exchangeRateDate = exchangeRateDate
         self.exchangeRateSource = exchangeRateSource
+        self.lineItemsData = Self.encode(lineItems)
+        self.fieldConfidenceData = Self.encode(fieldConfidence)
+        self.originalEvidenceDigest = originalEvidenceDigest
+        self.currentEvidenceDigest = currentEvidenceDigest
+        self.evidenceSealedAt = evidenceSealedAt
         self.matter = matter
         self.pages = []
         self.revisions = []
@@ -175,6 +190,58 @@ final class Receipt {
     }
 
     var reportingTotal: Decimal? { hasCompleteConversion ? total * exchangeRate : nil }
+
+    var lineItems: [ReceiptLineItem] {
+        get { Self.decode([ReceiptLineItem].self, from: lineItemsData) ?? [] }
+        set { lineItemsData = Self.encode(newValue) }
+    }
+
+    var fieldConfidence: ReceiptFieldConfidence {
+        get { Self.decode(ReceiptFieldConfidence.self, from: fieldConfidenceData) ?? .empty }
+        set { fieldConfidenceData = Self.encode(newValue) }
+    }
+
+    var lineItemTotal: Decimal { lineItems.reduce(.zero) { $0 + $1.total } }
+
+    private static func encode<T: Encodable>(_ value: T) -> Data {
+        (try? JSONEncoder().encode(value)) ?? Data()
+    }
+
+    private static func decode<T: Decodable>(_ type: T.Type, from data: Data) -> T? {
+        guard !data.isEmpty else { return nil }
+        return try? JSONDecoder().decode(type, from: data)
+    }
+}
+
+struct ReceiptLineItem: Codable, Identifiable, Hashable, Sendable {
+    var id: UUID = UUID()
+    var description: String
+    var quantity: Decimal = 1
+    var unitPrice: Decimal = 0
+    var total: Decimal
+    var confidence: Double = 0
+}
+
+struct ReceiptFieldConfidence: Codable, Hashable, Sendable {
+    var merchant: Double
+    var date: Double
+    var currency: Double
+    var subtotal: Double
+    var tax: Double
+    var total: Double
+    var lineItems: Double
+
+    static let empty = ReceiptFieldConfidence(
+        merchant: 0,
+        date: 0,
+        currency: 0,
+        subtotal: 0,
+        tax: 0,
+        total: 0,
+        lineItems: 0
+    )
+
+    var minimumKeyField: Double { [merchant, date, currency, total].min() ?? 0 }
 }
 
 enum PaymentMethod: String, CaseIterable, Codable, Identifiable, Sendable {
@@ -284,12 +351,14 @@ final class ReceiptRevision {
 final class ReceiptPage {
     @Attribute(.unique) var id: UUID
     @Attribute(.externalStorage) var imageData: Data
+    @Attribute(.externalStorage) var originalImageData: Data?
     var pageIndex: Int
     var receipt: Receipt?
 
-    init(id: UUID = UUID(), imageData: Data, pageIndex: Int, receipt: Receipt? = nil) {
+    init(id: UUID = UUID(), imageData: Data, originalImageData: Data? = nil, pageIndex: Int, receipt: Receipt? = nil) {
         self.id = id
         self.imageData = imageData
+        self.originalImageData = originalImageData
         self.pageIndex = pageIndex
         self.receipt = receipt
     }

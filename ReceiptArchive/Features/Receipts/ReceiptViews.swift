@@ -111,6 +111,7 @@ struct ReceiptDetailView: View {
     @State private var sharePayload: ReceiptSharePayload?
     @State private var shareError: String?
     @State private var isPreparingShare = false
+    @State private var integrityStatus = EvidenceIntegrityStatus.notSealed
 
     var body: some View {
         List {
@@ -140,6 +141,25 @@ struct ReceiptDetailView: View {
                 Label(abs(difference) <= 0.02 ? "Figures reconcile" : "Figures differ by \(receipt.reconciliationDifference.formatted(.currency(code: receipt.currencyCode)))", systemImage: abs(difference) <= 0.02 ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                     .font(.footnote).foregroundStyle(abs(difference) <= 0.02 ? .green : .orange)
             }
+            if !receipt.lineItems.isEmpty {
+                Section("Line items") {
+                    ForEach(receipt.lineItems) { item in
+                        HStack(alignment: .firstTextBaseline) {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(item.description)
+                                if item.quantity != 1 {
+                                    Text("\(NSDecimalNumber(decimal: item.quantity).stringValue) × \(item.unitPrice.formatted(.currency(code: receipt.currencyCode)))")
+                                        .font(.caption).foregroundStyle(.secondary)
+                                }
+                            }
+                            Spacer()
+                            Text(item.total.formatted(.currency(code: receipt.currencyCode))).fontWeight(.medium)
+                        }
+                    }
+                    LabeledContent("Detected item total", value: receipt.lineItemTotal.formatted(.currency(code: receipt.currencyCode)))
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+            }
             Section("Filing") {
                 LabeledContent("Payment", value: receipt.paymentMethod.rawValue)
                 LabeledContent("Reimbursement", value: receipt.reimbursementStatus.rawValue)
@@ -162,10 +182,30 @@ struct ReceiptDetailView: View {
                 Label(receipt.reviewStatus.title, systemImage: receipt.reviewStatus.symbol)
                     .foregroundStyle(receipt.reviewStatus == .verified ? .green : .orange)
                 LabeledContent("OCR confidence", value: receipt.ocrConfidence.formatted(.percent.precision(.fractionLength(0))))
+                Label(integrityStatus.title, systemImage: integrityStatus.symbol)
+                    .foregroundStyle(integrityStatus == .verified ? .green : .orange)
+                if !receipt.originalEvidenceDigest.isEmpty {
+                    LabeledContent("Original seal", value: String(receipt.originalEvidenceDigest.prefix(12)).uppercased())
+                        .font(.caption).monospaced()
+                }
+                if let sealedAt = receipt.evidenceSealedAt {
+                    LabeledContent("Sealed", value: sealedAt.formatted(date: .abbreviated, time: .shortened))
+                }
                 if let reviewedAt = receipt.reviewedAt {
                     LabeledContent("Checked", value: reviewedAt.formatted(date: .abbreviated, time: .shortened))
                 }
                 if !receipt.validationNotes.isEmpty { Text(receipt.validationNotes).font(.footnote).foregroundStyle(.secondary) }
+            }
+            if receipt.fieldConfidence != .empty {
+                Section("Field confidence") {
+                    ConfidenceRow(title: "Merchant", value: receipt.fieldConfidence.merchant)
+                    ConfidenceRow(title: "Date", value: receipt.fieldConfidence.date)
+                    ConfidenceRow(title: "Currency", value: receipt.fieldConfidence.currency)
+                    ConfidenceRow(title: "Subtotal", value: receipt.fieldConfidence.subtotal)
+                    ConfidenceRow(title: receipt.taxLabel, value: receipt.fieldConfidence.tax)
+                    ConfidenceRow(title: "Total", value: receipt.fieldConfidence.total)
+                    if !receipt.lineItems.isEmpty { ConfidenceRow(title: "Line items", value: receipt.fieldConfidence.lineItems) }
+                }
             }
             if !receipt.revisions.isEmpty {
                 Section("Revision history") {
@@ -200,6 +240,9 @@ struct ReceiptDetailView: View {
                 if let page = receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).first(where: { $0.pageIndex == selectedPage }) {
                     Button("Adjust crop", systemImage: "crop") { cropPage = page }
                 }
+                if integrityStatus != .verified {
+                    Button("Seal current evidence", systemImage: "checkmark.shield") { sealEvidence() }
+                }
                 Button("Edit receipt", systemImage: "pencil") { editorReceipt = receipt }
             }
         }
@@ -210,6 +253,7 @@ struct ReceiptDetailView: View {
             if let image = UIImage(data: page.imageData) {
                 ReceiptCropEditor(image: image, pageNumber: page.pageIndex + 1) { cropped in
                     guard let data = cropped.jpegData(compressionQuality: 0.9) else { return }
+                    if page.originalImageData == nil { page.originalImageData = page.imageData }
                     page.imageData = data
                     let revision = ReceiptRevision(
                         fieldName: "Receipt image",
@@ -226,6 +270,8 @@ struct ReceiptDetailView: View {
                     if !receipt.validationMessages.contains(cropWarning) {
                         receipt.validationNotes = ([cropWarning] + receipt.validationMessages).joined(separator: "; ")
                     }
+                    EvidenceIntegrityService.seal(receipt)
+                    integrityStatus = .verified
                     try? modelContext.save()
                 }
             }
@@ -240,6 +286,9 @@ struct ReceiptDetailView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(shareError ?? "Please try again.")
+        }
+        .task(id: receipt.currentEvidenceDigest) {
+            integrityStatus = EvidenceIntegrityService.verify(receipt)
         }
     }
 
@@ -289,11 +338,38 @@ struct ReceiptDetailView: View {
             shareError = error.localizedDescription
         }
     }
+
+    private func sealEvidence() {
+        EvidenceIntegrityService.seal(receipt)
+        integrityStatus = .verified
+        try? modelContext.save()
+    }
 }
 
 private struct ReceiptSharePayload: Identifiable {
     let id = UUID()
     let items: [Any]
+}
+
+private struct ConfidenceRow: View {
+    let title: String
+    let value: Double
+
+    var body: some View {
+        HStack {
+            Text(title)
+            Spacer()
+            ProgressView(value: max(0, min(1, value)))
+                .frame(width: 90)
+                .tint(value >= 0.85 ? .green : value >= 0.65 ? .orange : .red)
+            Text(value.formatted(.percent.precision(.fractionLength(0))))
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .frame(width: 42, alignment: .trailing)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title) confidence \(value.formatted(.percent.precision(.fractionLength(0))))")
+    }
 }
 
 private struct ReceiptEditorView: View {
@@ -323,6 +399,7 @@ private struct ReceiptEditorView: View {
     @State private var exchangeRateDate: Date
     @State private var exchangeRateSource: String
     @State private var includesConversion: Bool
+    @State private var lineItems: [ReceiptLineItem]
     @State private var reason = ""
     @State private var confirmedAgainstImage = false
 
@@ -349,6 +426,7 @@ private struct ReceiptEditorView: View {
         _exchangeRateDate = State(initialValue: receipt.exchangeRateDate ?? receipt.transactionDate)
         _exchangeRateSource = State(initialValue: receipt.exchangeRateSource)
         _includesConversion = State(initialValue: !receipt.reportingCurrencyCode.isEmpty || receipt.exchangeRate > 0)
+        _lineItems = State(initialValue: receipt.lineItems)
     }
 
     private var warnings: [String] {
@@ -379,6 +457,18 @@ private struct ReceiptEditorView: View {
                 DecimalField("Discount", value: $discount)
                 DecimalField("Total", value: $total)
                 TextField("Notes", text: $notes, axis: .vertical)
+            }
+            Section("Line items") {
+                if lineItems.isEmpty {
+                    Text("No line items saved.").font(.footnote).foregroundStyle(.secondary)
+                }
+                ForEach($lineItems) { $item in
+                    LineItemEditorRow(item: $item, currencyCode: currencyCode)
+                }
+                .onDelete { lineItems.remove(atOffsets: $0) }
+                Button("Add line item", systemImage: "plus") {
+                    lineItems.append(ReceiptLineItem(description: "", total: 0, confidence: 1))
+                }
             }
             Section("Filing") {
                 Picker("Payment", selection: $paymentMethod) { ForEach(PaymentMethod.allCases) { Text($0.rawValue).tag($0) } }
@@ -439,6 +529,7 @@ private struct ReceiptEditorView: View {
         record("Reporting currency", receipt.reportingCurrencyCode, includesConversion ? reportingCurrencyCode.uppercased() : "")
         record("Exchange rate", NSDecimalNumber(decimal: receipt.exchangeRate).stringValue, includesConversion ? NSDecimalNumber(decimal: exchangeRate).stringValue : "0")
         record("Exchange-rate source", receipt.exchangeRateSource, includesConversion ? exchangeRateSource : "")
+        record("Line items", "\(receipt.lineItems.count)", "\(lineItems.count)")
 
         receipt.merchant = merchant.trimmingCharacters(in: .whitespacesAndNewlines)
         receipt.transactionDate = transactionDate
@@ -460,6 +551,11 @@ private struct ReceiptEditorView: View {
         receipt.exchangeRate = includesConversion ? exchangeRate : 0
         receipt.exchangeRateDate = includesConversion ? exchangeRateDate : nil
         receipt.exchangeRateSource = includesConversion ? exchangeRateSource.trimmingCharacters(in: .whitespacesAndNewlines) : ""
+        receipt.lineItems = lineItems.map { item in
+            var normalized = item
+            normalized.unitPrice = item.quantity > 0 ? item.total / item.quantity : item.total
+            return normalized
+        }
         receipt.validationNotes = warnings.joined(separator: "; ")
         receipt.fingerprint = ReceiptEvidence.fingerprint(merchant: merchant, date: transactionDate, total: total, currencyCode: currencyCode)
         receipt.reviewStatus = confirmedAgainstImage ? .verified : .needsReview
@@ -480,6 +576,7 @@ struct ScanFlowView: View {
     @Environment(\.dismiss) private var dismiss
     let preselectedMatter: ExpenseMatter?
     @State private var images: [UIImage] = []
+    @State private var originalImages: [UIImage] = []
     @State private var draft = OCRDraft()
     @State private var isReading = false
     @State private var errorMessage: String?
@@ -542,7 +639,7 @@ struct ScanFlowView: View {
                     startOver: startOver
                 )
             } else {
-                ReceiptReviewView(draft: draft, images: images, preselectedMatter: preselectedMatter) { dismiss() }
+                ReceiptReviewView(draft: draft, images: images, originalImages: originalImages, preselectedMatter: preselectedMatter) { dismiss() }
             }
         }
         .navigationTitle("Add receipt")
@@ -595,12 +692,14 @@ struct ScanFlowView: View {
 
     private func accept(_ imported: [UIImage]) {
         images = imported
+        originalImages = imported
         didCapture = !imported.isEmpty
         didExtract = false
     }
 
     private func startOver() {
         images = []
+        originalImages = []
         draft = OCRDraft()
         didCapture = false
         didExtract = false
@@ -709,13 +808,16 @@ struct ReceiptReviewView: View {
     @State private var confirmedAgainstImage = false
     @State private var showDuplicateAlert = false
     @State private var images: [UIImage]
+    private let originalImages: [UIImage]
     @State private var cropSelection: ReceiptCropSelection?
     @State private var isRereading = false
     @State private var rereadError: String?
     let didSave: () -> Void
 
     private var currentWarnings: [String] {
-        ReceiptEvidence.warnings(merchant: draft.merchant, date: draft.date, subtotal: draft.subtotal, tax: draft.tax, tip: draft.tip, discount: draft.discount, total: draft.total, currencyCode: draft.currencyCode, ocrConfidence: draft.confidence, reportingCurrencyCode: includesConversion ? reportingCurrencyCode : "", exchangeRate: includesConversion ? exchangeRate : 0, exchangeRateDate: includesConversion ? exchangeRateDate : nil, exchangeRateSource: includesConversion ? exchangeRateSource : "")
+        var issues = ReceiptEvidence.warnings(merchant: draft.merchant, date: draft.date, subtotal: draft.subtotal, tax: draft.tax, tip: draft.tip, discount: draft.discount, total: draft.total, currencyCode: draft.currencyCode, ocrConfidence: draft.confidence, reportingCurrencyCode: includesConversion ? reportingCurrencyCode : "", exchangeRate: includesConversion ? exchangeRate : 0, exchangeRateDate: includesConversion ? exchangeRateDate : nil, exchangeRateSource: includesConversion ? exchangeRateSource : "")
+        if draft.fieldConfidence.minimumKeyField < 0.65 { issues.append("One or more key fields has low confidence") }
+        return issues
     }
 
     private var fingerprint: String {
@@ -726,10 +828,11 @@ struct ReceiptReviewView: View {
         merchantRules.filter { $0.matches(draft.merchant) }.max { $0.merchantPattern.count < $1.merchantPattern.count }
     }
 
-    init(draft: OCRDraft, images: [UIImage], preselectedMatter: ExpenseMatter?, didSave: @escaping () -> Void) {
+    init(draft: OCRDraft, images: [UIImage], originalImages: [UIImage], preselectedMatter: ExpenseMatter?, didSave: @escaping () -> Void) {
         self._draft = State(initialValue: draft)
         self._selectedMatter = State(initialValue: preselectedMatter)
         self._images = State(initialValue: images)
+        self.originalImages = originalImages
         self.didSave = didSave
     }
 
@@ -765,6 +868,15 @@ struct ReceiptReviewView: View {
                     Label(warning, systemImage: "exclamationmark.circle").font(.footnote).foregroundStyle(.secondary)
                 }
             } header: { Text("Scan confidence") } footer: { Text("Confidence describes text recognition quality, not whether an expense is valid.") }
+            Section("Field confidence") {
+                ConfidenceRow(title: "Merchant", value: draft.fieldConfidence.merchant)
+                ConfidenceRow(title: "Date", value: draft.fieldConfidence.date)
+                ConfidenceRow(title: "Currency", value: draft.fieldConfidence.currency)
+                ConfidenceRow(title: "Subtotal", value: draft.fieldConfidence.subtotal)
+                ConfidenceRow(title: draft.taxLabel, value: draft.fieldConfidence.tax)
+                ConfidenceRow(title: "Total", value: draft.fieldConfidence.total)
+                if !draft.lineItems.isEmpty { ConfidenceRow(title: "Line items", value: draft.fieldConfidence.lineItems) }
+            }
             Section("Check the extracted details") {
                 TextField("Merchant", text: $draft.merchant)
                 DatePicker("Date", selection: $draft.date, displayedComponents: .date)
@@ -787,6 +899,19 @@ struct ReceiptReviewView: View {
                 let difference = NSDecimalNumber(decimal: draft.subtotal + draft.tax + draft.tip - draft.discount - draft.total).doubleValue
                 Label(abs(difference) <= 0.02 ? "Figures reconcile" : "Check the figures", systemImage: abs(difference) <= 0.02 ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                     .font(.footnote).foregroundStyle(abs(difference) <= 0.02 ? .green : .orange)
+            }
+            Section("Line items") {
+                if draft.lineItems.isEmpty {
+                    Text("No individual items were detected. You can add them manually if they are needed for allocation or reimbursement.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+                ForEach($draft.lineItems) { $item in
+                    LineItemEditorRow(item: $item, currencyCode: draft.currencyCode)
+                }
+                .onDelete { draft.lineItems.remove(atOffsets: $0) }
+                Button("Add line item", systemImage: "plus") {
+                    draft.lineItems.append(ReceiptLineItem(description: "", total: 0, confidence: 1))
+                }
             }
             if let rule = matchingRule, appliedRuleID != rule.id {
                 Section("Merchant rule available") {
@@ -862,11 +987,21 @@ struct ReceiptReviewView: View {
         modelContext.insert(receipt)
         for (index, image) in images.enumerated() {
             if let data = image.jpegData(compressionQuality: 0.88) {
-                let page = ReceiptPage(imageData: data, pageIndex: index)
+                let originalData = originalImages.indices.contains(index)
+                    ? originalImages[index].jpegData(compressionQuality: 0.92)
+                    : data
+                let page = ReceiptPage(imageData: data, originalImageData: originalData, pageIndex: index)
                 modelContext.insert(page)
                 receipt.pages.append(page)
             }
         }
+        receipt.lineItems = draft.lineItems.map { item in
+            var normalized = item
+            normalized.unitPrice = item.quantity > 0 ? item.total / item.quantity : item.total
+            return normalized
+        }
+        receipt.fieldConfidence = draft.fieldConfidence
+        EvidenceIntegrityService.seal(receipt)
         try? modelContext.save()
         didSave()
     }
@@ -899,4 +1034,29 @@ private struct DecimalField: View {
     @Binding var value: Decimal
     init(_ title: String, value: Binding<Decimal>) { self.title = title; self._value = value }
     var body: some View { TextField(title, value: $value, format: .number.precision(.fractionLength(2))).keyboardType(.decimalPad) }
+}
+
+private struct LineItemEditorRow: View {
+    @Binding var item: ReceiptLineItem
+    let currencyCode: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            TextField("Item description", text: $item.description)
+            HStack {
+                TextField("Quantity", value: $item.quantity, format: .number)
+                    .keyboardType(.decimalPad)
+                Spacer()
+                TextField("Amount", value: $item.total, format: .number.precision(.fractionLength(2)))
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.trailing)
+            }
+            .font(.subheadline)
+            if item.confidence > 0, item.confidence < 1 {
+                Text("OCR confidence \(item.confidence.formatted(.percent.precision(.fractionLength(0))))")
+                    .font(.caption).foregroundStyle(item.confidence >= 0.65 ? .secondary : .orange)
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
 }
