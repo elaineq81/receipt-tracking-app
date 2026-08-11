@@ -47,7 +47,7 @@ enum SecureBackupService {
             let clear = try SecureArchiveCrypto.open(encrypted, password: password)
             return try JSONDecoder.backupDecoder.decode(BackupPayload.self, from: clear)
         }.value
-        guard decoded.version == 1 else { throw SecureBackupError.unsupportedVersion }
+        guard [1, 2].contains(decoded.version) else { throw SecureBackupError.unsupportedVersion }
         return try merge(decoded, into: modelContext)
     }
 
@@ -55,7 +55,7 @@ enum SecureBackupService {
         let matters = try modelContext.fetch(FetchDescriptor<ExpenseMatter>()).map(MatterRecord.init)
         let receipts = try modelContext.fetch(FetchDescriptor<Receipt>()).map(ReceiptRecord.init)
         let rules = try modelContext.fetch(FetchDescriptor<MerchantRule>()).map(RuleRecord.init)
-        return BackupPayload(version: 1, createdAt: .now, matters: matters, receipts: receipts, rules: rules)
+        return BackupPayload(version: 2, createdAt: .now, matters: matters, receipts: receipts, rules: rules)
     }
 
     private static func merge(_ payload: BackupPayload, into modelContext: ModelContext) throws -> RestoreSummary {
@@ -78,7 +78,13 @@ enum SecureBackupService {
             let receipt = row.makeReceipt(matter: row.matterID.flatMap { mattersByID[$0] })
             modelContext.insert(receipt)
             for (index, data) in row.pages.enumerated() {
-                let page = ReceiptPage(imageData: data, pageIndex: index)
+                let originalData: Data?
+                if let originals = row.originalPages, originals.indices.contains(index) {
+                    originalData = originals[index]
+                } else {
+                    originalData = nil
+                }
+                let page = ReceiptPage(imageData: data, originalImageData: originalData, pageIndex: index)
                 modelContext.insert(page)
                 receipt.pages.append(page)
             }
@@ -172,6 +178,12 @@ private struct ReceiptRecord: Codable, Sendable {
     let paymentMethodRaw: String; let reimbursementStatusRaw: String; let tagsRaw: String; let clientOrCostCentre: String
     let reportingCurrencyCode: String; let exchangeRate: Decimal; let exchangeRateDate: Date?; let exchangeRateSource: String
     let matterID: UUID?; let pages: [Data]; let revisions: [RevisionRecord]
+    let originalPages: [Data?]?
+    let lineItems: [ReceiptLineItem]?
+    let fieldConfidence: ReceiptFieldConfidence?
+    let originalEvidenceDigest: String?
+    let currentEvidenceDigest: String?
+    let evidenceSealedAt: Date?
 
     init(_ value: Receipt) {
         id = value.id; merchant = value.merchant; transactionDate = value.transactionDate; currencyCode = value.currencyCode
@@ -181,10 +193,13 @@ private struct ReceiptRecord: Codable, Sendable {
         paymentMethodRaw = value.paymentMethodRaw; reimbursementStatusRaw = value.reimbursementStatusRaw; tagsRaw = value.tagsRaw; clientOrCostCentre = value.clientOrCostCentre
         reportingCurrencyCode = value.reportingCurrencyCode; exchangeRate = value.exchangeRate; exchangeRateDate = value.exchangeRateDate; exchangeRateSource = value.exchangeRateSource
         matterID = value.matter?.id; pages = value.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).map(\.imageData); revisions = value.revisions.map(RevisionRecord.init)
+        originalPages = value.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).map(\.originalImageData)
+        lineItems = value.lineItems; fieldConfidence = value.fieldConfidence
+        originalEvidenceDigest = value.originalEvidenceDigest; currentEvidenceDigest = value.currentEvidenceDigest; evidenceSealedAt = value.evidenceSealedAt
     }
 
     func makeReceipt(matter: ExpenseMatter?) -> Receipt {
-        let value = Receipt(id: id, merchant: merchant, transactionDate: transactionDate, currencyCode: currencyCode, subtotal: subtotal, tax: tax, tip: tip, discount: discount, taxLabel: taxLabel, total: total, category: ExpenseCategory(rawValue: categoryRaw) ?? .other, notes: notes, ocrText: ocrText, ocrConfidence: ocrConfidence, reviewStatus: ReceiptReviewStatus(rawValue: reviewStatusRaw) ?? .needsReview, reviewedAt: reviewedAt, validationNotes: validationNotes, fingerprint: fingerprint, paymentMethod: PaymentMethod(rawValue: paymentMethodRaw) ?? .unspecified, reimbursementStatus: ReimbursementStatus(rawValue: reimbursementStatusRaw) ?? .notApplicable, tags: tagsRaw, clientOrCostCentre: clientOrCostCentre, reportingCurrencyCode: reportingCurrencyCode, exchangeRate: exchangeRate, exchangeRateDate: exchangeRateDate, exchangeRateSource: exchangeRateSource, matter: matter)
+        let value = Receipt(id: id, merchant: merchant, transactionDate: transactionDate, currencyCode: currencyCode, subtotal: subtotal, tax: tax, tip: tip, discount: discount, taxLabel: taxLabel, total: total, category: ExpenseCategory(rawValue: categoryRaw) ?? .other, notes: notes, ocrText: ocrText, ocrConfidence: ocrConfidence, reviewStatus: ReceiptReviewStatus(rawValue: reviewStatusRaw) ?? .needsReview, reviewedAt: reviewedAt, validationNotes: validationNotes, fingerprint: fingerprint, paymentMethod: PaymentMethod(rawValue: paymentMethodRaw) ?? .unspecified, reimbursementStatus: ReimbursementStatus(rawValue: reimbursementStatusRaw) ?? .notApplicable, tags: tagsRaw, clientOrCostCentre: clientOrCostCentre, reportingCurrencyCode: reportingCurrencyCode, exchangeRate: exchangeRate, exchangeRateDate: exchangeRateDate, exchangeRateSource: exchangeRateSource, lineItems: lineItems ?? [], fieldConfidence: fieldConfidence ?? .empty, originalEvidenceDigest: originalEvidenceDigest ?? "", currentEvidenceDigest: currentEvidenceDigest ?? "", evidenceSealedAt: evidenceSealedAt, matter: matter)
         value.createdAt = createdAt
         return value
     }

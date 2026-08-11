@@ -62,9 +62,9 @@ final class ExportService {
     }
 
     private func csv(_ receipts: [Receipt]) -> String {
-        var rows = ["Date,Merchant,Matter,Category,Payment Method,Reimbursement,Client or Cost Centre,Tags,Currency,Subtotal,Tax Label,Tax,Tip,Discount,Total,Reporting Currency,Exchange Rate,Rate Date,Rate Source,Reporting Total,Review Status,OCR Confidence,Validation Notes,Revision Count,Last Revised,Notes"]
+        var rows = ["Date,Merchant,Matter,Category,Payment Method,Reimbursement,Client or Cost Centre,Tags,Currency,Subtotal,Tax Label,Tax,Tip,Discount,Total,Reporting Currency,Exchange Rate,Rate Date,Rate Source,Reporting Total,Review Status,OCR Confidence,Validation Notes,Revision Count,Last Revised,Notes,Line Items,Line Item Total,Minimum Key Field Confidence,Original Evidence Seal,Current Evidence Seal,Evidence Sealed At"]
         rows += receipts.map {
-            [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.paymentMethod.rawValue, $0.reimbursementStatus.rawValue, $0.clientOrCostCentre, $0.tagsRaw, $0.currencyCode, Self.number($0.subtotal), $0.taxLabel, Self.number($0.tax), Self.number($0.tip), Self.number($0.discount), Self.number($0.total), $0.reportingCurrencyCode, Self.number($0.exchangeRate), $0.exchangeRateDate.map(Self.iso.string) ?? "", $0.exchangeRateSource, $0.reportingTotal.map(Self.number) ?? "", $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisions.count)", $0.revisions.map(\.changedAt).max().map(Self.iso.string) ?? "", $0.notes]
+            [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.paymentMethod.rawValue, $0.reimbursementStatus.rawValue, $0.clientOrCostCentre, $0.tagsRaw, $0.currencyCode, Self.number($0.subtotal), $0.taxLabel, Self.number($0.tax), Self.number($0.tip), Self.number($0.discount), Self.number($0.total), $0.reportingCurrencyCode, Self.number($0.exchangeRate), $0.exchangeRateDate.map(Self.iso.string) ?? "", $0.exchangeRateSource, $0.reportingTotal.map(Self.number) ?? "", $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisions.count)", $0.revisions.map(\.changedAt).max().map(Self.iso.string) ?? "", $0.notes, Self.lineItemsText($0), Self.number($0.lineItemTotal), String(format: "%.0f%%", $0.fieldConfidence.minimumKeyField * 100), $0.originalEvidenceDigest, $0.currentEvidenceDigest, $0.evidenceSealedAt.map(Self.iso.string) ?? ""]
                 .map(Self.csvEscape).joined(separator: ",")
         }
         return "\u{FEFF}" + rows.joined(separator: "\r\n")
@@ -131,6 +131,15 @@ final class ExportService {
                     draw("Converted: \(reportingTotal.formatted(.currency(code: receipt.reportingCurrencyCode))) at \(Self.number(receipt.exchangeRate)) • \(receipt.exchangeRateSource) • \(receipt.exchangeRateDate?.formatted(date: .abbreviated, time: .omitted) ?? "")", font: .systemFont(ofSize: 9), color: .secondaryLabel)
                 }
                 draw("Evidence: \(receipt.reviewStatus.title) • OCR \(String(format: "%.0f%%", receipt.ocrConfidence * 100))", font: .systemFont(ofSize: 10), color: receipt.reviewStatus == .verified ? .systemGreen : .systemOrange)
+                if !receipt.currentEvidenceDigest.isEmpty {
+                    draw("Integrity seal: \(String(receipt.currentEvidenceDigest.prefix(16)).uppercased()) • key-field floor \(String(format: "%.0f%%", receipt.fieldConfidence.minimumKeyField * 100))", font: .systemFont(ofSize: 9), color: .secondaryLabel)
+                }
+                if !receipt.lineItems.isEmpty {
+                    draw("Line items", font: .boldSystemFont(ofSize: 10))
+                    for item in receipt.lineItems {
+                        draw("\(item.description) • \(Self.number(item.quantity)) × \(item.unitPrice.formatted(.currency(code: receipt.currencyCode))) • \(item.total.formatted(.currency(code: receipt.currencyCode)))", font: .systemFont(ofSize: 9), color: .secondaryLabel, indent: 10)
+                    }
+                }
                 if !receipt.revisions.isEmpty { draw("Audit trail: \(receipt.revisions.count) field change\(receipt.revisions.count == 1 ? "" : "s")", font: .systemFont(ofSize: 10), color: .secondaryLabel) }
                 if let pageData = receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).first?.imageData,
                    let image = UIImage(data: pageData) {
@@ -146,9 +155,9 @@ final class ExportService {
     }
 
     private func workbook(receipts: [Receipt]) throws -> Data {
-        let headers = ["Date", "Merchant", "Matter", "Category", "Payment Method", "Reimbursement", "Client or Cost Centre", "Tags", "Currency", "Subtotal", "Tax Label", "Tax", "Tip", "Discount", "Total", "Reporting Currency", "Exchange Rate", "Rate Date", "Rate Source", "Reporting Total", "Review Status", "OCR Confidence", "Validation Notes", "Revision Count", "Last Revised", "Notes"]
+        let headers = ["Date", "Merchant", "Matter", "Category", "Payment Method", "Reimbursement", "Client or Cost Centre", "Tags", "Currency", "Subtotal", "Tax Label", "Tax", "Tip", "Discount", "Total", "Reporting Currency", "Exchange Rate", "Rate Date", "Rate Source", "Reporting Total", "Review Status", "OCR Confidence", "Validation Notes", "Revision Count", "Last Revised", "Notes", "Line Items", "Line Item Total", "Minimum Key Field Confidence", "Original Evidence Seal", "Current Evidence Seal", "Evidence Sealed At"]
         var rows = [headers]
-        rows += receipts.map { [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.paymentMethod.rawValue, $0.reimbursementStatus.rawValue, $0.clientOrCostCentre, $0.tagsRaw, $0.currencyCode, Self.number($0.subtotal), $0.taxLabel, Self.number($0.tax), Self.number($0.tip), Self.number($0.discount), Self.number($0.total), $0.reportingCurrencyCode, Self.number($0.exchangeRate), $0.exchangeRateDate.map(Self.iso.string) ?? "", $0.exchangeRateSource, $0.reportingTotal.map(Self.number) ?? "", $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisions.count)", $0.revisions.map(\.changedAt).max().map(Self.iso.string) ?? "", $0.notes] }
+        rows += receipts.map { [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.paymentMethod.rawValue, $0.reimbursementStatus.rawValue, $0.clientOrCostCentre, $0.tagsRaw, $0.currencyCode, Self.number($0.subtotal), $0.taxLabel, Self.number($0.tax), Self.number($0.tip), Self.number($0.discount), Self.number($0.total), $0.reportingCurrencyCode, Self.number($0.exchangeRate), $0.exchangeRateDate.map(Self.iso.string) ?? "", $0.exchangeRateSource, $0.reportingTotal.map(Self.number) ?? "", $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisions.count)", $0.revisions.map(\.changedAt).max().map(Self.iso.string) ?? "", $0.notes, Self.lineItemsText($0), Self.number($0.lineItemTotal), String(format: "%.0f%%", $0.fieldConfidence.minimumKeyField * 100), $0.originalEvidenceDigest, $0.currentEvidenceDigest, $0.evidenceSealedAt.map(Self.iso.string) ?? ""] }
         func worksheet(_ sourceRows: [[String]]) -> String {
             let body = sourceRows.enumerated().map { rowIndex, columns in
             let cells = columns.enumerated().map { columnIndex, value in
@@ -175,7 +184,14 @@ final class ExportService {
             "<w:tr><w:tc><w:p><w:r><w:t>\(Self.xml(Self.iso.string(from: receipt.transactionDate)))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.merchant))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.category.rawValue + " • " + receipt.paymentMethod.rawValue + " • " + receipt.reimbursementStatus.rawValue))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.currencyCode + " " + Self.number(receipt.total)))</w:t></w:r></w:p></w:tc></w:tr>"
         }.joined()
         let summary = summaryRows(receipts).dropFirst().map { "<w:p><w:r><w:t>\(Self.xml($0.joined(separator: " • ")))</w:t></w:r></w:p>" }.joined()
-        let document = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body><w:p><w:r><w:rPr><w:b/><w:sz w:val=\"36\"/></w:rPr><w:t>\(Self.xml(title))</w:t></w:r></w:p><w:p><w:r><w:t>Expense summary generated \(Self.xml(Date.now.formatted()))</w:t></w:r></w:p>\(summary)<w:tbl><w:tr><w:tc><w:p><w:r><w:t>Date</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Merchant</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Category</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Total</w:t></w:r></w:p></w:tc></w:tr>\(rows)</w:tbl></w:body></w:document>"
+        let evidence = receipts.map { receipt in
+            let seal = receipt.currentEvidenceDigest.isEmpty ? "Not sealed" : String(receipt.currentEvidenceDigest.prefix(16)).uppercased()
+            let items = receipt.lineItems.isEmpty ? "No line items" : Self.lineItemsText(receipt)
+            let confidence = String(format: "%.0f%%", receipt.fieldConfidence.minimumKeyField * 100)
+            let sealLine = "Evidence seal: \(seal) • Key-field floor: \(confidence)"
+            return "<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>\(Self.xml(receipt.merchant))</w:t></w:r></w:p><w:p><w:r><w:t>\(Self.xml(sealLine))</w:t></w:r></w:p><w:p><w:r><w:t>\(Self.xml(items))</w:t></w:r></w:p>"
+        }.joined()
+        let document = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body><w:p><w:r><w:rPr><w:b/><w:sz w:val=\"36\"/></w:rPr><w:t>\(Self.xml(title))</w:t></w:r></w:p><w:p><w:r><w:t>Expense summary generated \(Self.xml(Date.now.formatted()))</w:t></w:r></w:p>\(summary)<w:tbl><w:tr><w:tc><w:p><w:r><w:t>Date</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Merchant</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Category</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Total</w:t></w:r></w:p></w:tc></w:tr>\(rows)</w:tbl><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Evidence and line items</w:t></w:r></w:p>\(evidence)</w:body></w:document>"
         let files: [String: Data] = [
             "[Content_Types].xml": Self.data("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/word/document.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml\"/></Types>"),
             "_rels/.rels": Self.data("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"word/document.xml\"/></Relationships>"),
@@ -221,6 +237,9 @@ final class ExportService {
         let value = DateFormatter(); value.locale = Locale(identifier: "en_US_POSIX"); value.dateFormat = "yyyy-MM-dd"; return value
     }()
     private static func number(_ value: Decimal) -> String { NSDecimalNumber(decimal: value).stringValue }
+    private static func lineItemsText(_ receipt: Receipt) -> String {
+        receipt.lineItems.map { "\($0.description) [\(number($0.quantity)) × \(number($0.unitPrice)) = \(number($0.total))]" }.joined(separator: " | ")
+    }
     private func safeFilename(_ value: String) -> String {
         let cleaned = value.replacingOccurrences(of: #"[^A-Za-z0-9_-]"#, with: "-", options: .regularExpression)
         return cleaned.trimmingCharacters(in: CharacterSet(charactersIn: "-_"))

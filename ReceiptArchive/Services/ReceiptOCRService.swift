@@ -15,6 +15,8 @@ struct OCRDraft: Sendable {
     var category = ExpenseCategory.other
     var fullText = ""
     var confidence: Double = 0
+    var fieldConfidence = ReceiptFieldConfidence.empty
+    var lineItems: [ReceiptLineItem] = []
     var warnings: [String] = []
 }
 
@@ -60,25 +62,36 @@ enum ReceiptOCRError: LocalizedError {
 actor ReceiptOCRService {
     func recognize(images: [UIImage]) async throws -> OCRDraft {
         let pages = try await withThrowingTaskGroup(of: RecognizedPage.self) { group in
-            for image in images {
-                group.addTask { try await Self.recognize(image: image) }
+            for (index, image) in images.enumerated() {
+                group.addTask { try await Self.recognize(image: image, pageIndex: index) }
             }
             var results: [RecognizedPage] = []
             for try await page in group { results.append(page) }
             return results
         }
 
-        let text = pages.map(\.text).joined(separator: "\n--- PAGE ---\n")
+        let orderedPages = pages.sorted(by: { $0.pageIndex < $1.pageIndex })
+        let text = orderedPages.map(\.text).joined(separator: "\n--- PAGE ---\n")
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw ReceiptOCRError.noText
         }
-        let confidence = pages.isEmpty ? 0 : pages.map(\.confidence).reduce(0, +) / Double(pages.count)
-        return Self.parse(text: text, confidence: confidence)
+        let confidence = orderedPages.isEmpty ? 0 : orderedPages.map(\.confidence).reduce(0, +) / Double(orderedPages.count)
+        return Self.parse(lines: orderedPages.flatMap(\.lines), text: text, confidence: confidence)
     }
 
-    private struct RecognizedPage: Sendable { let text: String; let confidence: Double }
+    private struct RecognizedLine: Sendable {
+        let text: String
+        let confidence: Double
+    }
 
-    private static func recognize(image: UIImage) async throws -> RecognizedPage {
+    private struct RecognizedPage: Sendable {
+        let pageIndex: Int
+        let lines: [RecognizedLine]
+        var text: String { lines.map(\.text).joined(separator: "\n") }
+        var confidence: Double { lines.isEmpty ? 0 : lines.map(\.confidence).reduce(0, +) / Double(lines.count) }
+    }
+
+    private static func recognize(image: UIImage, pageIndex: Int) async throws -> RecognizedPage {
         guard let cgImage = image.cgImage else { throw ReceiptOCRError.invalidImage }
         return try await withCheckedThrowingContinuation { continuation in
             let request = VNRecognizeTextRequest { request, error in
@@ -86,11 +99,18 @@ actor ReceiptOCRService {
                     continuation.resume(throwing: error)
                     return
                 }
-                let observations = request.results as? [VNRecognizedTextObservation] ?? []
-                let candidates = observations.compactMap { $0.topCandidates(1).first }
-                let text = candidates.map(\.string).joined(separator: "\n")
-                let confidence = candidates.isEmpty ? 0 : candidates.map { Double($0.confidence) }.reduce(0, +) / Double(candidates.count)
-                continuation.resume(returning: RecognizedPage(text: text, confidence: confidence))
+                let observations = (request.results as? [VNRecognizedTextObservation] ?? [])
+                    .sorted {
+                        if abs($0.boundingBox.midY - $1.boundingBox.midY) > 0.01 {
+                            return $0.boundingBox.midY > $1.boundingBox.midY
+                        }
+                        return $0.boundingBox.minX < $1.boundingBox.minX
+                    }
+                let lines = observations.compactMap { observation -> RecognizedLine? in
+                    guard let candidate = observation.topCandidates(1).first else { return nil }
+                    return RecognizedLine(text: candidate.string, confidence: Double(candidate.confidence))
+                }
+                continuation.resume(returning: RecognizedPage(pageIndex: pageIndex, lines: lines))
             }
             request.recognitionLevel = .accurate
             request.usesLanguageCorrection = true
@@ -103,34 +123,63 @@ actor ReceiptOCRService {
         }
     }
 
-    private static func parse(text: String, confidence: Double) -> OCRDraft {
-        let lines = text.components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
+    private static func parse(lines recognizedLines: [RecognizedLine], text: String, confidence: Double) -> OCRDraft {
+        let lines = recognizedLines.compactMap { line -> RecognizedLine? in
+            let cleaned = line.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            return cleaned.isEmpty ? nil : RecognizedLine(text: cleaned, confidence: line.confidence)
+        }
         var draft = OCRDraft()
         draft.fullText = text
         draft.confidence = confidence
-        draft.merchant = lines.first(where: { $0.rangeOfCharacter(from: .letters) != nil }) ?? ""
-        draft.currencyCode = detectCurrency(in: text)
+        let merchantLine = lines.first(where: { $0.text.rangeOfCharacter(from: .letters) != nil })
+        draft.merchant = merchantLine?.text ?? ""
+        draft.fieldConfidence.merchant = merchantLine?.confidence ?? 0
 
-        if let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.date.rawValue),
-           let match = detector.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-           let date = match.date {
-            draft.date = date
+        let currency = detectCurrency(in: lines)
+        draft.currencyCode = currency.value
+        draft.fieldConfidence.currency = currency.confidence
+
+        if let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.date.rawValue) {
+            for line in lines {
+                if let match = detector.firstMatch(in: line.text, range: NSRange(line.text.startIndex..., in: line.text)),
+                   let date = match.date {
+                    draft.date = date
+                    draft.fieldConfidence.date = line.confidence
+                    break
+                }
+            }
         }
 
-        let amountsByLine = lines.map { ($0, amounts(in: $0)) }
-        draft.tax = bestAmount(in: amountsByLine, labels: ["tax", "gst", "vat", "service charge"]) ?? .zero
-        draft.tip = bestAmount(in: amountsByLine, labels: ["tip", "gratuity"]) ?? .zero
-        draft.discount = bestAmount(in: amountsByLine, labels: ["discount", "coupon", "savings"]) ?? .zero
+        let amountsByLine = lines.map { ($0, amounts(in: $0.text)) }
+        let tax = bestAmount(in: amountsByLine, labels: ["tax", "gst", "vat", "service charge"])
+        draft.tax = tax?.value ?? .zero
+        draft.fieldConfidence.tax = tax?.confidence ?? 0
+        draft.tip = bestAmount(in: amountsByLine, labels: ["tip", "gratuity"])?.value ?? .zero
+        draft.discount = bestAmount(in: amountsByLine, labels: ["discount", "coupon", "savings"])?.value ?? .zero
         if text.localizedCaseInsensitiveContains("GST") { draft.taxLabel = "GST" }
         else if text.localizedCaseInsensitiveContains("VAT") { draft.taxLabel = "VAT" }
-        draft.subtotal = bestAmount(in: amountsByLine, labels: ["subtotal", "sub total", "net"]) ?? .zero
-        draft.total = bestAmount(in: amountsByLine, labels: ["grand total", "amount due", "total", "paid"])
-            ?? amountsByLine.flatMap { $0.1 }.max() ?? .zero
-        if draft.subtotal == .zero, draft.total >= draft.tax + draft.tip - draft.discount { draft.subtotal = draft.total - draft.tax - draft.tip + draft.discount }
+        let subtotal = bestAmount(in: amountsByLine, labels: ["subtotal", "sub total", "net"])
+        draft.subtotal = subtotal?.value ?? .zero
+        draft.fieldConfidence.subtotal = subtotal?.confidence ?? 0
+        let total = bestAmount(in: amountsByLine, labels: ["grand total", "amount due", "total", "paid"])
+        if let total {
+            draft.total = total.value
+            draft.fieldConfidence.total = total.confidence
+        } else if let fallback = amountsByLine.flatMap({ row in row.1.map { (value: $0, confidence: row.0.confidence) } }).max(by: { $0.value < $1.value }) {
+            draft.total = fallback.value
+            draft.fieldConfidence.total = fallback.confidence * 0.65
+        }
+        if draft.subtotal == .zero, draft.total >= draft.tax + draft.tip - draft.discount {
+            draft.subtotal = draft.total - draft.tax - draft.tip + draft.discount
+            draft.fieldConfidence.subtotal = max(0.3, min(draft.fieldConfidence.total, draft.fieldConfidence.tax) * 0.7)
+        }
+        draft.lineItems = extractLineItems(from: lines)
+        draft.fieldConfidence.lineItems = draft.lineItems.isEmpty ? 0 : draft.lineItems.map(\.confidence).reduce(0, +) / Double(draft.lineItems.count)
         draft.category = inferCategory(from: text.lowercased())
         draft.warnings = ReceiptEvidence.warnings(merchant: draft.merchant, date: draft.date, subtotal: draft.subtotal, tax: draft.tax, tip: draft.tip, discount: draft.discount, total: draft.total, currencyCode: draft.currencyCode, ocrConfidence: confidence)
+        if draft.fieldConfidence.minimumKeyField < 0.65 {
+            draft.warnings.append("One or more key fields has low confidence")
+        }
         return draft
     }
 
@@ -149,25 +198,67 @@ actor ReceiptOCRService {
         }
     }
 
-    private static func bestAmount(in lines: [(String, [Decimal])], labels: [String]) -> Decimal? {
+    private static func bestAmount(in lines: [(RecognizedLine, [Decimal])], labels: [String]) -> (value: Decimal, confidence: Double)? {
         for label in labels {
-            if let match = lines.reversed().first(where: { $0.0.lowercased().contains(label) }),
-               let value = match.1.last { return value }
+            if let match = lines.reversed().first(where: { $0.0.text.lowercased().contains(label) }),
+               let value = match.1.last { return (value, match.0.confidence) }
         }
         return nil
     }
 
-    private static func detectCurrency(in text: String) -> String {
+    private static func detectCurrency(in lines: [RecognizedLine]) -> (value: String, confidence: Double) {
+        let text = lines.map(\.text).joined(separator: "\n")
         let upper = text.uppercased()
         for code in ["SGD", "USD", "EUR", "GBP", "AUD", "CAD", "JPY", "CNY", "HKD", "MYR", "THB", "IDR", "INR"] {
-            if upper.contains(code) { return code }
+            if let line = lines.first(where: { $0.text.uppercased().contains(code) }) { return (code, line.confidence) }
         }
-        if text.contains("S$") { return "SGD" }
-        if text.contains("€") { return "EUR" }
-        if text.contains("£") { return "GBP" }
-        if text.contains("¥") { return "JPY" }
-        if text.contains("$") { return Locale.current.currency?.identifier ?? "USD" }
-        return Locale.current.currency?.identifier ?? "USD"
+        if let line = lines.first(where: { $0.text.contains("S$") }) { return ("SGD", line.confidence) }
+        if let line = lines.first(where: { $0.text.contains("€") }) { return ("EUR", line.confidence) }
+        if let line = lines.first(where: { $0.text.contains("£") }) { return ("GBP", line.confidence) }
+        if let line = lines.first(where: { $0.text.contains("¥") }) { return ("JPY", line.confidence) }
+        if let line = lines.first(where: { $0.text.contains("$") }) { return (Locale.current.currency?.identifier ?? "USD", line.confidence * 0.75) }
+        return (Locale.current.currency?.identifier ?? "USD", 0.35)
+    }
+
+    private static func extractLineItems(from lines: [RecognizedLine]) -> [ReceiptLineItem] {
+        let excludedLabels = ["subtotal", "sub total", "total", "tax", "gst", "vat", "tip", "gratuity", "discount", "coupon", "savings", "amount due", "balance", "change", "cash", "tender", "paid"]
+        return lines.compactMap { line in
+            let lower = line.text.lowercased()
+            guard !excludedLabels.contains(where: lower.contains),
+                  line.text.rangeOfCharacter(from: .letters) != nil,
+                  let regex = try? NSRegularExpression(pattern: #"(?<!\d)(?:\d{1,3}(?:[ ,.']\d{3})*|\d+)[.,]\d{2}(?!\d)"#),
+                  let match = regex.matches(in: line.text, range: NSRange(line.text.startIndex..., in: line.text)).last,
+                  let amountRange = Range(match.range, in: line.text),
+                  let total = amounts(in: String(line.text[amountRange])).first,
+                  total > 0 else { return nil }
+
+            var description = String(line.text[..<amountRange.lowerBound])
+                .trimmingCharacters(in: .whitespacesAndNewlines.union(.punctuationCharacters))
+            description = description.replacingOccurrences(of: #"\s{2,}"#, with: " ", options: .regularExpression)
+            guard description.count >= 2 else { return nil }
+
+            var quantity = Decimal(1)
+            var unitPrice = total
+            if let quantityRegex = try? NSRegularExpression(pattern: #"(?i)(\d+(?:[.,]\d+)?)\s*[x@]\s*(\d+(?:[.,]\d{2})?)"#),
+               let quantityMatch = quantityRegex.firstMatch(in: description, range: NSRange(description.startIndex..., in: description)),
+               let quantityRange = Range(quantityMatch.range(at: 1), in: description) {
+                let value = String(description[quantityRange]).replacingOccurrences(of: ",", with: ".")
+                if let parsed = Decimal(string: value), parsed > 0 {
+                    quantity = parsed
+                    if let unitRange = Range(quantityMatch.range(at: 2), in: description),
+                       let parsedUnit = Decimal(string: String(description[unitRange]).replacingOccurrences(of: ",", with: ".")) {
+                        unitPrice = parsedUnit
+                    } else {
+                        unitPrice = total / parsed
+                    }
+                    description = quantityRegex.stringByReplacingMatches(in: description, range: NSRange(description.startIndex..., in: description), withTemplate: "")
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+            }
+            return ReceiptLineItem(description: description, quantity: quantity, unitPrice: unitPrice, total: total, confidence: line.confidence)
+        }
+        .prefix(100)
+        .map { $0 }
     }
 
     private static func inferCategory(from text: String) -> ExpenseCategory {
