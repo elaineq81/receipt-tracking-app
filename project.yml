@@ -34,6 +34,17 @@ targets:
         CODE_SIGN_STYLE: Automatic
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: NO
+  ReceiptArchiveTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: ReceiptArchiveTests
+    dependencies:
+      - target: ReceiptArchive
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.bodywiseremedy.receiptsure.tests
+        GENERATE_INFOPLIST_FILE: YES
 schemes:
   ReceiptArchive:
     build:
@@ -42,5 +53,8 @@ schemes:
     run:
       config: Debug
       storeKitConfiguration: ReceiptArchive/Resources/ReceiptSure.storekit
+    test:
+      targets:
+        - ReceiptArchiveTests
     archive:
       config: Release
