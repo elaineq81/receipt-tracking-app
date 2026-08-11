@@ -87,14 +87,14 @@ struct ReceiptsView: View {
             }
         }
         .confirmationDialog(
-            "Move (pendingTrash.count == 1 ? "receipt" : "receipts") to Recently Deleted?",
+            "Move \(pendingTrash.count == 1 ? "receipt" : "receipts") to Recently Deleted?",
             isPresented: Binding(get: { !pendingTrash.isEmpty }, set: { if !$0 { pendingTrash = [] } }),
             titleVisibility: .visible
         ) {
             Button("Move to Recently Deleted", role: .destructive) { movePendingToTrash() }
             Button("Cancel", role: .cancel) { pendingTrash = [] }
         } message: {
-            Text("You can restore (pendingTrash.count == 1 ? "it" : "them") later.")
+            Text("You can restore \(pendingTrash.count == 1 ? "it" : "them") later.")
         }
         .alert("Couldn’t update receipts", isPresented: Binding(get: { persistenceError != nil }, set: { if !$0 { persistenceError = nil } })) {
             Button("OK", role: .cancel) {}
