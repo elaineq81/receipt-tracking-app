@@ -45,6 +45,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.bodywiseremedy.receiptsure.tests
         GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/ReceiptSure.app/ReceiptSure"
+        BUNDLE_LOADER: "$(TEST_HOST)"
 schemes:
   ReceiptArchive:
     build:
