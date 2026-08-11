@@ -103,4 +103,37 @@ final class ReceiptArchiveTests: XCTestCase {
         XCTAssertNil(receipt.trashedAt)
         XCTAssertEqual(receipt.originalEvidenceDigest, "original")
     }
+
+    @MainActor
+    func testProofPackExportContainsManifestAuditAndBothImageVersions() async throws {
+        let receipt = Receipt(
+            merchant: "Sample Merchant",
+            transactionDate: Date(timeIntervalSince1970: 1_767_225_600),
+            currencyCode: "EUR",
+            subtotal: 10,
+            tax: 2,
+            total: 12,
+            category: .meals,
+            originalEvidenceDigest: "original-seal",
+            currentEvidenceDigest: "current-seal"
+        )
+        let page = ReceiptPage(
+            imageData: Data("current-image".utf8),
+            originalImageData: Data("original-image".utf8),
+            pageIndex: 0,
+            receipt: receipt
+        )
+        receipt.pages.append(page)
+
+        let url = try await ExportService().create(format: .proof, receipts: [receipt], title: "European Trip")
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let archive = try Data(contentsOf: url)
+
+        XCTAssertEqual(url.pathExtension.lowercased(), "zip")
+        XCTAssertEqual(Array(archive.prefix(2)), Array("PK".utf8))
+        XCTAssertNotNil(archive.range(of: Data("manifest.json".utf8)))
+        XCTAssertNotNil(archive.range(of: Data("audit/receipt-records.json".utf8)))
+        XCTAssertNotNil(archive.range(of: Data("current-page-01.jpg".utf8)))
+        XCTAssertNotNil(archive.range(of: Data("original-page-01.jpg".utf8)))
+    }
 }
