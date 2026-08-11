@@ -108,6 +108,9 @@ struct ReceiptDetailView: View {
     @State private var selectedPage = 0
     @State private var editorReceipt: Receipt?
     @State private var cropPage: ReceiptPage?
+    @State private var sharePayload: ReceiptSharePayload?
+    @State private var shareError: String?
+    @State private var isPreparingShare = false
 
     var body: some View {
         List {
@@ -185,10 +188,20 @@ struct ReceiptDetailView: View {
         .navigationTitle(receipt.merchant.isEmpty ? "Receipt" : receipt.merchant)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if let page = receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).first(where: { $0.pageIndex == selectedPage }) {
-                Button("Adjust crop", systemImage: "crop") { cropPage = page }
+            Menu("Share receipt", systemImage: "square.and.arrow.up") {
+                Button("PDF with details", systemImage: "doc.richtext") { sharePDF() }
+                Button("Receipt images", systemImage: "photo.on.rectangle") { shareImages() }
+                    .disabled(receipt.pages.isEmpty)
+                Button("Text summary", systemImage: "text.quote") { shareSummary() }
             }
-            Button("Edit", systemImage: "pencil") { editorReceipt = receipt }
+            .disabled(isPreparingShare)
+
+            Menu("Receipt actions", systemImage: "ellipsis.circle") {
+                if let page = receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).first(where: { $0.pageIndex == selectedPage }) {
+                    Button("Adjust crop", systemImage: "crop") { cropPage = page }
+                }
+                Button("Edit receipt", systemImage: "pencil") { editorReceipt = receipt }
+            }
         }
         .sheet(item: $editorReceipt) { selected in
             NavigationStack { ReceiptEditorView(receipt: selected) }
@@ -217,7 +230,70 @@ struct ReceiptDetailView: View {
                 }
             }
         }
+        .sheet(item: $sharePayload) { payload in
+            ShareSheet(items: payload.items)
+        }
+        .alert("Couldn’t share receipt", isPresented: Binding(
+            get: { shareError != nil },
+            set: { if !$0 { shareError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(shareError ?? "Please try again.")
+        }
     }
+
+    private var shareTitle: String {
+        let merchant = receipt.merchant.isEmpty ? "Receipt" : receipt.merchant
+        return "\(merchant) · \(receipt.transactionDate.formatted(date: .abbreviated, time: .omitted))"
+    }
+
+    private var shareSummaryText: String {
+        var lines = [
+            shareTitle,
+            "Total: \(receipt.total.formatted(.currency(code: receipt.currencyCode)))",
+            "Category: \(receipt.category.rawValue)",
+            "Matter: \(receipt.matter?.name ?? "Unfiled")",
+            "Status: \(receipt.reviewStatus.title)"
+        ]
+        if receipt.tax != 0 {
+            lines.insert("\(receipt.taxLabel): \(receipt.tax.formatted(.currency(code: receipt.currencyCode)))", at: 2)
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    private func sharePDF() {
+        prepareShare {
+            let url = try ExportService().create(format: .pdf, receipts: [receipt], title: shareTitle)
+            return [url as Any, shareSummaryText as Any]
+        }
+    }
+
+    private func shareImages() {
+        prepareShare {
+            let urls = try ExportService().createReceiptImageFiles(receipt: receipt)
+            return [shareSummaryText as Any] + urls.map { $0 as Any }
+        }
+    }
+
+    private func shareSummary() {
+        sharePayload = ReceiptSharePayload(items: [shareSummaryText])
+    }
+
+    private func prepareShare(_ createItems: () throws -> [Any]) {
+        isPreparingShare = true
+        defer { isPreparingShare = false }
+        do {
+            sharePayload = ReceiptSharePayload(items: try createItems())
+        } catch {
+            shareError = error.localizedDescription
+        }
+    }
+}
+
+private struct ReceiptSharePayload: Identifiable {
+    let id = UUID()
+    let items: [Any]
 }
 
 private struct ReceiptEditorView: View {

@@ -3,7 +3,14 @@ import UIKit
 
 enum ExportError: LocalizedError {
     case couldNotCreateFile
-    var errorDescription: String? { "The export file could not be created." }
+    case noReceiptImage
+
+    var errorDescription: String? {
+        switch self {
+        case .couldNotCreateFile: "The export file could not be created."
+        case .noReceiptImage: "This receipt does not contain an image to share."
+        }
+    }
 }
 
 @MainActor
@@ -33,6 +40,23 @@ final class ExportService {
         case .images:
             let url = folder.appending(path: "\(safeTitle)-JPGs.zip")
             try imageBundle(receipts: receipts).write(to: url)
+            return url
+        }
+    }
+
+    func createReceiptImageFiles(receipt: Receipt) throws -> [URL] {
+        let pages = receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex })
+        guard !pages.isEmpty else { throw ExportError.noReceiptImage }
+
+        let folder = FileManager.default.temporaryDirectory
+            .appending(path: "ReceiptSure-Share-\(UUID().uuidString)", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+
+        let merchant = safeFilename(receipt.merchant.isEmpty ? "Receipt" : receipt.merchant)
+        let date = Self.iso.string(from: receipt.transactionDate)
+        return try pages.map { page in
+            let url = folder.appending(path: "\(date)-\(merchant)-page-\(page.pageIndex + 1).jpg")
+            try page.imageData.write(to: url, options: .atomic)
             return url
         }
     }
@@ -197,6 +221,10 @@ final class ExportService {
         let value = DateFormatter(); value.locale = Locale(identifier: "en_US_POSIX"); value.dateFormat = "yyyy-MM-dd"; return value
     }()
     private static func number(_ value: Decimal) -> String { NSDecimalNumber(decimal: value).stringValue }
+    private func safeFilename(_ value: String) -> String {
+        let cleaned = value.replacingOccurrences(of: #"[^A-Za-z0-9_-]"#, with: "-", options: .regularExpression)
+        return cleaned.trimmingCharacters(in: CharacterSet(charactersIn: "-_"))
+    }
     private static func csvEscape(_ value: String) -> String { "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\"" }
     private static func xml(_ value: String) -> String { value.replacingOccurrences(of: "&", with: "&amp;").replacingOccurrences(of: "<", with: "&lt;").replacingOccurrences(of: ">", with: "&gt;").replacingOccurrences(of: "\"", with: "&quot;") }
     private static func data(_ value: String) -> Data { Data(value.utf8) }
