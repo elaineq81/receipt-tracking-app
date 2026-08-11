@@ -1054,7 +1054,7 @@ private struct LineItemEditorRow: View {
             .font(.subheadline)
             if item.confidence > 0, item.confidence < 1 {
                 Text("OCR confidence \(item.confidence.formatted(.percent.precision(.fractionLength(0))))")
-                    .font(.caption).foregroundStyle(item.confidence >= 0.65 ? .secondary : .orange)
+                    .font(.caption).foregroundStyle(item.confidence >= 0.65 ? Color.secondary : Color.orange)
             }
         }
         .accessibilityElement(children: .contain)
