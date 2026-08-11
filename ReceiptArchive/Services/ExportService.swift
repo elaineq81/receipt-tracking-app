@@ -13,9 +13,16 @@ enum ExportError: LocalizedError {
     }
 }
 
-@MainActor
-final class ExportService {
-    func create(format: ExportFormat, receipts: [Receipt], title: String) throws -> URL {
+final class ExportService: @unchecked Sendable {
+    @MainActor
+    func create(format: ExportFormat, receipts: [Receipt], title: String) async throws -> URL {
+        let snapshots = receipts.map(ExportReceiptSnapshot.init)
+        return try await Task.detached(priority: .userInitiated) {
+            try self.create(format: format, receipts: snapshots, title: title)
+        }.value
+    }
+
+    private func create(format: ExportFormat, receipts: [ExportReceiptSnapshot], title: String) throws -> URL {
         let safeTitle = title.replacingOccurrences(of: #"[^A-Za-z0-9_-]"#, with: "-", options: .regularExpression)
         let folder = FileManager.default.temporaryDirectory.appending(path: "ReceiptSure-\(UUID().uuidString)", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
@@ -44,7 +51,15 @@ final class ExportService {
         }
     }
 
-    func createReceiptImageFiles(receipt: Receipt) throws -> [URL] {
+    @MainActor
+    func createReceiptImageFiles(receipt: Receipt) async throws -> [URL] {
+        let snapshot = ExportReceiptSnapshot(receipt)
+        return try await Task.detached(priority: .userInitiated) {
+            try self.createReceiptImageFiles(receipt: snapshot)
+        }.value
+    }
+
+    private func createReceiptImageFiles(receipt: ExportReceiptSnapshot) throws -> [URL] {
         let pages = receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex })
         guard !pages.isEmpty else { throw ExportError.noReceiptImage }
 
@@ -61,16 +76,16 @@ final class ExportService {
         }
     }
 
-    private func csv(_ receipts: [Receipt]) -> String {
+    private func csv(_ receipts: [ExportReceiptSnapshot]) -> String {
         var rows = ["Date,Merchant,Matter,Category,Payment Method,Reimbursement,Client or Cost Centre,Tags,Currency,Subtotal,Tax Label,Tax,Tip,Discount,Total,Reporting Currency,Exchange Rate,Rate Date,Rate Source,Reporting Total,Review Status,OCR Confidence,Validation Notes,Revision Count,Last Revised,Notes,Line Items,Line Item Total,Minimum Key Field Confidence,Original Evidence Seal,Current Evidence Seal,Evidence Sealed At"]
         rows += receipts.map {
-            [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.paymentMethod.rawValue, $0.reimbursementStatus.rawValue, $0.clientOrCostCentre, $0.tagsRaw, $0.currencyCode, Self.number($0.subtotal), $0.taxLabel, Self.number($0.tax), Self.number($0.tip), Self.number($0.discount), Self.number($0.total), $0.reportingCurrencyCode, Self.number($0.exchangeRate), $0.exchangeRateDate.map(Self.iso.string) ?? "", $0.exchangeRateSource, $0.reportingTotal.map(Self.number) ?? "", $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisions.count)", $0.revisions.map(\.changedAt).max().map(Self.iso.string) ?? "", $0.notes, Self.lineItemsText($0), Self.number($0.lineItemTotal), String(format: "%.0f%%", $0.fieldConfidence.minimumKeyField * 100), $0.originalEvidenceDigest, $0.currentEvidenceDigest, $0.evidenceSealedAt.map(Self.iso.string) ?? ""]
+            [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matterName ?? "", $0.category.rawValue, $0.paymentMethod.rawValue, $0.reimbursementStatus.rawValue, $0.clientOrCostCentre, $0.tagsRaw, $0.currencyCode, Self.number($0.subtotal), $0.taxLabel, Self.number($0.tax), Self.number($0.tip), Self.number($0.discount), Self.number($0.total), $0.reportingCurrencyCode, Self.number($0.exchangeRate), $0.exchangeRateDate.map(Self.iso.string) ?? "", $0.exchangeRateSource, $0.reportingTotal.map(Self.number) ?? "", $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisionDates.count)", $0.revisionDates.max().map(Self.iso.string) ?? "", $0.notes, Self.lineItemsText($0), Self.number($0.lineItemTotal), String(format: "%.0f%%", $0.fieldConfidence.minimumKeyField * 100), $0.originalEvidenceDigest, $0.currentEvidenceDigest, $0.evidenceSealedAt.map(Self.iso.string) ?? ""]
                 .map(Self.csvEscape).joined(separator: ",")
         }
         return "\u{FEFF}" + rows.joined(separator: "\r\n")
     }
 
-    private func pdf(receipts: [Receipt], title: String) throws -> Data {
+    private func pdf(receipts: [ExportReceiptSnapshot], title: String) throws -> Data {
         let page = CGRect(x: 0, y: 0, width: 595, height: 842)
         let renderer = UIGraphicsPDFRenderer(bounds: page)
         return renderer.pdfData { context in
@@ -103,11 +118,11 @@ final class ExportService {
             draw("\(receipts.count) receipts • \(verified) verified • \(receipts.count - verified) need review", font: .systemFont(ofSize: 11))
             draw("\(reconciliationIssues) figure exceptions • \(incompleteRates) incomplete conversions", font: .systemFont(ofSize: 11), color: reconciliationIssues + incompleteRates == 0 ? .systemGreen : .systemOrange)
             y += 8
-            for (currency, rows) in Dictionary(grouping: receipts, by: \Receipt.currencyCode).sorted(by: { $0.key < $1.key }) {
+            for (currency, rows) in Dictionary(grouping: receipts, by: \.currencyCode).sorted(by: { $0.key < $1.key }) {
                 let total = rows.reduce(Decimal.zero) { $0 + $1.total }
                 draw("\(currency) total: \(total.formatted(.currency(code: currency)))", font: .boldSystemFont(ofSize: 16))
             }
-            for (currency, rows) in Dictionary(grouping: receipts.filter(\.hasCompleteConversion), by: \Receipt.reportingCurrencyCode).sorted(by: { $0.key < $1.key }) {
+            for (currency, rows) in Dictionary(grouping: receipts.filter(\.hasCompleteConversion), by: \.reportingCurrencyCode).sorted(by: { $0.key < $1.key }) {
                 let total = rows.compactMap(\.reportingTotal).reduce(Decimal.zero, +)
                 draw("Reporting total: \(total.formatted(.currency(code: currency)))", font: .boldSystemFont(ofSize: 16), color: .systemTeal)
             }
@@ -124,7 +139,7 @@ final class ExportService {
             draw("Receipt evidence appendix", font: .boldSystemFont(ofSize: 22))
             for receipt in receipts {
                 draw("\(receipt.transactionDate.formatted(date: .abbreviated, time: .omitted))  \(receipt.merchant)", font: .boldSystemFont(ofSize: 13))
-                draw("\(receipt.category.rawValue) • \(receipt.matter?.name ?? "Unfiled") • \(receipt.total.formatted(.currency(code: receipt.currencyCode)))", font: .systemFont(ofSize: 11), color: .secondaryLabel)
+                draw("\(receipt.category.rawValue) • \(receipt.matterName ?? "Unfiled") • \(receipt.total.formatted(.currency(code: receipt.currencyCode)))", font: .systemFont(ofSize: 11), color: .secondaryLabel)
                 draw("\(receipt.paymentMethod.rawValue) • \(receipt.reimbursementStatus.rawValue)\(receipt.clientOrCostCentre.isEmpty ? "" : " • " + receipt.clientOrCostCentre)", font: .systemFont(ofSize: 10), color: .secondaryLabel)
                 draw("Subtotal \(receipt.subtotal.formatted(.currency(code: receipt.currencyCode))) • \(receipt.taxLabel) \(receipt.tax.formatted(.currency(code: receipt.currencyCode))) • Tip \(receipt.tip.formatted(.currency(code: receipt.currencyCode))) • Discount \(receipt.discount.formatted(.currency(code: receipt.currencyCode)))", font: .systemFont(ofSize: 9), color: .secondaryLabel)
                 if let reportingTotal = receipt.reportingTotal {
@@ -140,7 +155,7 @@ final class ExportService {
                         draw("\(item.description) • \(Self.number(item.quantity)) × \(item.unitPrice.formatted(.currency(code: receipt.currencyCode))) • \(item.total.formatted(.currency(code: receipt.currencyCode)))", font: .systemFont(ofSize: 9), color: .secondaryLabel, indent: 10)
                     }
                 }
-                if !receipt.revisions.isEmpty { draw("Audit trail: \(receipt.revisions.count) field change\(receipt.revisions.count == 1 ? "" : "s")", font: .systemFont(ofSize: 10), color: .secondaryLabel) }
+                if !receipt.revisionDates.isEmpty { draw("Audit trail: \(receipt.revisionDates.count) field change\(receipt.revisionDates.count == 1 ? "" : "s")", font: .systemFont(ofSize: 10), color: .secondaryLabel) }
                 if let pageData = receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).first?.imageData,
                    let image = UIImage(data: pageData) {
                     let maxHeight: CGFloat = 250
@@ -154,14 +169,14 @@ final class ExportService {
         }
     }
 
-    private func workbook(receipts: [Receipt]) throws -> Data {
+    private func workbook(receipts: [ExportReceiptSnapshot]) throws -> Data {
         let headers = ["Date", "Merchant", "Matter", "Category", "Payment Method", "Reimbursement", "Client or Cost Centre", "Tags", "Currency", "Subtotal", "Tax Label", "Tax", "Tip", "Discount", "Total", "Reporting Currency", "Exchange Rate", "Rate Date", "Rate Source", "Reporting Total", "Review Status", "OCR Confidence", "Validation Notes", "Revision Count", "Last Revised", "Notes", "Line Items", "Line Item Total", "Minimum Key Field Confidence", "Original Evidence Seal", "Current Evidence Seal", "Evidence Sealed At"]
         var rows = [headers]
-        rows += receipts.map { [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matter?.name ?? "", $0.category.rawValue, $0.paymentMethod.rawValue, $0.reimbursementStatus.rawValue, $0.clientOrCostCentre, $0.tagsRaw, $0.currencyCode, Self.number($0.subtotal), $0.taxLabel, Self.number($0.tax), Self.number($0.tip), Self.number($0.discount), Self.number($0.total), $0.reportingCurrencyCode, Self.number($0.exchangeRate), $0.exchangeRateDate.map(Self.iso.string) ?? "", $0.exchangeRateSource, $0.reportingTotal.map(Self.number) ?? "", $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisions.count)", $0.revisions.map(\.changedAt).max().map(Self.iso.string) ?? "", $0.notes, Self.lineItemsText($0), Self.number($0.lineItemTotal), String(format: "%.0f%%", $0.fieldConfidence.minimumKeyField * 100), $0.originalEvidenceDigest, $0.currentEvidenceDigest, $0.evidenceSealedAt.map(Self.iso.string) ?? ""] }
+        rows += receipts.map { [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matterName ?? "", $0.category.rawValue, $0.paymentMethod.rawValue, $0.reimbursementStatus.rawValue, $0.clientOrCostCentre, $0.tagsRaw, $0.currencyCode, Self.number($0.subtotal), $0.taxLabel, Self.number($0.tax), Self.number($0.tip), Self.number($0.discount), Self.number($0.total), $0.reportingCurrencyCode, Self.number($0.exchangeRate), $0.exchangeRateDate.map(Self.iso.string) ?? "", $0.exchangeRateSource, $0.reportingTotal.map(Self.number) ?? "", $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisionDates.count)", $0.revisionDates.max().map(Self.iso.string) ?? "", $0.notes, Self.lineItemsText($0), Self.number($0.lineItemTotal), String(format: "%.0f%%", $0.fieldConfidence.minimumKeyField * 100), $0.originalEvidenceDigest, $0.currentEvidenceDigest, $0.evidenceSealedAt.map(Self.iso.string) ?? ""] }
         func worksheet(_ sourceRows: [[String]]) -> String {
             let body = sourceRows.enumerated().map { rowIndex, columns in
             let cells = columns.enumerated().map { columnIndex, value in
-                let ref = "\(Self.columnName(columnIndex + 1))\(rowIndex + 1)"
+                let ref = "\(SpreadsheetColumnReference.name(for: columnIndex + 1))\(rowIndex + 1)"
                 return "<c r=\"\(ref)\" t=\"inlineStr\"><is><t xml:space=\"preserve\">\(Self.xml(value))</t></is></c>"
             }.joined()
             return "<row r=\"\(rowIndex + 1)\">\(cells)</row>"
@@ -179,7 +194,7 @@ final class ExportService {
         return ZipStoreArchive(files: files).data()
     }
 
-    private func wordReport(receipts: [Receipt], title: String) throws -> Data {
+    private func wordReport(receipts: [ExportReceiptSnapshot], title: String) throws -> Data {
         let rows = receipts.map { receipt in
             "<w:tr><w:tc><w:p><w:r><w:t>\(Self.xml(Self.iso.string(from: receipt.transactionDate)))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.merchant))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.category.rawValue + " • " + receipt.paymentMethod.rawValue + " • " + receipt.reimbursementStatus.rawValue))</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>\(Self.xml(receipt.currencyCode + " " + Self.number(receipt.total)))</w:t></w:r></w:p></w:tc></w:tr>"
         }.joined()
@@ -200,7 +215,7 @@ final class ExportService {
         return ZipStoreArchive(files: files).data()
     }
 
-    private func imageBundle(receipts: [Receipt]) throws -> Data {
+    private func imageBundle(receipts: [ExportReceiptSnapshot]) throws -> Data {
         var files: [String: Data] = ["expenses.csv": Self.data(csv(receipts))]
         for (receiptIndex, receipt) in receipts.enumerated() {
             for page in receipt.pages {
@@ -211,22 +226,22 @@ final class ExportService {
         return ZipStoreArchive(files: files).data()
     }
 
-    private func summaryRows(_ receipts: [Receipt]) -> [[String]] {
+    private func summaryRows(_ receipts: [ExportReceiptSnapshot]) -> [[String]] {
         var rows = [["Breakdown", "Group", "Currency", "Total"]]
-        for (currency, values) in Dictionary(grouping: receipts, by: \Receipt.currencyCode).sorted(by: { $0.key < $1.key }) {
+        for (currency, values) in Dictionary(grouping: receipts, by: \.currencyCode).sorted(by: { $0.key < $1.key }) {
             rows.append(["Currency", currency, currency, Self.number(values.reduce(Decimal.zero) { $0 + $1.total })])
         }
-        for (currency, values) in Dictionary(grouping: receipts.filter(\.hasCompleteConversion), by: \Receipt.reportingCurrencyCode).sorted(by: { $0.key < $1.key }) {
+        for (currency, values) in Dictionary(grouping: receipts.filter(\.hasCompleteConversion), by: \.reportingCurrencyCode).sorted(by: { $0.key < $1.key }) {
             rows.append(["Reporting currency", currency, currency, Self.number(values.compactMap(\.reportingTotal).reduce(Decimal.zero, +))])
         }
         for category in ExpenseCategory.allCases {
-            for (currency, values) in Dictionary(grouping: receipts.filter { $0.category == category }, by: \Receipt.currencyCode).sorted(by: { $0.key < $1.key }) {
+            for (currency, values) in Dictionary(grouping: receipts.filter { $0.category == category }, by: \.currencyCode).sorted(by: { $0.key < $1.key }) {
                 rows.append(["Category", category.rawValue, currency, Self.number(values.reduce(Decimal.zero) { $0 + $1.total })])
             }
         }
         let dates = Dictionary(grouping: receipts, by: { Calendar.current.startOfDay(for: $0.transactionDate) })
         for (date, dateRows) in dates.sorted(by: { $0.key < $1.key }) {
-            for (currency, values) in Dictionary(grouping: dateRows, by: \Receipt.currencyCode).sorted(by: { $0.key < $1.key }) {
+            for (currency, values) in Dictionary(grouping: dateRows, by: \.currencyCode).sorted(by: { $0.key < $1.key }) {
                 rows.append(["Date", Self.iso.string(from: date), currency, Self.number(values.reduce(Decimal.zero) { $0 + $1.total })])
             }
         }
@@ -237,7 +252,7 @@ final class ExportService {
         let value = DateFormatter(); value.locale = Locale(identifier: "en_US_POSIX"); value.dateFormat = "yyyy-MM-dd"; return value
     }()
     private static func number(_ value: Decimal) -> String { NSDecimalNumber(decimal: value).stringValue }
-    private static func lineItemsText(_ receipt: Receipt) -> String {
+    private static func lineItemsText(_ receipt: ExportReceiptSnapshot) -> String {
         receipt.lineItems.map { "\($0.description) [\(number($0.quantity)) × \(number($0.unitPrice)) = \(number($0.total))]" }.joined(separator: " | ")
     }
     private func safeFilename(_ value: String) -> String {
@@ -247,7 +262,100 @@ final class ExportService {
     private static func csvEscape(_ value: String) -> String { "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\"" }
     private static func xml(_ value: String) -> String { value.replacingOccurrences(of: "&", with: "&amp;").replacingOccurrences(of: "<", with: "&lt;").replacingOccurrences(of: ">", with: "&gt;").replacingOccurrences(of: "\"", with: "&quot;") }
     private static func data(_ value: String) -> Data { Data(value.utf8) }
-    private static func columnName(_ index: Int) -> String { index <= 26 ? String(UnicodeScalar(64 + index)!) : "A" }
+}
+
+private struct ExportReceiptSnapshot: Sendable {
+    let merchant: String
+    let transactionDate: Date
+    let currencyCode: String
+    let subtotal: Decimal
+    let tax: Decimal
+    let tip: Decimal
+    let discount: Decimal
+    let taxLabel: String
+    let total: Decimal
+    let category: ExpenseCategory
+    let notes: String
+    let ocrConfidence: Double
+    let reviewStatus: ReceiptReviewStatus
+    let validationNotes: String
+    let paymentMethod: PaymentMethod
+    let reimbursementStatus: ReimbursementStatus
+    let tagsRaw: String
+    let clientOrCostCentre: String
+    let reportingCurrencyCode: String
+    let exchangeRate: Decimal
+    let exchangeRateDate: Date?
+    let exchangeRateSource: String
+    let matterName: String?
+    let pages: [ExportPageSnapshot]
+    let revisionDates: [Date]
+    let lineItems: [ReceiptLineItem]
+    let fieldConfidence: ReceiptFieldConfidence
+    let originalEvidenceDigest: String
+    let currentEvidenceDigest: String
+    let evidenceSealedAt: Date?
+
+    @MainActor
+    init(_ receipt: Receipt) {
+        merchant = receipt.merchant
+        transactionDate = receipt.transactionDate
+        currencyCode = receipt.currencyCode
+        subtotal = receipt.subtotal
+        tax = receipt.tax
+        tip = receipt.tip
+        discount = receipt.discount
+        taxLabel = receipt.taxLabel
+        total = receipt.total
+        category = receipt.category
+        notes = receipt.notes
+        ocrConfidence = receipt.ocrConfidence
+        reviewStatus = receipt.reviewStatus
+        validationNotes = receipt.validationNotes
+        paymentMethod = receipt.paymentMethod
+        reimbursementStatus = receipt.reimbursementStatus
+        tagsRaw = receipt.tagsRaw
+        clientOrCostCentre = receipt.clientOrCostCentre
+        reportingCurrencyCode = receipt.reportingCurrencyCode
+        exchangeRate = receipt.exchangeRate
+        exchangeRateDate = receipt.exchangeRateDate
+        exchangeRateSource = receipt.exchangeRateSource
+        matterName = receipt.matter?.name
+        pages = receipt.pages.map { ExportPageSnapshot(imageData: $0.imageData, pageIndex: $0.pageIndex) }
+        revisionDates = receipt.revisions.map(\.changedAt)
+        lineItems = receipt.lineItems
+        fieldConfidence = receipt.fieldConfidence
+        originalEvidenceDigest = receipt.originalEvidenceDigest
+        currentEvidenceDigest = receipt.currentEvidenceDigest
+        evidenceSealedAt = receipt.evidenceSealedAt
+    }
+
+    var reconciliationDifference: Decimal { subtotal + tax + tip - discount - total }
+    var hasCompleteConversion: Bool {
+        reportingCurrencyCode.count == 3 && exchangeRate > 0 && exchangeRateDate != nil && !exchangeRateSource.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    var reportingTotal: Decimal? { hasCompleteConversion ? total * exchangeRate : nil }
+    var lineItemTotal: Decimal { lineItems.reduce(.zero) { $0 + $1.total } }
+}
+
+private struct ExportPageSnapshot: Sendable {
+    let imageData: Data
+    let pageIndex: Int
+}
+
+enum SpreadsheetColumnReference {
+    static func name(for index: Int) -> String {
+        guard index > 0 else { return "" }
+        var value = index
+        var result = ""
+        while value > 0 {
+            value -= 1
+            let scalar = UnicodeScalar(65 + (value % 26))!
+            result.insert(Character(scalar), at: result.startIndex)
+            value /= 26
+        }
+        return result
+    }
 }
 
 private struct ZipStoreArchive {

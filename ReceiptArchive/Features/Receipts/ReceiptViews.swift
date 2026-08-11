@@ -28,6 +28,12 @@ struct ReceiptsView: View {
         }
     }
 
+    private var daySections: [ReceiptDaySection] {
+        Dictionary(grouping: filtered) { Calendar.current.startOfDay(for: $0.transactionDate) }
+            .map { ReceiptDaySection(day: $0.key, receipts: $0.value) }
+            .sorted { $0.day > $1.day }
+    }
+
     var body: some View {
         Group {
             if receipts.isEmpty {
@@ -49,14 +55,13 @@ struct ReceiptsView: View {
                             }
                         }
                     } else {
-                        ForEach(Dictionary(grouping: filtered, by: { Calendar.current.startOfDay(for: $0.transactionDate) }).keys.sorted(by: >), id: \.self) { day in
-                            Section(day.formatted(date: .complete, time: .omitted)) {
-                                ForEach(filtered.filter { Calendar.current.isDate($0.transactionDate, inSameDayAs: day) }) { receipt in
+                        ForEach(daySections) { section in
+                            Section(section.day.formatted(date: .complete, time: .omitted)) {
+                                ForEach(section.receipts) { receipt in
                                     NavigationLink { ReceiptDetailView(receipt: receipt) } label: { ReceiptRow(receipt: receipt) }
                                 }
                                 .onDelete { offsets in
-                                    let rows = filtered.filter { Calendar.current.isDate($0.transactionDate, inSameDayAs: day) }
-                                    offsets.map { rows[$0] }.forEach(modelContext.delete)
+                                    offsets.map { section.receipts[$0] }.forEach(modelContext.delete)
                                 }
                             }
                         }
@@ -68,6 +73,12 @@ struct ReceiptsView: View {
         .searchable(text: $search, prompt: "Merchant, category, or matter")
         .toolbar { Button("Scan", systemImage: "camera.viewfinder", action: scan) }
     }
+}
+
+private struct ReceiptDaySection: Identifiable {
+    let day: Date
+    let receipts: [Receipt]
+    var id: Date { day }
 }
 
 private enum ReceiptScope: String, CaseIterable, Identifiable {
@@ -118,9 +129,12 @@ struct ReceiptDetailView: View {
             if !receipt.pages.isEmpty {
                 TabView(selection: $selectedPage) {
                     ForEach(receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex })) { page in
-                        if let image = UIImage(data: page.imageData) {
-                            Image(uiImage: image).resizable().scaledToFit().tag(page.pageIndex)
-                        }
+                        StoredReceiptImage(
+                            data: page.imageData,
+                            cacheKey: "\(page.id.uuidString)-\(receipt.currentEvidenceDigest)",
+                            maxPixelSize: 1_400
+                        )
+                        .tag(page.pageIndex)
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .automatic))
@@ -313,14 +327,14 @@ struct ReceiptDetailView: View {
 
     private func sharePDF() {
         prepareShare {
-            let url = try ExportService().create(format: .pdf, receipts: [receipt], title: shareTitle)
+            let url = try await ExportService().create(format: .pdf, receipts: [receipt], title: shareTitle)
             return [url as Any, shareSummaryText as Any]
         }
     }
 
     private func shareImages() {
         prepareShare {
-            let urls = try ExportService().createReceiptImageFiles(receipt: receipt)
+            let urls = try await ExportService().createReceiptImageFiles(receipt: receipt)
             return [shareSummaryText as Any] + urls.map { $0 as Any }
         }
     }
@@ -329,13 +343,15 @@ struct ReceiptDetailView: View {
         sharePayload = ReceiptSharePayload(items: [shareSummaryText])
     }
 
-    private func prepareShare(_ createItems: () throws -> [Any]) {
+    private func prepareShare(_ createItems: @escaping () async throws -> [Any]) {
         isPreparingShare = true
-        defer { isPreparingShare = false }
-        do {
-            sharePayload = ReceiptSharePayload(items: try createItems())
-        } catch {
-            shareError = error.localizedDescription
+        Task {
+            defer { isPreparingShare = false }
+            do {
+                sharePayload = ReceiptSharePayload(items: try await createItems())
+            } catch {
+                shareError = error.localizedDescription
+            }
         }
     }
 
@@ -435,9 +451,16 @@ private struct ReceiptEditorView: View {
 
     var body: some View {
         Form {
-            if let data = receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).first?.imageData,
-               let image = UIImage(data: data) {
-                Section { Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 220).frame(maxWidth: .infinity) }
+            if let page = receipt.pages.sorted(by: { $0.pageIndex < $1.pageIndex }).first {
+                Section {
+                    StoredReceiptImage(
+                        data: page.imageData,
+                        cacheKey: "editor-\(page.id.uuidString)-\(receipt.currentEvidenceDigest)",
+                        maxPixelSize: 900
+                    )
+                    .frame(maxHeight: 220)
+                    .frame(maxWidth: .infinity)
+                }
             }
             Section("Expense details") {
                 TextField("Merchant", text: $merchant)

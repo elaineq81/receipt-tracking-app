@@ -40,6 +40,23 @@ jobs:
           CODE_SIGNING_ALLOWED=NO
           clean build
 
+      - name: Run unit and regression tests
+        run: |
+          DEVICE_TYPE="$(xcrun simctl list devicetypes -j | jq -r '.devicetypes[] | select(.name == "iPhone 14 Plus") | .identifier' | head -1)"
+          RUNTIME="$(xcrun simctl list runtimes -j | jq -r '[.runtimes[] | select(.platform == "iOS" and .isAvailable == true)] | sort_by(.version) | last.identifier')"
+          test -n "$DEVICE_TYPE"
+          test -n "$RUNTIME"
+          UDID="$(xcrun simctl create 'ReceiptSure CI Tests' "$DEVICE_TYPE" "$RUNTIME")"
+          trap 'xcrun simctl shutdown "$UDID" >/dev/null 2>&1 || true; xcrun simctl delete "$UDID" >/dev/null 2>&1 || true' EXIT
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcodebuild test \
+            -project ReceiptArchive.xcodeproj \
+            -scheme ReceiptArchive \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=$UDID" \
+            CODE_SIGNING_ALLOWED=NO
+
       - name: Archive unsigned release for iPhone
         run: >-
           xcodebuild

@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-enum ExportFormat: String, CaseIterable, Identifiable {
+enum ExportFormat: String, CaseIterable, Identifiable, Sendable {
     case pdf = "PDF report"
     case xlsx = "Excel workbook"
     case csv = "CSV table"

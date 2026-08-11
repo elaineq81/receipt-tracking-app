@@ -207,8 +207,6 @@ actor ReceiptOCRService {
     }
 
     private static func detectCurrency(in lines: [RecognizedLine]) -> (value: String, confidence: Double) {
-        let text = lines.map(\.text).joined(separator: "\n")
-        let upper = text.uppercased()
         for code in ["SGD", "USD", "EUR", "GBP", "AUD", "CAD", "JPY", "CNY", "HKD", "MYR", "THB", "IDR", "INR"] {
             if let line = lines.first(where: { $0.text.uppercased().contains(code) }) { return (code, line.confidence) }
         }
