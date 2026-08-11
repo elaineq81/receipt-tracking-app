@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import ReceiptArchive
+@testable import ReceiptSure
 
 final class ReceiptArchiveTests: XCTestCase {
     func testSpreadsheetColumnReferencesContinueBeyondZ() {
