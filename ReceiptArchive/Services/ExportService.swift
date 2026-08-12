@@ -83,11 +83,52 @@ final class ExportService: @unchecked Sendable {
 
     private func csv(_ receipts: [ExportReceiptSnapshot]) -> String {
         var rows = ["Date,Merchant,Matter,Category,Payment Method,Reimbursement,Client or Cost Centre,Tags,Currency,Subtotal,Tax Label,Tax,Tip,Discount,Total,Reporting Currency,Exchange Rate,Rate Date,Rate Source,Reporting Total,Review Status,OCR Confidence,Validation Notes,Revision Count,Last Revised,Notes,Line Items,Line Item Total,Minimum Key Field Confidence,Original Evidence Seal,Current Evidence Seal,Evidence Sealed At"]
-        rows += receipts.map {
-            [Self.iso.string(from: $0.transactionDate), $0.merchant, $0.matterName ?? "", $0.category.rawValue, $0.paymentMethod.rawValue, $0.reimbursementStatus.rawValue, $0.clientOrCostCentre, $0.tagsRaw, $0.currencyCode, Self.number($0.subtotal), $0.taxLabel, Self.number($0.tax), Self.number($0.tip), Self.number($0.discount), Self.number($0.total), $0.reportingCurrencyCode, Self.number($0.exchangeRate), $0.exchangeRateDate.map(Self.iso.string) ?? "", $0.exchangeRateSource, $0.reportingTotal.map(Self.number) ?? "", $0.reviewStatus.title, String(format: "%.0f%%", $0.ocrConfidence * 100), $0.validationNotes, "\($0.revisionDates.count)", $0.revisionDates.max().map(Self.iso.string) ?? "", $0.notes, Self.lineItemsText($0), Self.number($0.lineItemTotal), String(format: "%.0f%%", $0.fieldConfidence.minimumKeyField * 100), $0.originalEvidenceDigest, $0.currentEvidenceDigest, $0.evidenceSealedAt.map(Self.iso.string) ?? ""]
-                .map(Self.csvEscape).joined(separator: ",")
-        }
+        rows += receipts.map(Self.csvRow)
         return "\u{FEFF}" + rows.joined(separator: "\r\n")
+    }
+
+    private static func csvRow(_ receipt: ExportReceiptSnapshot) -> String {
+        let identity = [
+            iso.string(from: receipt.transactionDate),
+            receipt.merchant,
+            receipt.matterName ?? "",
+            receipt.category.rawValue,
+            receipt.paymentMethod.rawValue,
+            receipt.reimbursementStatus.rawValue,
+            receipt.clientOrCostCentre,
+            receipt.tagsRaw,
+        ]
+        let amounts = [
+            receipt.currencyCode,
+            number(receipt.subtotal),
+            receipt.taxLabel,
+            number(receipt.tax),
+            number(receipt.tip),
+            number(receipt.discount),
+            number(receipt.total),
+            receipt.reportingCurrencyCode,
+            number(receipt.exchangeRate),
+            receipt.exchangeRateDate.map(iso.string) ?? "",
+            receipt.exchangeRateSource,
+            receipt.reportingTotal.map(number) ?? "",
+        ]
+        let review = [
+            receipt.reviewStatus.title,
+            String(format: "%.0f%%", receipt.ocrConfidence * 100),
+            receipt.validationNotes,
+            "\(receipt.revisionDates.count)",
+            receipt.revisionDates.max().map(iso.string) ?? "",
+            receipt.notes,
+            lineItemsText(receipt),
+            number(receipt.lineItemTotal),
+            String(format: "%.0f%%", receipt.fieldConfidence.minimumKeyField * 100),
+        ]
+        let evidence = [
+            receipt.originalEvidenceDigest,
+            receipt.currentEvidenceDigest,
+            receipt.evidenceSealedAt.map(iso.string) ?? "",
+        ]
+        return (identity + amounts + review + evidence).map(csvEscape).joined(separator: ",")
     }
 
     private func pdf(receipts: [ExportReceiptSnapshot], title: String) throws -> Data {
