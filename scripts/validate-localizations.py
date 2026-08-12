@@ -2,6 +2,7 @@
 import argparse
 import json
 from pathlib import Path
+import xml.etree.ElementTree as ET
 
 CATALOGS = (
     Path("ReceiptArchive/Resources/Localizable.xcstrings"),
@@ -42,7 +43,23 @@ def is_complete(localization) -> bool:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate ReceiptSure string-catalog coverage.")
     parser.add_argument("--source-only", action="store_true", help="Only require extracted source strings.")
+    parser.add_argument("--xliff", type=Path, help="Validate an Xcode localization export instead.")
     args = parser.parse_args()
+
+    if args.xliff:
+        files = list(args.xliff.rglob("*.xliff"))
+        if not files:
+            raise SystemExit("Localization validation failed: Xcode export contains no XLIFF file.")
+        source_strings = []
+        for file in files:
+            root = ET.parse(file).getroot()
+            for element in root.iter():
+                if element.tag.rsplit("}", 1)[-1] == "source" and (element.text or "").strip():
+                    source_strings.append(element.text.strip())
+        if not source_strings:
+            raise SystemExit("Localization validation failed: XLIFF contains no source strings.")
+        print(f"Xcode localization export passed: {len(source_strings)} source strings across {len(files)} XLIFF files.")
+        return 0
 
     catalogs = {}
     failures = []

@@ -25,7 +25,7 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build and extract Swift strings
+      - name: Build ReceiptSure
         run: |
           xcodebuild \
             -project ReceiptArchive.xcodeproj \
@@ -37,8 +37,19 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      - name: Validate extracted catalog
-        run: python3 scripts/validate-localizations.py --source-only
+      - name: Export the English source localization
+        run: |
+          mkdir -p localization-export
+          xcodebuild \
+            -exportLocalizations \
+            -project ReceiptArchive.xcodeproj \
+            -scheme ReceiptArchive \
+            -localizationPath localization-export \
+            -exportLanguage en \
+            SWIFT_EMIT_LOC_STRINGS=YES
+
+      - name: Validate extracted inventory
+        run: python3 scripts/validate-localizations.py --xliff localization-export
 
       - name: Upload extracted catalog
         uses: actions/upload-artifact@v4
@@ -47,4 +58,5 @@ jobs:
           path: |
             ReceiptArchive/Resources/Localizable.xcstrings
             ReceiptArchive/Resources/InfoPlist.xcstrings
+            localization-export
           if-no-files-found: error
