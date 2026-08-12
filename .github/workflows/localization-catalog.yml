@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - codex/english-only-release
+      - codex/all-app-store-languages
 
 permissions:
   contents: read
