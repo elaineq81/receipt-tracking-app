@@ -89,7 +89,7 @@ Record the iPhone model, iOS version, tester, date, and each result before start
 | Permanent receipt deletion propagates through a deletion marker and does not resurrect on the second device | Pending | Build 5 candidate. |
 | Turning private sync off stops automatic syncing; “Delete iCloud copy” removes the cloud snapshot but preserves local receipts | Pending | Build 5 candidate. |
 | Batch capture saves multiple independently reviewable receipts without lost or duplicated pages | Pending | Build 5 candidate. |
-| The app remains consistently English when the iPhone’s preferred language is Spanish or Simplified Chinese | Pending | Replacement candidate after build 5 exposed incomplete mixed-language localization. |
+| Every declared language has 100% compiler-extracted string and permission-copy coverage, with no mixed-language screens | Pending | Build 5 exposed incomplete Spanish localization; replacement required. |
 
 Gate decision: **Core baseline passed on build 4**. The iCloud/data-model tranche may proceed. Do not submit for App Review until every remaining Pending/Partial row is resolved on the final candidate build.
 

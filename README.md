@@ -31,7 +31,7 @@ Its differentiator is a **Receipt Evidence Record**: visible OCR confidence, val
 - Local-first storage, an opt-in private iCloud path, a privacy manifest, and a clear camera purpose string.
 - An original, opaque 1024×1024 App Store icon.
 - StoreKit 2 lifetime Pro entitlement, a professional upgrade screen, and Restore Purchases.
-- A consistent English-only version 1 interface; multilingual receipt OCR remains available.
+- Compiler-extracted UI and permission-copy catalogs covering every App Store Connect language, with a 100% coverage gate; multilingual receipt OCR remains available.
 
 ## Pricing model
 

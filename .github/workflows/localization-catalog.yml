@@ -1,0 +1,50 @@
+name: Extract localization catalog
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/english-only-release
+
+permissions:
+  contents: read
+
+jobs:
+  extract:
+    name: Extract every ReceiptSure UI string
+    runs-on: macos-15
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out ReceiptSure
+        uses: actions/checkout@v5
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build and extract Swift strings
+        run: |
+          xcodebuild \
+            -project ReceiptArchive.xcodeproj \
+            -scheme ReceiptArchive \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            SWIFT_EMIT_LOC_STRINGS=YES \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Validate extracted catalog
+        run: python3 scripts/validate-localizations.py --source-only
+
+      - name: Upload extracted catalog
+        uses: actions/upload-artifact@v4
+        with:
+          name: receiptsure-localization-catalog
+          path: |
+            ReceiptArchive/Resources/Localizable.xcstrings
+            ReceiptArchive/Resources/InfoPlist.xcstrings
+          if-no-files-found: error
