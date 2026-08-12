@@ -477,6 +477,7 @@ struct ReceiptDetailView: View {
     }
 
     private func saveReceiptChange() {
+        receipt.updatedAt = .now
         do {
             try PersistenceService.save(modelContext)
         } catch {
@@ -716,6 +717,7 @@ private struct ReceiptEditorView: View {
         receipt.fingerprint = ReceiptEvidence.fingerprint(merchant: merchant, date: transactionDate, total: total, currencyCode: currencyCode)
         receipt.reviewStatus = confirmedAgainstImage ? .verified : .needsReview
         receipt.reviewedAt = confirmedAgainstImage ? .now : nil
+        receipt.updatedAt = .now
         do {
             try PersistenceService.save(modelContext)
             dismiss()

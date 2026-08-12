@@ -18,11 +18,11 @@
       </header>
       <article>
         <h1>Privacy policy</h1>
-        <p class="effective">Effective 4 August 2026</p>
-        <p>ReceiptSure helps you scan, organize, and export receipt and expense records. Receipt text is processed on your device, and receipt images and expense details are stored in the app’s private local storage.</p>
+        <p class="effective">Effective 12 August 2026</p>
+        <p>ReceiptSure helps you scan, organize, and export receipt and expense records. Receipt text is processed on your device. Receipt images and expense details remain in the app’s private local storage unless you choose to enable private iCloud sync.</p>
 
         <h2>Data collection</h2>
-        <p>ReceiptSure does not send receipt images, extracted text, expense data, or identifiers to the developer. This version has no accounts, advertising, analytics, tracking, or third-party data-collection SDKs.</p>
+        <p>ReceiptSure does not send receipt images, extracted text, expense data, or identifiers to the developer. The app has no ReceiptSure account, advertising, analytics, tracking, developer server, or third-party data-collection SDKs.</p>
 
         <h2>Camera, photos, and files</h2>
         <p>Camera access is requested only when you start a receipt scan. Apple VisionKit detects and crops the document. Image and PDF imports use Apple’s system pickers, which provide only the items you select.</p>
@@ -30,14 +30,17 @@
         <h2>Security and backups</h2>
         <p>Optional app locking uses Apple’s device-owner authentication. Optional portable archives are encrypted locally with a password-derived key. ReceiptSure does not store or receive that password and cannot recover a forgotten one.</p>
 
+        <h2>Optional private iCloud sync</h2>
+        <p>Private iCloud sync is off by default. If you enable it, ReceiptSure encrypts a snapshot of your library—including receipt images and expense details—on your device using AES-GCM and stores that encrypted snapshot in your private Apple CloudKit database. The encryption key is stored through iCloud Keychain so your other devices signed in to the same Apple Account can decrypt the snapshot. The developer does not receive the snapshot or key and cannot browse your private database through the app. Apple’s iCloud and CloudKit handling is governed by your Apple Account settings and Apple’s terms and privacy policy.</p>
+
         <h2>Exports and retention</h2>
-        <p>Data leaves ReceiptSure only when you deliberately export, back up, or share a file using Apple’s system interfaces. The selected destination’s privacy practices then apply. In-app records remain on your device until you delete them or remove the app. Exported files remain wherever you chose to save or share them.</p>
+        <p>Except for private iCloud sync that you explicitly enable, data leaves ReceiptSure only when you deliberately export, back up, or share a file using Apple’s system interfaces. The selected destination’s privacy practices then apply. Local records remain until you delete them or remove the app. Exported files remain wherever you chose to save or share them. You can stop future private sync by turning it off, or use “Delete iCloud copy” to remove ReceiptSure’s current encrypted snapshot while keeping local receipts. Another device with sync still enabled may upload its library again.</p>
 
         <h2>Purchases</h2>
         <p>ReceiptSure Pro is purchased through Apple’s App Store. Apple StoreKit displays the localized price, completes the purchase, verifies access, and restores it. ReceiptSure does not receive or store payment-card details. Apple handles purchase and account information under Apple’s privacy policy and your App Store settings.</p>
 
         <h2>Changes and contact</h2>
-        <p>This policy will be updated before introducing cloud sync, accounts, analytics, support uploads, or other developer-side processing. For questions, use the <a href="support">ReceiptSure support page</a>.</p>
+        <p>We will update this policy when ReceiptSure’s data practices materially change. For questions, use the <a href="support">ReceiptSure support page</a>.</p>
       </article>
     </main>
   </body>

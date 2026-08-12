@@ -53,6 +53,7 @@ final class Receipt {
     var categoryRaw: String
     var notes: String
     var createdAt: Date
+    var updatedAt: Date?
     var ocrText: String
     var ocrConfidence: Double = 0
     var reviewStatusRaw: String = ReceiptReviewStatus.needsReview.rawValue
@@ -129,6 +130,7 @@ final class Receipt {
         self.categoryRaw = category.rawValue
         self.notes = notes
         self.createdAt = .now
+        self.updatedAt = .now
         self.ocrText = ocrText
         self.ocrConfidence = ocrConfidence
         self.reviewStatusRaw = reviewStatus.rawValue
@@ -204,11 +206,13 @@ final class Receipt {
     func moveToTrash(at date: Date = .now) {
         isTrashed = true
         trashedAt = date
+        updatedAt = date
     }
 
     func restoreFromTrash() {
         isTrashed = false
         trashedAt = nil
+        updatedAt = .now
     }
 
     var lineItems: [ReceiptLineItem] {
@@ -294,6 +298,7 @@ final class MerchantRule {
     var clientOrCostCentre: String
     var matterID: UUID?
     var createdAt: Date
+    var updatedAt: Date?
 
     init(
         id: UUID = UUID(),
@@ -312,6 +317,7 @@ final class MerchantRule {
         self.clientOrCostCentre = clientOrCostCentre
         self.matterID = matterID
         self.createdAt = .now
+        self.updatedAt = .now
     }
 
     var category: ExpenseCategory {
@@ -443,19 +449,22 @@ final class CustomExpenseCategory {
     var symbolName: String
     var sortOrder: Int
     var createdAt: Date
+    var updatedAt: Date?
 
     init(
         id: UUID = UUID(),
         name: String,
         symbolName: String = "tag.fill",
         sortOrder: Int = 0,
-        createdAt: Date = .now
+        createdAt: Date = .now,
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.name = name
         self.symbolName = symbolName
         self.sortOrder = sortOrder
         self.createdAt = createdAt
+        self.updatedAt = updatedAt ?? createdAt
     }
 }
 

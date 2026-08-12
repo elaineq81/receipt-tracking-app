@@ -231,6 +231,7 @@ private struct MerchantRuleEditorView: View {
         target.matterID = matterID
         target.clientOrCostCentre = clientOrCostCentre.trimmingCharacters(in: .whitespacesAndNewlines)
         target.tags = tags.trimmingCharacters(in: .whitespacesAndNewlines)
+        target.updatedAt = .now
         do {
             try PersistenceService.save(modelContext)
             dismiss()
@@ -247,6 +248,7 @@ private struct PrivateCloudSyncView: View {
     @State private var isSyncing = false
     @State private var statusMessage: String?
     @State private var errorMessage: String?
+    @State private var showDeleteConfirmation = false
 
     var body: some View {
         Form {
@@ -288,6 +290,15 @@ private struct PrivateCloudSyncView: View {
                 Text("ReceiptSure does not operate a developer server and cannot browse your private iCloud database through the app.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
+
+            Section {
+                Button("Delete iCloud copy", role: .destructive) {
+                    showDeleteConfirmation = true
+                }
+                .disabled(isSyncing)
+            } footer: {
+                Text("This removes only ReceiptSure’s encrypted snapshot from your private iCloud database. Receipts on this iPhone remain.")
+            }
         }
         .navigationTitle("Private iCloud sync")
         .navigationBarTitleDisplayMode(.inline)
@@ -298,6 +309,14 @@ private struct PrivateCloudSyncView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(errorMessage ?? "Please try again.")
+        }
+        .confirmationDialog("Delete private iCloud copy?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button("Delete Cloud Copy", role: .destructive) {
+                deleteCloudCopy()
+            }
+            Button("Keep Copy", role: .cancel) {}
+        } message: {
+            Text("A different device with private sync still enabled may upload its library again. Local receipts will not be deleted.")
         }
     }
 
@@ -313,6 +332,23 @@ private struct PrivateCloudSyncView: View {
                 statusMessage = imported == 0
                     ? "Your private iCloud library is up to date."
                     : "Merged \(imported) records from your private iCloud library."
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+            isSyncing = false
+        }
+    }
+
+    private func deleteCloudCopy() {
+        guard !isSyncing else { return }
+        isSyncing = true
+        statusMessage = nil
+        Task {
+            do {
+                try await PrivateCloudSyncService.deleteCloudSnapshot()
+                isEnabled = false
+                lastSyncAt = 0
+                statusMessage = "The private iCloud copy was deleted. Your receipts remain on this iPhone."
             } catch {
                 errorMessage = error.localizedDescription
             }
@@ -457,11 +493,19 @@ private struct CustomCategoryEditorView: View {
         }
 
         if let category {
+            let updatedAt = Date.now
             let oldName = category.name
             category.name = normalized
             category.symbolName = symbolName
-            receipts.filter { $0.categoryRaw.caseInsensitiveCompare(oldName) == .orderedSame }.forEach { $0.categoryRaw = normalized }
-            rules.filter { $0.categoryRaw.caseInsensitiveCompare(oldName) == .orderedSame }.forEach { $0.categoryRaw = normalized }
+            category.updatedAt = updatedAt
+            receipts.filter { $0.categoryRaw.caseInsensitiveCompare(oldName) == .orderedSame }.forEach {
+                $0.categoryRaw = normalized
+                $0.updatedAt = updatedAt
+            }
+            rules.filter { $0.categoryRaw.caseInsensitiveCompare(oldName) == .orderedSame }.forEach {
+                $0.categoryRaw = normalized
+                $0.updatedAt = updatedAt
+            }
         } else {
             modelContext.insert(CustomExpenseCategory(name: normalized, symbolName: symbolName, sortOrder: categories.count))
         }

@@ -42,13 +42,7 @@ enum PrivateCloudSyncService {
 
     static func sync(modelContext: ModelContext) async throws -> PrivateCloudSyncResult {
         let container = CKContainer(identifier: containerIdentifier)
-        switch try await container.accountStatus() {
-        case .available: break
-        case .noAccount: throw PrivateCloudSyncError.noAccount
-        case .restricted: throw PrivateCloudSyncError.restricted
-        case .couldNotDetermine, .temporarilyUnavailable: throw PrivateCloudSyncError.temporarilyUnavailable
-        @unknown default: throw PrivateCloudSyncError.temporarilyUnavailable
-        }
+        try await requireAvailableAccount(in: container)
 
         let keyData = try PrivateCloudKeychain.loadOrCreateKey()
         let database = container.privateCloudDatabase
@@ -84,6 +78,26 @@ enum PrivateCloudSyncService {
             downloadedCategories: summary.categories,
             completedAt: .now
         )
+    }
+
+    static func deleteCloudSnapshot() async throws {
+        let container = CKContainer(identifier: containerIdentifier)
+        try await requireAvailableAccount(in: container)
+        do {
+            _ = try await container.privateCloudDatabase.deleteRecord(withID: recordID)
+        } catch let error as CKError where error.code == .unknownItem {
+            return
+        }
+    }
+
+    private static func requireAvailableAccount(in container: CKContainer) async throws {
+        switch try await container.accountStatus() {
+        case .available: break
+        case .noAccount: throw PrivateCloudSyncError.noAccount
+        case .restricted: throw PrivateCloudSyncError.restricted
+        case .couldNotDetermine, .temporarilyUnavailable: throw PrivateCloudSyncError.temporarilyUnavailable
+        @unknown default: throw PrivateCloudSyncError.temporarilyUnavailable
+        }
     }
 
     private static func fetchRecordIfPresent(in database: CKDatabase) async throws -> CKRecord? {

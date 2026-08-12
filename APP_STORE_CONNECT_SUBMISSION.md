@@ -35,13 +35,13 @@ Screenshot sequence and safe sample-data guidance are in `APP_STORE_SCREENSHOTS.
 
 ## 4. App Privacy answers
 
-For version 1, select **Data Not Collected**. Receipt images, OCR text, expense fields, device-lock preferences, and local backups are processed or stored on the device and are not transmitted to the developer. User-initiated sharing to a destination chosen in Apple’s system interface is not developer collection.
+For version 1, the prepared answer remains **Data Not Collected**. Receipt images, OCR text, expense fields, device-lock preferences, and archives are not transmitted to or accessible by the developer. Optional sync is off by default and sends an AES-GCM encrypted snapshot only to the user’s private CloudKit database; Apple documents that this database is owned by and accessible only to the user and is not visible in the developer portal. User-initiated sharing to a destination chosen in Apple’s system interface is not developer collection.
 
-Reassess the answers before submission if any analytics, crash-reporting SDK, cloud sync, account, support upload, remote OCR, advertising, or server API is added.
+Reassess the answers before submission if any analytics, crash-reporting SDK, developer-accessible cloud storage, account, support upload, remote OCR, advertising, or server API is added.
 
 ## 5. Encryption and export compliance
 
-ReceiptSure uses CryptoKit AES-GCM plus PBKDF2-HMAC-SHA256 to protect optional user-created backup archives. It does not currently operate a network service.
+ReceiptSure uses CryptoKit AES-GCM plus PBKDF2-HMAC-SHA256 to protect optional user-created backup archives. Private iCloud sync also uses CryptoKit AES-GCM and iCloud Keychain; the encrypted snapshot is sent directly to the user’s private CloudKit database. ReceiptSure does not operate a developer server.
 
 The implementation imports only Apple `CryptoKit` and `Security` APIs for cryptography and does not bundle a third-party or proprietary cryptographic implementation. Apple’s current export-compliance reference says that encryption limited to the Apple operating system requires no App Store Connect documentation. The project therefore declares `ITSAppUsesNonExemptEncryption` as `NO` in `Info.plist`.
 
@@ -85,7 +85,7 @@ Fill in the owner-controlled contact name, telephone number, and email. No demo 
 
 Suggested review note:
 
-> ReceiptSure is an offline-first receipt organizer and requires no account. The free plan includes 15 stored receipts, two matters, one PDF report, and CSV export. ReceiptSure Pro is the non-consumable product `com.bodywiseremedy.receiptsure.pro.lifetime`; it unlocks unlimited creation, unlimited PDFs, Excel/Word/JPG exports, and merchant rules. Existing data, viewing, security, backups, and CSV export remain available without purchase. To test, create a matter, scan a sample receipt, review the on-device OCR result, save it, and open Reports. Restore Purchases is in Settings and on the Pro sheet. The app contains no analytics, advertising, tracking, account, or server upload.
+> ReceiptSure is an offline-first receipt organizer and requires no ReceiptSure account. Optional private iCloud sync is off by default and stores an AES-GCM encrypted snapshot only in the user’s private CloudKit database; the developer operates no receipt-data server. The free plan includes 15 stored receipts, two matters, one PDF report, and CSV export. ReceiptSure Pro is the non-consumable product `com.bodywiseremedy.receiptsure.pro.lifetime`; it unlocks unlimited creation, unlimited PDFs, Excel/Word/JPG exports, and merchant rules. Existing data, viewing, security, backups, and CSV export remain available without purchase. To test, create a matter, scan a sample receipt, review the on-device OCR result, save it, and open Reports. Restore Purchases is in Settings and on the Pro sheet. The app contains no analytics, advertising, or tracking.
 
 ## 9. Owner decisions before submission
 
@@ -99,7 +99,7 @@ Suggested review note:
 - [x] Record the current Apple-only cryptography determination in `Info.plist`; verify the processed build does not request additional documentation.
 - [ ] Approve the final icon and screenshots.
 - [ ] Complete physical-device and TestFlight release gates.
-- [x] Declare EU Digital Services Act trader status. Version 1’s recommended first wave excludes EU storefronts.
+- [x] Declare EU Digital Services Act trader status; complete any required verification before enabling EU storefronts. Enable all eligible territories requested by the owner.
 - [x] Confirm the App Store tax category; the IAP matches its parent.
 - [x] Complete the current multi-step age-rating questionnaire; Apple calculated 4+ globally with regional exceptions.
 - [ ] Prepare—but do not publish until common tasks pass physical-device testing—the iPhone Accessibility Nutrition Label.
@@ -113,4 +113,4 @@ Suggested review note:
 5. In Organizer, run **Validate App**, then **Distribute App → App Store Connect → Upload**.
 6. Wait for processing, attach build 1 to version 1.0, complete TestFlight information, and test before App Review submission.
 
-For the exact owner-account sequence, proposed first-wave territories, encryption facts, and private fields still required, use `APPLE_RELEASE_HANDOFF.md`.
+For the exact owner-account sequence, all-territory compliance checks, encryption facts, and private fields still required, use `APPLE_RELEASE_HANDOFF.md`. Deploy the private-sync production schema using `CLOUDKIT_RELEASE_SETUP.md` before testing the final TestFlight build.

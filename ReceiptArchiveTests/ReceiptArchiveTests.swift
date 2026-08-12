@@ -42,6 +42,64 @@ final class ReceiptArchiveTests: XCTestCase {
         XCTAssertEqual(try destinationContext.fetch(FetchDescriptor<CloudDeletionTombstone>()).count, 1)
     }
 
+    @MainActor
+    func testPrivateCloudSnapshotAppliesOnlyTheNewestSameIDEdits() async throws {
+        let receiptID = UUID()
+        let ruleID = UUID()
+        let categoryID = UUID()
+        let older = Date(timeIntervalSince1970: 1_700_000_000)
+        let newer = Date(timeIntervalSince1970: 1_800_000_000)
+        let newest = Date(timeIntervalSince1970: 1_900_000_000)
+
+        let source = try makeModelContainer()
+        let sourceContext = source.mainContext
+        let remoteReceipt = Receipt(id: receiptID, merchant: "Remote edit", transactionDate: older, currencyCode: "SGD", subtotal: 20, tax: 2, total: 22, category: .meals)
+        remoteReceipt.updatedAt = newer
+        let remotePage = ReceiptPage(imageData: Data("remote-page".utf8), pageIndex: 0, receipt: remoteReceipt)
+        remoteReceipt.pages.append(remotePage)
+        let remoteRule = MerchantRule(id: ruleID, merchantPattern: "Remote", category: .meals)
+        remoteRule.updatedAt = newer
+        let remoteCategory = CustomExpenseCategory(id: categoryID, name: "Remote Category", updatedAt: newer)
+        sourceContext.insert(remoteReceipt)
+        sourceContext.insert(remotePage)
+        sourceContext.insert(remoteRule)
+        sourceContext.insert(remoteCategory)
+        try sourceContext.save()
+
+        let destination = try makeModelContainer()
+        let destinationContext = destination.mainContext
+        let localReceipt = Receipt(id: receiptID, merchant: "Older local", transactionDate: older, currencyCode: "SGD", subtotal: 10, tax: 1, total: 11, category: .other)
+        localReceipt.updatedAt = older
+        let localRule = MerchantRule(id: ruleID, merchantPattern: "Older", category: .other)
+        localRule.updatedAt = older
+        let localCategory = CustomExpenseCategory(id: categoryID, name: "Older Category", updatedAt: older)
+        destinationContext.insert(localReceipt)
+        destinationContext.insert(localRule)
+        destinationContext.insert(localCategory)
+        try destinationContext.save()
+
+        let key = Data(repeating: 11, count: 32)
+        let snapshot = try await SecureBackupService.createPrivateCloudSnapshot(modelContext: sourceContext, keyData: key)
+        let firstMerge = try await SecureBackupService.mergePrivateCloudSnapshot(snapshot, modelContext: destinationContext, keyData: key)
+
+        XCTAssertEqual(firstMerge.receipts, 1)
+        XCTAssertEqual(firstMerge.rules, 1)
+        XCTAssertEqual(firstMerge.categories, 1)
+        XCTAssertEqual(localReceipt.merchant, "Remote edit")
+        XCTAssertEqual(localReceipt.total, 22)
+        XCTAssertEqual(localReceipt.pages.first?.imageData, Data("remote-page".utf8))
+        XCTAssertEqual(localRule.merchantPattern, "Remote")
+        XCTAssertEqual(localCategory.name, "Remote Category")
+
+        localReceipt.merchant = "Newest local"
+        localReceipt.updatedAt = newest
+        try destinationContext.save()
+        let staleMerge = try await SecureBackupService.mergePrivateCloudSnapshot(snapshot, modelContext: destinationContext, keyData: key)
+
+        XCTAssertEqual(staleMerge.receipts, 0)
+        XCTAssertEqual(localReceipt.merchant, "Newest local")
+    }
+
     func testDeviceLockDoesNotRestartForFaceIDInactiveTransition() throws {
         var state = DeviceLockState()
         state.requireAuthentication()

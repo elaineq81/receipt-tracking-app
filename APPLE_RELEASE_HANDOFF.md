@@ -11,8 +11,9 @@ Register an **explicit App ID** in Certificates, Identifiers & Profiles.
 | Description | ReceiptSure iOS |
 | Bundle ID type | Explicit |
 | Bundle ID | `com.bodywiseremedy.receiptsure` |
-| Required capability | In-App Purchase (enabled by default for an explicit App ID) |
-| Unneeded for version 1 | iCloud, Sign in with Apple, Push Notifications, Associated Domains |
+| Required capabilities | In-App Purchase and iCloud with CloudKit |
+| iCloud container | `iCloud.com.receiptsure` |
+| Unneeded for version 1 | Sign in with Apple, Push Notifications, Associated Domains |
 
 In Xcode, assign the `ReceiptArchive` target to the same paid Apple Developer team and retain automatic signing. Do not change the bundle ID after the App Store Connect record is created.
 
@@ -62,27 +63,19 @@ The Account Holder must accept the current Paid Apps Agreement and complete tax 
 
 Use Apple’s automatic equivalent pricing for other storefronts. Do not hard-code regional prices in metadata or screenshots; the app displays StoreKit’s localized price.
 
-## 4. Recommended launch availability
+## 4. Launch availability
 
-Use a controlled English-language first wave:
-
-- Singapore
-- Australia
-- Canada
-- New Zealand
-- United Kingdom
-- United States
-
-Do not automatically include future storefronts in version 1. This gives support and privacy materials one language, keeps the Singapore base price intentional, and still covers a meaningful market. It also excludes EU storefronts until the owner completes the required Digital Services Act trader self-assessment and any resulting public-contact verification. Apple still requires a trader-status declaration even when the app is not distributed in the EU. Expand after the first release is stable, metadata is localized, and the relevant compliance work is complete. The app contains no country-specific tax advice.
+Make version 1 available in all App Store territories for which the owner’s agreements, banking, tax, sanctions, trader-status, and local-compliance requirements are complete. Use Apple’s automatic equivalent pricing from the Singapore base price. Confirm the Digital Services Act trader declaration and any resulting public-contact verification before enabling EU storefronts. ReceiptSure provides expense organization, not country-specific tax advice; do not imply otherwise in localized metadata.
 
 ## 5. Export-compliance submission
 
-ReceiptSure uses encryption for an optional user-created backup archive:
+ReceiptSure uses encryption for optional user-created backup archives and private iCloud sync:
 
 - Apple CryptoKit `AES.GCM` for authenticated encryption.
 - A 256-bit key derived from the user’s password using PBKDF2-style HMAC-SHA256 with a random 16-byte salt and 100,000 iterations.
 - `SecRandomCopyBytes` for salt generation.
 - Local encryption and decryption only; no developer server receives the archive, password, key, or receipt data.
+- Private sync encrypts the library snapshot with Apple CryptoKit AES-GCM, stores it in the user’s private CloudKit database, and synchronizes its key through iCloud Keychain.
 - No proprietary or unpublished cryptographic algorithm.
 
 The current implementation uses only cryptography supplied by Apple’s operating system through `CryptoKit` and `Security`; it does not bundle another standard or proprietary cryptographic implementation. Apple’s current reference says this case does not require App Store Connect documentation. `Info.plist` declares `ITSAppUsesNonExemptEncryption` as `NO`.
@@ -138,7 +131,7 @@ Complete these before selecting the build for review:
 | Accounts | No account, login, or account deletion flow. |
 | Made for Kids | No. |
 | Age rating | Answer all content, capability, and in-app-control questions truthfully; expected lowest general rating, with no override. |
-| DSA | Complete trader self-assessment. Initial availability excludes EU storefronts pending any required verification. |
+| DSA | Complete trader self-assessment and any required verification before enabling EU storefronts. |
 | App price | Free. |
 | Release method | Manual release after approval for version 1. |
 | Pre-order | Off. |
@@ -153,11 +146,13 @@ On a Mac with Xcode 26 or later:
 
 1. Clone `https://github.com/elaineq81/receipt-tracking-app.git` and check out `main`.
 2. Install XcodeGen and run `xcodegen generate`.
-3. Open `ReceiptArchive.xcodeproj`, select the owner’s paid team, and confirm automatic signing resolves the exact bundle ID.
-4. Run on a physical iPhone and complete the capture, import, OCR, correction, backup/restore, purchase, and export test matrix in `RELEASE_CHECKLIST.md`.
+3. Open `ReceiptArchive.xcodeproj`, select the owner’s paid team, and confirm signing resolves the exact bundle ID and iCloud container `iCloud.com.receiptsure`.
+4. Run on physical iPhones and complete the capture, import, OCR, correction, backup/restore, private-sync, purchase, and export test matrix in `RELEASE_CHECKLIST.md`.
 5. Select **Any iOS Device (arm64)** and choose **Product → Archive**.
 6. In Organizer, choose **Validate App**. Resolve every signing, privacy, icon, and export-compliance issue.
 7. Choose **Distribute App → App Store Connect → Upload**, keep symbol upload enabled, and use automatic signing.
 8. Wait for processing, attach the build to internal TestFlight, and complete clean-install and update tests on a physical iPhone before inviting external testers.
 
 The repository’s hosted Mac workflow already verifies project generation, Simulator compilation, an unsigned Release archive, and release-bundle contents. It does not replace signing, camera testing, sandbox purchases, or physical-device validation.
+
+Before testing private sync from TestFlight, deploy the `ReceiptSurePrivateLibrary` schema to the Production environment by following `CLOUDKIT_RELEASE_SETUP.md`.

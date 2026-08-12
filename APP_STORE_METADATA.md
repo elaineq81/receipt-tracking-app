@@ -29,9 +29,9 @@ Organize expenses by trip, event, claim, client, project, or any matter you crea
 
 ReceiptSure keeps different currencies separate unless you explicitly provide a reporting currency, exchange rate, effective date, and source. Every correction can retain its before-and-after history for a clearer evidence trail.
 
-Create PDF evidence packs, Excel workbooks, CSV tables, Word reports, or JPG bundles. Protect the app with device authentication and create password-protected portable backups when you choose.
+Create PDF evidence packs, Excel workbooks, CSV tables, Word reports, or JPG bundles. Protect the app with device authentication and create password-protected portable backups when you choose. Optional private iCloud sync keeps an encrypted library snapshot available to your devices signed in to the same Apple Account.
 
-Core receipt processing and storage remain on your device. No account is required.
+Core receipt processing remains on your device, and private iCloud sync is off by default. No ReceiptSure account is required.
 
 ReceiptSure is free to download. The free plan includes up to 15 stored receipts, two matters, one complete PDF report, and CSV export. A one-time ReceiptSure Pro purchase unlocks unlimited receipts and matters, unlimited PDF reports, Excel/Word/JPG exports, and merchant rules. No subscription is required.
 
