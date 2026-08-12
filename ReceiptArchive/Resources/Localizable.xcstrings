@@ -533,6 +533,34 @@
         }
       }
     },
+    "Added %lld receipts, %lld matters, %lld rules, and %lld categories. Skipped %lld receipts already present.": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se añadieron %lld recibos, %lld asuntos, %lld reglas y %lld categorías. Se omitieron %lld recibos que ya estaban presentes."
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se añadieron %lld recibos, %lld asuntos, %lld reglas y %lld categorías. Se omitieron %lld recibos que ya estaban presentes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已添加 %lld 张收据、%lld 个事项、%lld 条规则和 %lld 个类别。已跳过 %lld 张已有的收据。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已加入 %lld 張收據、%lld 個事項、%lld 條規則和 %lld 個類別。已略過 %lld 張現有收據。"
+          }
+        }
+      }
+    },
     "Adjust crop": {
       "localizations": {
         "es-ES": {
@@ -613,6 +641,34 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "作物改變後ReceiptSure重新讀取所有頁面。 保存前檢查已刷新值 。"
+          }
+        }
+      }
+    },
+    "All Expenses": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos los gastos"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos los gastos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有支出"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有支出"
           }
         }
       }
@@ -925,6 +981,62 @@
         }
       }
     },
+    "Backup is current": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La copia de seguridad está actualizada"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La copia de seguridad está actualizada"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份是最新的"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "備份為最新狀態"
+          }
+        }
+      }
+    },
+    "Backup is over 30 days old": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La copia de seguridad tiene más de 30 días"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La copia de seguridad tiene más de 30 días"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份已超过 30 天"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "備份已超過 30 天"
+          }
+        }
+      }
+    },
     "Backup password": {
       "localizations": {
         "es-ES": {
@@ -949,6 +1061,34 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "備份密碼"
+          }
+        }
+      }
+    },
+    "Backup recommended": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se recomienda hacer una copia de seguridad"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se recomienda hacer una copia de seguridad"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建议进行备份"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建議進行備份"
           }
         }
       }
@@ -1061,6 +1201,34 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "CSV總是自由的 你第一次PDF包含; 無限制PDF,Excel,Word,JPG以及可查證的包出口品"
+          }
+        }
+      }
+    },
+    "CSV table": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabla CSV"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabla CSV"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CSV 表格"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CSV 表格"
           }
         }
       }
@@ -1369,6 +1537,34 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "已檢查"
+          }
+        }
+      }
+    },
+    "Choose a category name that is not already in use.": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige un nombre de categoría que no esté ya en uso."
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige un nombre de categoría que no esté ya en uso."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择一个尚未使用的类别名称。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請選擇尚未使用的類別名稱。"
           }
         }
       }
@@ -2969,6 +3165,34 @@
         }
       }
     },
+    "Excel workbook": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Libro de Excel"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Libro de Excel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excel 工作簿"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excel 活頁簿"
+          }
+        }
+      }
+    },
     "Expense": {
       "localizations": {
         "es-ES": {
@@ -3669,6 +3893,34 @@
         }
       }
     },
+    "JPG bundle": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paquete de imágenes JPG"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paquete de imágenes JPG"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JPG 图像包"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JPG 圖像包"
+          }
+        }
+      }
+    },
     "Keep Copy": {
       "localizations": {
         "es-ES": {
@@ -3809,6 +4061,34 @@
         }
       }
     },
+    "Last backup %@": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última copia de seguridad: %@"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última copia de seguridad: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次备份：%@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次備份：%@"
+          }
+        }
+      }
+    },
     "Last restore": {
       "localizations": {
         "es-ES": {
@@ -3917,6 +4197,34 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "行項"
+          }
+        }
+      }
+    },
+    "Loading App Store price…": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando el precio de App Store…"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando el precio de App Store…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载 App Store 价格…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在載入 App Store 價格…"
           }
         }
       }
@@ -4705,6 +5013,34 @@
         }
       }
     },
+    "No secure backup created": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se ha creado ninguna copia de seguridad segura"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se ha creado ninguna copia de seguridad segura"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未创建安全备份"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未建立安全備份"
+          }
+        }
+      }
+    },
     "No suggestion": {
       "localizations": {
         "es-ES": {
@@ -5177,6 +5513,34 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "概述"
+          }
+        }
+      }
+    },
+    "PDF report": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informe PDF"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informe PDF"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF 报告"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF 報告"
           }
         }
       }
@@ -5881,6 +6245,34 @@
         }
       }
     },
+    "Receipt image was recropped; check the extracted details": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se volvió a recortar la imagen del recibo; revisa los datos extraídos"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se volvió a recortar la imagen del recibo; revisa los datos extraídos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收据图像已重新裁剪；请检查提取的详细信息"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收據圖像已重新裁切；請檢查擷取的詳細資料"
+          }
+        }
+      }
+    },
     "Receipt images": {
       "localizations": {
         "es-ES": {
@@ -6017,6 +6409,62 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "ReceiptSure正"
+          }
+        }
+      }
+    },
+    "ReceiptSure Pro has been restored.": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure Pro se ha restaurado."
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure Pro se ha restaurado."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure Pro 已恢复。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure Pro 已恢復。"
+          }
+        }
+      }
+    },
+    "ReceiptSure Proof Pack": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paquete de pruebas de ReceiptSure"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paquete de pruebas de ReceiptSure"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure 凭证包"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure 憑證包"
           }
         }
       }
@@ -7785,6 +8233,34 @@
         }
       }
     },
+    "The private iCloud copy was deleted. Your receipts remain on this iPhone.": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se eliminó la copia privada de iCloud. Tus recibos permanecen en este iPhone."
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se eliminó la copia privada de iCloud. Tus recibos permanecen en este iPhone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "专用 iCloud 副本已删除。你的收据仍保留在此 iPhone 上。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私人 iCloud 副本已刪除。你的收據仍保留在此 iPhone 上。"
+          }
+        }
+      }
+    },
     "The receipt image and audit history cannot be recovered after this action.": {
       "localizations": {
         "es-ES": {
@@ -8177,6 +8653,34 @@
         }
       }
     },
+    "Try loading price again": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intentar cargar el precio de nuevo"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intentar cargar el precio de nuevo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再次尝试加载价格"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再次嘗試載入價格"
+          }
+        }
+      }
+    },
     "Unfiled": {
       "localizations": {
         "es-ES": {
@@ -8257,6 +8761,34 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "解鎖"
+          }
+        }
+      }
+    },
+    "Unlock Pro for %@": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear Pro por %@"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear Pro por %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以 %@ 解锁 Pro"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以 %@ 解鎖 Pro"
           }
         }
       }
@@ -8481,6 +9013,34 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "啟動時,ReceiptSure將加密的圖書館快照( 包括收件影像) 上傳到私人iCloud数据库。 它只供簽署到您的 Apple 帳號的裝置使用 。 同步合并紀錄並尊重永久刪除的標記 。"
+          }
+        }
+      }
+    },
+    "Word report": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informe de Word"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informe de Word"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Word 报告"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Word 報告"
           }
         }
       }
