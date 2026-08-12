@@ -1,6 +1,7 @@
 name: ReceiptArchive
 options:
   bundleIdPrefix: com.bodywiseremedy
+  developmentLanguage: en
   deploymentTarget:
     iOS: "17.0"
 settings:
@@ -22,12 +23,6 @@ targets:
       - path: ReceiptArchive/Resources/Assets.xcassets
         buildPhase: resources
       - path: ReceiptArchive/Resources/PrivacyInfo.xcprivacy
-        buildPhase: resources
-      - path: ReceiptArchive/Resources/Localizable.xcstrings
-        buildPhase: resources
-      - path: ReceiptArchive/Resources/zh-Hans.lproj/InfoPlist.strings
-        buildPhase: resources
-      - path: ReceiptArchive/Resources/es.lproj/InfoPlist.strings
         buildPhase: resources
     settings:
       base:
