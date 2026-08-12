@@ -11,6 +11,7 @@ struct SecureBackupView: View {
     @Query private var receipts: [Receipt]
     @Query private var matters: [ExpenseMatter]
     @Query private var rules: [MerchantRule]
+    @Query private var categories: [CustomExpenseCategory]
     @AppStorage("lastSecureBackupAt") private var lastSecureBackupAt = 0.0
     @AppStorage("lastSecureRestoreAt") private var lastSecureRestoreAt = 0.0
 
@@ -28,6 +29,7 @@ struct SecureBackupView: View {
                 LabeledContent("Receipts", value: "\(receipts.count)")
                 LabeledContent("Matters", value: "\(matters.count)")
                 LabeledContent("Merchant rules", value: "\(rules.count)")
+                LabeledContent("Custom categories", value: "\(categories.count)")
                 Label(healthTitle, systemImage: healthSymbol).foregroundStyle(healthColor)
                 if lastSecureRestoreAt > 0 {
                     LabeledContent("Last restore", value: Date(timeIntervalSince1970: lastSecureRestoreAt).formatted(date: .abbreviated, time: .shortened))
@@ -51,7 +53,7 @@ struct SecureBackupView: View {
                     }
                 }
                 .disabled(isWorking || password.count < 8 || password != confirmation)
-                Text("Includes receipt images, OCR data, matters, revisions, financial provenance, and merchant rules.")
+                Text("Includes receipt images, OCR data, matters, revisions, financial provenance, merchant rules, and custom categories.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
 
@@ -108,7 +110,7 @@ struct SecureBackupView: View {
             do {
                 let summary = try await SecureBackupService.restore(from: url, modelContext: modelContext, password: password)
                 lastSecureRestoreAt = Date.now.timeIntervalSince1970
-                resultMessage = "Added \(summary.receipts) receipts, \(summary.matters) matters, and \(summary.rules) rules. Skipped \(summary.skippedReceipts) receipts already present."
+                resultMessage = "Added \(summary.receipts) receipts, \(summary.matters) matters, \(summary.rules) rules, and \(summary.categories) categories. Skipped \(summary.skippedReceipts) receipts already present."
             } catch { errorMessage = error.localizedDescription }
             isWorking = false
         }

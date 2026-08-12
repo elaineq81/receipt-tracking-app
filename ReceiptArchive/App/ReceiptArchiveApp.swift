@@ -11,7 +11,7 @@ struct ReceiptArchiveApp: App {
                 .environment(purchases)
                 .task { await purchases.start() }
         }
-        .modelContainer(for: [ExpenseMatter.self, Receipt.self, ReceiptPage.self, ReceiptRevision.self, MerchantRule.self])
+        .modelContainer(for: [ExpenseMatter.self, Receipt.self, ReceiptPage.self, ReceiptRevision.self, MerchantRule.self, CustomExpenseCategory.self, CloudDeletionTombstone.self])
     }
 }
 
@@ -21,7 +21,10 @@ struct RootView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("deviceLockEnabled") private var deviceLockEnabled = false
     @AppStorage("privacyScreenEnabled") private var privacyScreenEnabled = true
+    @AppStorage("privateCloudSyncEnabled") private var privateCloudSyncEnabled = false
+    @AppStorage("lastPrivateCloudSyncAt") private var lastPrivateCloudSyncAt = 0.0
     @State private var lockState = DeviceLockState()
+    @State private var isCloudSyncing = false
 
     var body: some View {
         ZStack {
@@ -77,6 +80,7 @@ struct RootView: View {
         case .active:
             if deviceLockEnabled { requestUnlock() }
             else { lockState.unlockWithoutAuthentication() }
+            requestPrivateCloudSyncIfNeeded()
         case .background:
             if deviceLockEnabled { lockState.lockAfterEnteringBackground() }
         case .inactive:
@@ -105,6 +109,18 @@ struct RootView: View {
                     generation: generation
                 )
             }
+        }
+    }
+
+    private func requestPrivateCloudSyncIfNeeded() {
+        guard privateCloudSyncEnabled,
+              !isCloudSyncing,
+              Date.now.timeIntervalSince1970 - lastPrivateCloudSyncAt > 15 * 60 else { return }
+        isCloudSyncing = true
+        Task {
+            defer { isCloudSyncing = false }
+            guard let result = try? await PrivateCloudSyncService.sync(modelContext: modelContext) else { return }
+            lastPrivateCloudSyncAt = result.completedAt.timeIntervalSince1970
         }
     }
 }

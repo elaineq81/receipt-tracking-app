@@ -275,9 +275,10 @@ final class ExportService: @unchecked Sendable {
         for (currency, values) in Dictionary(grouping: receipts.filter(\.hasCompleteConversion), by: \.reportingCurrencyCode).sorted(by: { $0.key < $1.key }) {
             rows.append(["Reporting currency", currency, currency, Self.number(values.compactMap(\.reportingTotal).reduce(Decimal.zero, +))])
         }
-        for category in ExpenseCategory.allCases {
-            for (currency, values) in Dictionary(grouping: receipts.filter { $0.category == category }, by: \.currencyCode).sorted(by: { $0.key < $1.key }) {
-                rows.append(["Category", category.rawValue, currency, Self.number(values.reduce(Decimal.zero) { $0 + $1.total })])
+        let categories = Dictionary(grouping: receipts, by: { $0.category.rawValue })
+        for (categoryName, categoryReceipts) in categories.sorted(by: { $0.key.localizedCaseInsensitiveCompare($1.key) == .orderedAscending }) {
+            for (currency, values) in Dictionary(grouping: categoryReceipts, by: \.currencyCode).sorted(by: { $0.key < $1.key }) {
+                rows.append(["Category", categoryName, currency, Self.number(values.reduce(Decimal.zero) { $0 + $1.total })])
             }
         }
         let dates = Dictionary(grouping: receipts, by: { Calendar.current.startOfDay(for: $0.transactionDate) })
@@ -305,6 +306,10 @@ final class ExportService: @unchecked Sendable {
     private static func data(_ value: String) -> Data { Data(value.utf8) }
 }
 
+private struct ExportCategorySnapshot: Hashable, Sendable {
+    let rawValue: String
+}
+
 private struct ExportReceiptSnapshot: Sendable {
     let id: UUID
     let merchant: String
@@ -316,7 +321,7 @@ private struct ExportReceiptSnapshot: Sendable {
     let discount: Decimal
     let taxLabel: String
     let total: Decimal
-    let category: ExpenseCategory
+    let category: ExportCategorySnapshot
     let notes: String
     let ocrConfidence: Double
     let reviewStatus: ReceiptReviewStatus
@@ -350,7 +355,7 @@ private struct ExportReceiptSnapshot: Sendable {
         discount = receipt.discount
         taxLabel = receipt.taxLabel
         total = receipt.total
-        category = receipt.category
+        category = ExportCategorySnapshot(rawValue: receipt.categoryDisplayName)
         notes = receipt.notes
         ocrConfidence = receipt.ocrConfidence
         reviewStatus = receipt.reviewStatus

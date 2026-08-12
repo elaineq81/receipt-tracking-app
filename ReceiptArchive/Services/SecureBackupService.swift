@@ -19,10 +19,17 @@ enum SecureBackupError: LocalizedError {
     }
 }
 
+enum PrivateCloudSnapshotError: LocalizedError {
+    case invalidSnapshot
+
+    var errorDescription: String? { "The private iCloud snapshot is invalid or cannot be decrypted on this Apple Account." }
+}
+
 struct RestoreSummary: Sendable {
     let matters: Int
     let receipts: Int
     let rules: Int
+    let categories: Int
     let skippedReceipts: Int
 }
 
@@ -47,7 +54,24 @@ enum SecureBackupService {
             let clear = try SecureArchiveCrypto.open(encrypted, password: password)
             return try JSONDecoder.backupDecoder.decode(BackupPayload.self, from: clear)
         }.value
-        guard [1, 2, 3].contains(decoded.version) else { throw SecureBackupError.unsupportedVersion }
+        guard [1, 2, 3, 4].contains(decoded.version) else { throw SecureBackupError.unsupportedVersion }
+        return try merge(decoded, into: modelContext)
+    }
+
+    static func createPrivateCloudSnapshot(modelContext: ModelContext, keyData: Data) async throws -> Data {
+        let payload = try snapshot(modelContext: modelContext)
+        return try await Task.detached {
+            let encoded = try JSONEncoder.backupEncoder.encode(payload)
+            return try PrivateCloudSnapshotCrypto.seal(encoded, keyData: keyData)
+        }.value
+    }
+
+    static func mergePrivateCloudSnapshot(_ data: Data, modelContext: ModelContext, keyData: Data) async throws -> RestoreSummary {
+        let decoded = try await Task.detached {
+            let clear = try PrivateCloudSnapshotCrypto.open(data, keyData: keyData)
+            return try JSONDecoder.backupDecoder.decode(BackupPayload.self, from: clear)
+        }.value
+        guard decoded.version == 4 else { throw SecureBackupError.unsupportedVersion }
         return try merge(decoded, into: modelContext)
     }
 
@@ -55,10 +79,33 @@ enum SecureBackupService {
         let matters = try modelContext.fetch(FetchDescriptor<ExpenseMatter>()).map(MatterRecord.init)
         let receipts = try modelContext.fetch(FetchDescriptor<Receipt>()).map(ReceiptRecord.init)
         let rules = try modelContext.fetch(FetchDescriptor<MerchantRule>()).map(RuleRecord.init)
-        return BackupPayload(version: 3, createdAt: .now, matters: matters, receipts: receipts, rules: rules)
+        let categories = try modelContext.fetch(FetchDescriptor<CustomExpenseCategory>()).map(CategoryRecord.init)
+        let tombstones = try modelContext.fetch(FetchDescriptor<CloudDeletionTombstone>()).map(TombstoneRecord.init)
+        return BackupPayload(version: 4, createdAt: .now, matters: matters, receipts: receipts, rules: rules, categories: categories, tombstones: tombstones)
     }
 
     private static func merge(_ payload: BackupPayload, into modelContext: ModelContext) throws -> RestoreSummary {
+        let currentTombstones = try modelContext.fetch(FetchDescriptor<CloudDeletionTombstone>())
+        var tombstoneKeys = Set(currentTombstones.map { "\($0.entityTypeRaw):\($0.entityID.uuidString)" })
+        for row in payload.tombstones ?? [] {
+            let key = "\(row.entityTypeRaw):\(row.entityID.uuidString)"
+            guard !tombstoneKeys.contains(key) else { continue }
+            modelContext.insert(CloudDeletionTombstone(id: row.id, entityID: row.entityID, entityType: CloudEntityType(rawValue: row.entityTypeRaw) ?? .receipt, deletedAt: row.deletedAt))
+            tombstoneKeys.insert(key)
+        }
+        let deletedReceiptIDs = Set(tombstoneKeys.compactMap { key -> UUID? in
+            guard key.hasPrefix("\(CloudEntityType.receipt.rawValue):") else { return nil }
+            return UUID(uuidString: String(key.dropFirst(CloudEntityType.receipt.rawValue.count + 1)))
+        })
+        let deletedRuleIDs = Set(tombstoneKeys.compactMap { key -> UUID? in
+            guard key.hasPrefix("\(CloudEntityType.merchantRule.rawValue):") else { return nil }
+            return UUID(uuidString: String(key.dropFirst(CloudEntityType.merchantRule.rawValue.count + 1)))
+        })
+        let deletedCategoryIDs = Set(tombstoneKeys.compactMap { key -> UUID? in
+            guard key.hasPrefix("\(CloudEntityType.customCategory.rawValue):") else { return nil }
+            return UUID(uuidString: String(key.dropFirst(CloudEntityType.customCategory.rawValue.count + 1)))
+        })
+
         let currentMatters = try modelContext.fetch(FetchDescriptor<ExpenseMatter>())
         var mattersByID = Dictionary(uniqueKeysWithValues: currentMatters.map { ($0.id, $0) })
         var addedMatters = 0
@@ -70,10 +117,13 @@ enum SecureBackupService {
             addedMatters += 1
         }
 
-        let currentReceiptIDs = Set(try modelContext.fetch(FetchDescriptor<Receipt>()).map(\.id))
+        let currentReceipts = try modelContext.fetch(FetchDescriptor<Receipt>())
+        currentReceipts.filter { deletedReceiptIDs.contains($0.id) }.forEach(modelContext.delete)
+        let currentReceiptIDs = Set(currentReceipts.map(\.id)).subtracting(deletedReceiptIDs)
         var addedReceipts = 0
         var skippedReceipts = 0
         for row in payload.receipts {
+            guard !deletedReceiptIDs.contains(row.id) else { continue }
             guard !currentReceiptIDs.contains(row.id) else { skippedReceipts += 1; continue }
             let receipt = row.makeReceipt(matter: row.matterID.flatMap { mattersByID[$0] })
             modelContext.insert(receipt)
@@ -96,16 +146,51 @@ enum SecureBackupService {
             addedReceipts += 1
         }
 
-        let currentRuleIDs = Set(try modelContext.fetch(FetchDescriptor<MerchantRule>()).map(\.id))
+        let currentRules = try modelContext.fetch(FetchDescriptor<MerchantRule>())
+        currentRules.filter { deletedRuleIDs.contains($0.id) }.forEach(modelContext.delete)
+        let currentRuleIDs = Set(currentRules.map(\.id)).subtracting(deletedRuleIDs)
         var addedRules = 0
-        for row in payload.rules where !currentRuleIDs.contains(row.id) {
+        for row in payload.rules where !currentRuleIDs.contains(row.id) && !deletedRuleIDs.contains(row.id) {
             let rule = MerchantRule(id: row.id, merchantPattern: row.merchantPattern, category: ExpenseCategory(rawValue: row.categoryRaw) ?? .other, paymentMethod: PaymentMethod(rawValue: row.paymentMethodRaw) ?? .unspecified, tags: row.tags, clientOrCostCentre: row.clientOrCostCentre, matterID: row.matterID)
+            rule.categoryRaw = row.categoryRaw
             rule.createdAt = row.createdAt
             modelContext.insert(rule)
             addedRules += 1
         }
+
+        let currentCategories = try modelContext.fetch(FetchDescriptor<CustomExpenseCategory>())
+        currentCategories.filter { deletedCategoryIDs.contains($0.id) }.forEach(modelContext.delete)
+        let currentCategoryIDs = Set(currentCategories.map(\.id)).subtracting(deletedCategoryIDs)
+        var addedCategories = 0
+        for row in payload.categories ?? [] where !currentCategoryIDs.contains(row.id) && !deletedCategoryIDs.contains(row.id) {
+            modelContext.insert(CustomExpenseCategory(id: row.id, name: row.name, symbolName: row.symbolName, sortOrder: row.sortOrder, createdAt: row.createdAt))
+            addedCategories += 1
+        }
         try modelContext.save()
-        return RestoreSummary(matters: addedMatters, receipts: addedReceipts, rules: addedRules, skippedReceipts: skippedReceipts)
+        return RestoreSummary(matters: addedMatters, receipts: addedReceipts, rules: addedRules, categories: addedCategories, skippedReceipts: skippedReceipts)
+    }
+}
+
+private enum PrivateCloudSnapshotCrypto {
+    private static let magic = Data("RCLD1".utf8)
+
+    static func seal(_ clear: Data, keyData: Data) throws -> Data {
+        guard keyData.count == 32 else { throw PrivateCloudSnapshotError.invalidSnapshot }
+        let sealed = try AES.GCM.seal(clear, using: SymmetricKey(data: keyData))
+        guard let combined = sealed.combined else { throw PrivateCloudSnapshotError.invalidSnapshot }
+        return magic + combined
+    }
+
+    static func open(_ archive: Data, keyData: Data) throws -> Data {
+        guard keyData.count == 32, archive.count > magic.count, archive.prefix(magic.count) == magic else {
+            throw PrivateCloudSnapshotError.invalidSnapshot
+        }
+        do {
+            let box = try AES.GCM.SealedBox(combined: Data(archive.dropFirst(magic.count)))
+            return try AES.GCM.open(box, using: SymmetricKey(data: keyData))
+        } catch {
+            throw PrivateCloudSnapshotError.invalidSnapshot
+        }
     }
 }
 
@@ -158,6 +243,8 @@ private struct BackupPayload: Codable, Sendable {
     let matters: [MatterRecord]
     let receipts: [ReceiptRecord]
     let rules: [RuleRecord]
+    let categories: [CategoryRecord]?
+    let tombstones: [TombstoneRecord]?
 }
 
 private struct MatterRecord: Codable, Sendable {
@@ -203,6 +290,7 @@ private struct ReceiptRecord: Codable, Sendable {
 
     func makeReceipt(matter: ExpenseMatter?) -> Receipt {
         let value = Receipt(id: id, merchant: merchant, transactionDate: transactionDate, currencyCode: currencyCode, subtotal: subtotal, tax: tax, tip: tip, discount: discount, taxLabel: taxLabel, total: total, category: ExpenseCategory(rawValue: categoryRaw) ?? .other, notes: notes, ocrText: ocrText, ocrConfidence: ocrConfidence, reviewStatus: ReceiptReviewStatus(rawValue: reviewStatusRaw) ?? .needsReview, reviewedAt: reviewedAt, validationNotes: validationNotes, fingerprint: fingerprint, paymentMethod: PaymentMethod(rawValue: paymentMethodRaw) ?? .unspecified, reimbursementStatus: ReimbursementStatus(rawValue: reimbursementStatusRaw) ?? .notApplicable, tags: tagsRaw, clientOrCostCentre: clientOrCostCentre, reportingCurrencyCode: reportingCurrencyCode, exchangeRate: exchangeRate, exchangeRateDate: exchangeRateDate, exchangeRateSource: exchangeRateSource, lineItems: lineItems ?? [], fieldConfidence: fieldConfidence ?? .empty, originalEvidenceDigest: originalEvidenceDigest ?? "", currentEvidenceDigest: currentEvidenceDigest ?? "", evidenceSealedAt: evidenceSealedAt, matter: matter)
+        value.categoryRaw = categoryRaw
         value.createdAt = createdAt
         value.isTrashed = isTrashed ?? false
         value.trashedAt = trashedAt
@@ -213,6 +301,36 @@ private struct ReceiptRecord: Codable, Sendable {
 private struct RuleRecord: Codable, Sendable {
     let id: UUID; let merchantPattern: String; let categoryRaw: String; let paymentMethodRaw: String; let tags: String; let clientOrCostCentre: String; let matterID: UUID?; let createdAt: Date
     init(_ value: MerchantRule) { id = value.id; merchantPattern = value.merchantPattern; categoryRaw = value.categoryRaw; paymentMethodRaw = value.paymentMethodRaw; tags = value.tags; clientOrCostCentre = value.clientOrCostCentre; matterID = value.matterID; createdAt = value.createdAt }
+}
+
+private struct CategoryRecord: Codable, Sendable {
+    let id: UUID
+    let name: String
+    let symbolName: String
+    let sortOrder: Int
+    let createdAt: Date
+
+    init(_ value: CustomExpenseCategory) {
+        id = value.id
+        name = value.name
+        symbolName = value.symbolName
+        sortOrder = value.sortOrder
+        createdAt = value.createdAt
+    }
+}
+
+private struct TombstoneRecord: Codable, Sendable {
+    let id: UUID
+    let entityID: UUID
+    let entityTypeRaw: String
+    let deletedAt: Date
+
+    init(_ value: CloudDeletionTombstone) {
+        id = value.id
+        entityID = value.entityID
+        entityTypeRaw = value.entityTypeRaw
+        deletedAt = value.deletedAt
+    }
 }
 
 private extension JSONEncoder {

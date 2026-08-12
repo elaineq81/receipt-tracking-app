@@ -18,6 +18,16 @@ enum PersistenceError: LocalizedError {
 
 @MainActor
 enum PersistenceService {
+    static func delete<T: PersistentModel>(
+        _ model: T,
+        entityID: UUID,
+        entityType: CloudEntityType,
+        from modelContext: ModelContext
+    ) {
+        modelContext.insert(CloudDeletionTombstone(entityID: entityID, entityType: entityType))
+        modelContext.delete(model)
+    }
+
     static func save(_ modelContext: ModelContext) throws {
         do {
             try modelContext.save()

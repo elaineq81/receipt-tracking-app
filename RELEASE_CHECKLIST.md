@@ -58,7 +58,7 @@
 - [ ] Submit for review and monitor App Review messages.
 - [ ] After approval, use manual or phased release as appropriate and keep a rollback/support plan.
 
-## Physical-iPhone validation record — version 1.0 build 3
+## Physical-iPhone validation record — version 1.0 builds 3–4
 
 Build 3 was signed and uploaded to App Store Connect on 12 August 2026. GitHub Actions run: https://github.com/elaineq81/receipt-tracking-app/actions/runs/31553071883. Apple delivery ID: `5d620bc8-bed8-485c-8900-b625c441feb3`.
 
@@ -67,23 +67,23 @@ Record the iPhone model, iOS version, tester, date, and each result before start
 | Test | Result | Notes |
 | --- | --- | --- |
 | Clean install opens, onboarding completes, and no blank or placeholder branding appears | Pending | |
-| Updating from the previous TestFlight build preserves matters, receipts, images, revisions, and totals | Pending | |
+| Updating from the previous TestFlight build preserves matters, receipts, images, revisions, and totals | Pass | Verified on build 4. |
 | Camera permission allow, deny, and later-enable paths behave clearly | Pending | |
-| Bright, dim, skewed, long, and multi-page receipts scan and crop correctly | Pending | |
-| Manual recrop corrects all four corners and re-running OCR updates the reviewed draft | Pending | |
-| Merchant, date, currency, total, tax, and category can be corrected and saved | Pending | |
+| Bright, dim, skewed, long, and multi-page receipts scan and crop correctly | Pass | Core real-receipt scan and automatic crop passed on build 4; retain edge-condition coverage before submission. |
+| Manual recrop corrects all four corners and re-running OCR updates the reviewed draft | Pass | Verified on build 4. |
+| Merchant, date, currency, total, tax, and category can be corrected and saved | Pass | Verified on build 4. |
 | Decimal-comma, thousands-separator, GST/VAT, and non-USD examples produce correct values | Pending | |
-| Share sheet sends a receipt image/PDF to Messages and saves it to Files without exposing another receipt | Pending | |
-| PDF, XLSX, CSV, DOCX, JPG bundle, and Proof Pack exports open in their intended apps and totals match | Pending | |
+| Share sheet sends a receipt image/PDF to Messages and saves it to Files without exposing another receipt | Pass | Messages and Files sharing verified on build 4. |
+| PDF, XLSX, CSV, DOCX, JPG bundle, and Proof Pack exports open in their intended apps and totals match | Partial | PDF and CSV verified on build 4; advanced formats remain pending. |
 | Recently Deleted restores a receipt and permanent deletion removes its stored image | Pending | |
-| Face ID/passcode unlock, cancellation, failed authentication, background relock, and app-switcher shielding work | Pending | |
+| Face ID/passcode unlock, cancellation, failed authentication, background relock, and app-switcher shielding work | Pass | Face ID loop fixed in build 4 and verified on a physical iPhone. |
 | Encrypted backup restores into a clean installation; wrong password, duplicate restore, and modified archive fail safely | Pending | |
 | Free allowance, purchase, cancel/pending, entitlement persistence, Restore Purchases, and refund/revocation paths behave correctly | Pending | |
-| Offline launch, save, relaunch, search, report, and export work without network access | Pending | |
+| Offline launch, save, relaunch, search, report, and export work without network access | Partial | Relaunch and persistence passed; complete the full no-network matrix before submission. |
 | VoiceOver, Larger Text, Dark Mode, Reduce Motion, landscape, and a small supported iPhone keep common tasks usable | Pending | |
 | Rapid scrolling and a representative large receipt library remain responsive without visible data loss or crashes | Pending | |
 
-Gate decision: **Pending**. Do not submit build 3 for App Review or begin the iCloud/data-model tranche until all critical rows pass and any non-critical limitation is documented.
+Gate decision: **Core baseline passed on build 4**. The iCloud/data-model tranche may proceed. Do not submit for App Review until every remaining Pending/Partial row is resolved on the final candidate build.
 
 ## Suggested App Review note
 

@@ -168,7 +168,7 @@ private struct RecentlyDeletedReceiptsView: View {
     private func permanentlyDelete() {
         guard let receipt = pendingPermanentDelete else { return }
         pendingPermanentDelete = nil
-        modelContext.delete(receipt)
+        PersistenceService.delete(receipt, entityID: receipt.id, entityType: .receipt, from: modelContext)
         save()
     }
 
@@ -201,7 +201,7 @@ struct ReceiptRow: View {
                 .frame(width: 38, height: 38).background(.teal.opacity(0.12), in: RoundedRectangle(cornerRadius: 9)).foregroundStyle(.teal)
             VStack(alignment: .leading, spacing: 3) {
                 Text(receipt.merchant.isEmpty ? "Unlabeled receipt" : receipt.merchant).font(.headline)
-                Text([receipt.category.rawValue, receipt.matter?.name].compactMap { $0 }.joined(separator: " • ")).font(.caption).foregroundStyle(.secondary)
+                Text([receipt.categoryLocalizedName, receipt.matter?.name].compactMap { $0 }.joined(separator: " • ")).font(.caption).foregroundStyle(.secondary)
                 Label(receipt.reviewStatus.title, systemImage: receipt.reviewStatus.symbol)
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(receipt.reviewStatus == .verified ? .green : .orange)
@@ -252,7 +252,7 @@ struct ReceiptDetailView: View {
                 LabeledContent("Merchant", value: receipt.merchant)
                 LabeledContent("Date", value: receipt.transactionDate.formatted(date: .long, time: .omitted))
                 LabeledContent("Matter", value: receipt.matter?.name ?? "Unfiled")
-                LabeledContent("Category", value: receipt.category.rawValue)
+                LabeledContent("Category", value: receipt.categoryLocalizedName)
                 LabeledContent("Subtotal", value: receipt.subtotal.formatted(.currency(code: receipt.currencyCode)))
                 LabeledContent(receipt.taxLabel, value: receipt.tax.formatted(.currency(code: receipt.currencyCode)))
                 if receipt.tip != 0 { LabeledContent("Tip", value: receipt.tip.formatted(.currency(code: receipt.currencyCode))) }
@@ -430,7 +430,7 @@ struct ReceiptDetailView: View {
         var lines = [
             shareTitle,
             "Total: \(receipt.total.formatted(.currency(code: receipt.currencyCode)))",
-            "Category: \(receipt.category.rawValue)",
+            "Category: \(receipt.categoryDisplayName)",
             "Matter: \(receipt.matter?.name ?? "Unfiled")",
             "Status: \(receipt.reviewStatus.title)"
         ]
@@ -516,12 +516,13 @@ private struct ReceiptEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \ExpenseMatter.createdAt, order: .reverse) private var matters: [ExpenseMatter]
+    @Query(sort: \CustomExpenseCategory.sortOrder) private var customCategories: [CustomExpenseCategory]
     let receipt: Receipt
 
     @State private var merchant: String
     @State private var transactionDate: Date
     @State private var selectedMatter: ExpenseMatter?
-    @State private var category: ExpenseCategory
+    @State private var categoryName: String
     @State private var currencyCode: String
     @State private var subtotal: Decimal
     @State private var tax: Decimal
@@ -549,7 +550,7 @@ private struct ReceiptEditorView: View {
         _merchant = State(initialValue: receipt.merchant)
         _transactionDate = State(initialValue: receipt.transactionDate)
         _selectedMatter = State(initialValue: receipt.matter)
-        _category = State(initialValue: receipt.category)
+        _categoryName = State(initialValue: receipt.categoryDisplayName)
         _currencyCode = State(initialValue: receipt.currencyCode)
         _subtotal = State(initialValue: receipt.subtotal)
         _tax = State(initialValue: receipt.tax)
@@ -594,8 +595,10 @@ private struct ReceiptEditorView: View {
                     Text("Unfiled").tag(nil as ExpenseMatter?)
                     ForEach(matters) { Text($0.name).tag(Optional($0)) }
                 }
-                Picker("Category", selection: $category) {
-                    ForEach(ExpenseCategory.allCases) { Label($0.rawValue, systemImage: $0.symbol).tag($0) }
+                Picker("Category", selection: $categoryName) {
+                    ForEach(ExpenseCategoryOption.options(customCategories: customCategories, including: categoryName)) { option in
+                        Label(option.displayName, systemImage: option.symbol).tag(option.name)
+                    }
                 }
                 TextField("Currency", text: $currencyCode).textInputAutocapitalization(.characters)
                 DecimalField("Subtotal", value: $subtotal)
@@ -666,7 +669,7 @@ private struct ReceiptEditorView: View {
         record("Merchant", receipt.merchant, merchant)
         record("Date", receipt.transactionDate.formatted(date: .numeric, time: .omitted), transactionDate.formatted(date: .numeric, time: .omitted))
         record("Matter", receipt.matter?.name ?? "Unfiled", selectedMatter?.name ?? "Unfiled")
-        record("Category", receipt.category.rawValue, category.rawValue)
+        record("Category", receipt.categoryDisplayName, categoryName)
         record("Currency", receipt.currencyCode, currencyCode.uppercased())
         record("Subtotal", NSDecimalNumber(decimal: receipt.subtotal).stringValue, NSDecimalNumber(decimal: subtotal).stringValue)
         record("Tax", NSDecimalNumber(decimal: receipt.tax).stringValue, NSDecimalNumber(decimal: tax).stringValue)
@@ -687,7 +690,7 @@ private struct ReceiptEditorView: View {
         receipt.merchant = merchant.trimmingCharacters(in: .whitespacesAndNewlines)
         receipt.transactionDate = transactionDate
         receipt.matter = selectedMatter
-        receipt.category = category
+        receipt.categoryRaw = categoryName
         receipt.currencyCode = currencyCode.uppercased()
         receipt.subtotal = subtotal
         receipt.tax = tax
@@ -743,6 +746,7 @@ struct ScanFlowView: View {
     @State private var isImportingFile = false
     @State private var photoItems: [PhotosPickerItem] = []
     @State private var cropSelection: ReceiptCropSelection?
+    @State private var pendingBatch: [ReceiptBatchItem] = []
 
     var body: some View {
         Group {
@@ -789,14 +793,22 @@ struct ScanFlowView: View {
             } else if !didExtract {
                 ReceiptCapturePreview(
                     images: images,
+                    queuedReceiptCount: pendingBatch.count,
                     adjustCrop: { index in
                         cropSelection = ReceiptCropSelection(index: index, image: images[index])
                     },
                     readReceipt: readReceipt,
+                    addAnotherReceipt: addAnotherReceipt,
                     startOver: startOver
                 )
             } else {
-                ReceiptReviewView(draft: draft, images: images, originalImages: originalImages, preselectedMatter: preselectedMatter) { dismiss() }
+                ReceiptReviewView(draft: draft, images: images, originalImages: originalImages, preselectedMatter: preselectedMatter) {
+                    if pendingBatch.isEmpty {
+                        dismiss()
+                    } else {
+                        beginNextBatchReceipt()
+                    }
+                }
             }
         }
         .navigationTitle("Add receipt")
@@ -836,6 +848,15 @@ struct ScanFlowView: View {
     }
 
     private func readReceipt() {
+        if !pendingBatch.isEmpty {
+            pendingBatch.append(ReceiptBatchItem(images: images, originalImages: originalImages))
+            beginNextBatchReceipt()
+            return
+        }
+        recognizeCurrentReceipt()
+    }
+
+    private func recognizeCurrentReceipt() {
         isReading = true
         Task {
             do {
@@ -848,6 +869,10 @@ struct ScanFlowView: View {
     }
 
     private func accept(_ imported: [UIImage]) {
+        guard !imported.isEmpty else {
+            isShowingCamera = false
+            return
+        }
         images = imported
         originalImages = imported
         didCapture = !imported.isEmpty
@@ -862,7 +887,40 @@ struct ScanFlowView: View {
         didExtract = false
         isShowingCamera = false
         photoItems = []
+        pendingBatch = []
     }
+
+    private func addAnotherReceipt() {
+        guard !images.isEmpty else { return }
+        pendingBatch.append(ReceiptBatchItem(images: images, originalImages: originalImages))
+        images = []
+        originalImages = []
+        draft = OCRDraft()
+        didCapture = false
+        didExtract = false
+        isShowingCamera = VNDocumentCameraViewController.isSupported
+        photoItems = []
+    }
+
+    private func beginNextBatchReceipt() {
+        guard !pendingBatch.isEmpty else {
+            dismiss()
+            return
+        }
+        let next = pendingBatch.removeFirst()
+        images = next.images
+        originalImages = next.originalImages
+        draft = OCRDraft()
+        didCapture = true
+        didExtract = false
+        recognizeCurrentReceipt()
+    }
+}
+
+private struct ReceiptBatchItem: Identifiable {
+    let id = UUID()
+    let images: [UIImage]
+    let originalImages: [UIImage]
 }
 
 private struct ReceiptCropSelection: Identifiable {
@@ -873,8 +931,10 @@ private struct ReceiptCropSelection: Identifiable {
 
 private struct ReceiptCapturePreview: View {
     let images: [UIImage]
+    let queuedReceiptCount: Int
     let adjustCrop: (Int) -> Void
     let readReceipt: () -> Void
+    let addAnotherReceipt: () -> Void
     let startOver: () -> Void
 
     var body: some View {
@@ -910,6 +970,12 @@ private struct ReceiptCapturePreview: View {
                     .controlSize(.large)
                     .frame(maxWidth: .infinity)
                     .accessibilityIdentifier("receiptPreview.readReceipt")
+
+                Button(queuedReceiptCount == 0 ? "Add another receipt to batch" : "Add another · \(queuedReceiptCount) queued", systemImage: "rectangle.stack.badge.plus", action: addAnotherReceipt)
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .frame(maxWidth: .infinity)
+                    .accessibilityHint("Keeps this receipt separate and opens the scanner for the next one.")
 
                 Button("Start over", role: .destructive, action: startOver)
                     .frame(maxWidth: .infinity)
@@ -949,8 +1015,10 @@ struct ReceiptReviewView: View {
     @Query(sort: \ExpenseMatter.createdAt, order: .reverse) private var matters: [ExpenseMatter]
     @Query private var existingReceipts: [Receipt]
     @Query(sort: \MerchantRule.createdAt) private var merchantRules: [MerchantRule]
+    @Query(sort: \CustomExpenseCategory.sortOrder) private var customCategories: [CustomExpenseCategory]
     @State private var draft: OCRDraft
     @State private var selectedMatter: ExpenseMatter?
+    @State private var categoryName: String
     @State private var notes = ""
     @State private var paymentMethod = PaymentMethod.unspecified
     @State private var reimbursementStatus = ReimbursementStatus.notApplicable
@@ -989,6 +1057,7 @@ struct ReceiptReviewView: View {
     init(draft: OCRDraft, images: [UIImage], originalImages: [UIImage], preselectedMatter: ExpenseMatter?, didSave: @escaping () -> Void) {
         self._draft = State(initialValue: draft)
         self._selectedMatter = State(initialValue: preselectedMatter)
+        self._categoryName = State(initialValue: draft.category.rawValue)
         self._images = State(initialValue: images)
         self.originalImages = originalImages
         self.didSave = didSave
@@ -1042,8 +1111,10 @@ struct ReceiptReviewView: View {
                     Text("Unfiled").tag(nil as ExpenseMatter?)
                     ForEach(matters) { Text($0.name).tag(Optional($0)) }
                 }
-                Picker("Category", selection: $draft.category) {
-                    ForEach(ExpenseCategory.allCases) { Label($0.rawValue, systemImage: $0.symbol).tag($0) }
+                Picker("Category", selection: $categoryName) {
+                    ForEach(ExpenseCategoryOption.options(customCategories: customCategories, including: categoryName)) { option in
+                        Label(option.displayName, systemImage: option.symbol).tag(option.name)
+                    }
                 }
                 TextField("Currency", text: $draft.currencyCode).textInputAutocapitalization(.characters)
             }
@@ -1150,6 +1221,7 @@ struct ReceiptReviewView: View {
     private func saveReceipt() {
         let status: ReceiptReviewStatus = confirmedAgainstImage ? .verified : .needsReview
         let receipt = Receipt(merchant: draft.merchant, transactionDate: draft.date, currencyCode: draft.currencyCode.uppercased(), subtotal: draft.subtotal, tax: draft.tax, tip: draft.tip, discount: draft.discount, taxLabel: draft.taxLabel, total: draft.total, category: draft.category, notes: notes, ocrText: draft.fullText, ocrConfidence: draft.confidence, reviewStatus: status, reviewedAt: confirmedAgainstImage ? .now : nil, validationNotes: currentWarnings.joined(separator: "; "), fingerprint: fingerprint, paymentMethod: paymentMethod, reimbursementStatus: reimbursementStatus, tags: tags.trimmingCharacters(in: .whitespacesAndNewlines), clientOrCostCentre: clientOrCostCentre.trimmingCharacters(in: .whitespacesAndNewlines), reportingCurrencyCode: includesConversion ? reportingCurrencyCode.uppercased() : "", exchangeRate: includesConversion ? exchangeRate : 0, exchangeRateDate: includesConversion ? exchangeRateDate : nil, exchangeRateSource: includesConversion ? exchangeRateSource.trimmingCharacters(in: .whitespacesAndNewlines) : "", matter: selectedMatter)
+        receipt.categoryRaw = categoryName
         modelContext.insert(receipt)
         for (index, image) in images.enumerated() {
             if let data = image.jpegData(compressionQuality: 0.88) {
@@ -1182,6 +1254,7 @@ struct ReceiptReviewView: View {
         Task {
             do {
                 draft = try await ReceiptOCRService().recognize(images: images)
+                categoryName = draft.category.rawValue
             } catch {
                 rereadError = error.localizedDescription
             }
@@ -1190,7 +1263,7 @@ struct ReceiptReviewView: View {
     }
 
     private func apply(_ rule: MerchantRule) {
-        draft.category = rule.category
+        categoryName = rule.categoryDisplayName
         paymentMethod = rule.paymentMethod
         tags = rule.tags
         clientOrCostCentre = rule.clientOrCostCentre
