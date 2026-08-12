@@ -58,6 +58,33 @@
 - [ ] Submit for review and monitor App Review messages.
 - [ ] After approval, use manual or phased release as appropriate and keep a rollback/support plan.
 
+## Physical-iPhone validation record — version 1.0 build 3
+
+Build 3 was signed and uploaded to App Store Connect on 12 August 2026. GitHub Actions run: https://github.com/elaineq81/receipt-tracking-app/actions/runs/31553071883. Apple delivery ID: `5d620bc8-bed8-485c-8900-b625c441feb3`.
+
+Record the iPhone model, iOS version, tester, date, and each result before starting the iCloud/data-model development tranche. Use **Pass**, **Fail**, or **Blocked**, and add a short reproduction note for every failure.
+
+| Test | Result | Notes |
+| --- | --- | --- |
+| Clean install opens, onboarding completes, and no blank or placeholder branding appears | Pending | |
+| Updating from the previous TestFlight build preserves matters, receipts, images, revisions, and totals | Pending | |
+| Camera permission allow, deny, and later-enable paths behave clearly | Pending | |
+| Bright, dim, skewed, long, and multi-page receipts scan and crop correctly | Pending | |
+| Manual recrop corrects all four corners and re-running OCR updates the reviewed draft | Pending | |
+| Merchant, date, currency, total, tax, and category can be corrected and saved | Pending | |
+| Decimal-comma, thousands-separator, GST/VAT, and non-USD examples produce correct values | Pending | |
+| Share sheet sends a receipt image/PDF to Messages and saves it to Files without exposing another receipt | Pending | |
+| PDF, XLSX, CSV, DOCX, JPG bundle, and Proof Pack exports open in their intended apps and totals match | Pending | |
+| Recently Deleted restores a receipt and permanent deletion removes its stored image | Pending | |
+| Face ID/passcode unlock, cancellation, failed authentication, background relock, and app-switcher shielding work | Pending | |
+| Encrypted backup restores into a clean installation; wrong password, duplicate restore, and modified archive fail safely | Pending | |
+| Free allowance, purchase, cancel/pending, entitlement persistence, Restore Purchases, and refund/revocation paths behave correctly | Pending | |
+| Offline launch, save, relaunch, search, report, and export work without network access | Pending | |
+| VoiceOver, Larger Text, Dark Mode, Reduce Motion, landscape, and a small supported iPhone keep common tasks usable | Pending | |
+| Rapid scrolling and a representative large receipt library remain responsive without visible data loss or crashes | Pending | |
+
+Gate decision: **Pending**. Do not submit build 3 for App Review or begin the iCloud/data-model tranche until all critical rows pass and any non-critical limitation is documented.
+
 ## Suggested App Review note
 
 ReceiptSure is an offline-first receipt organizer. No account is required. The free plan includes 15 stored receipts, two matters, one PDF report, and CSV export. ReceiptSure Pro is the one-time non-consumable product `com.bodywiseremedy.receiptsure.pro.lifetime`; it unlocks unlimited creation, reports, advanced exports, and merchant rules. Existing data remains accessible without purchase. Restore Purchases is available in Settings and on the Pro screen. Camera access is used only for user-initiated VisionKit scanning. The app contains no analytics, advertising, tracking, or server upload.
