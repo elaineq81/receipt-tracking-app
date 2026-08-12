@@ -1,30 +1,37 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "NSCameraUsageDescription" : {
-      "comment" : "Explains why ReceiptSure requests camera access.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ReceiptSure uses the camera to scan, detect, and crop receipts you choose to save."
+  "sourceLanguage": "en",
+  "strings": {
+    "CFBundleDisplayName": {
+      "comment": "Bundle display name"
+    },
+    "CFBundleName": {
+      "comment": "Bundle name"
+    },
+    "NSCameraUsageDescription": {
+      "comment": "Explains why ReceiptSure requests camera access.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure uses the camera to scan, detect, and crop receipts you choose to save."
           }
         }
       }
     },
-    "NSFaceIDUsageDescription" : {
-      "comment" : "Explains why ReceiptSure requests Face ID authentication.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ReceiptSure uses Face ID to protect your locally stored receipts and expense records."
+    "NSFaceIDUsageDescription": {
+      "comment": "Explains why ReceiptSure requests Face ID authentication.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure uses Face ID to protect your locally stored receipts and expense records."
           }
         }
       }
-    }
+    },
+    "ReceiptSure Secure Backup": {}
   },
-  "version" : "1.0"
+  "version": "1.0"
 }
