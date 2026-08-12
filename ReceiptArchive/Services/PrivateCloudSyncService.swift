@@ -31,7 +31,7 @@ struct PrivateCloudSyncResult: Sendable {
 
 @MainActor
 enum PrivateCloudSyncService {
-    static let containerIdentifier = "iCloud.com.bodywiseremedy.receiptsure"
+    static let containerIdentifier = "iCloud.com.receiptsure"
     private static let recordID = CKRecord.ID(recordName: "ReceiptSurePrivateLibrary")
     private static let recordType = "ReceiptSurePrivateLibrary"
     private static let assetField = "encryptedSnapshot"
