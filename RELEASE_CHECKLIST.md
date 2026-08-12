@@ -26,16 +26,18 @@
 ## 2. App Store Connect record
 
 - [ ] In Certificates, Identifiers & Profiles, register the exact bundle identifier.
+- [x] Enable iCloud/CloudKit for the App ID, attach `iCloud.com.receiptsure`, and install a matching App Store provisioning profile.
+- [ ] Deploy the `ReceiptSurePrivateLibrary` record schema to the CloudKit Production environment using `CLOUDKIT_RELEASE_SETUP.md`.
 - [ ] In App Store Connect → My Apps, create the iOS app record with that bundle ID and an SKU.
 - [ ] Complete name, subtitle, category (Finance or Productivity), description, keywords, support URL, privacy-policy URL, copyright, and age-rating questionnaire.
 - [ ] Use `APP_STORE_CONNECT_SUBMISSION.md` for permanent identifiers, App Privacy, encryption, review notes, and owner-controlled decisions.
-- [ ] Complete App Privacy. For this local-only version, verify that data is not collected; reassess if analytics, cloud sync, support upload, or accounts are later added.
+- [ ] Complete App Privacy from the final binary. The prepared answer remains **Data Not Collected** because private-sync content is stored only in the user’s private CloudKit database and is not accessible to the developer; reassess if developer-accessible storage, analytics, support upload, accounts, or third-party collection is added.
 - [ ] Prepare iPhone screenshots from real app states using `APP_STORE_SCREENSHOTS.md`; do not use the browser preview as a submitted screenshot.
 - [ ] Add review notes explaining: no login; scanning requires a physical camera; OCR runs on-device; exports are user initiated.
 - [ ] Create the non-consumable **ReceiptSure Pro Lifetime** product with ID `com.bodywiseremedy.receiptsure.pro.lifetime`, choose the closest Singapore price point to S$59.98, localize it, and attach its review screenshot.
 - [ ] Add the first non-consumable to the same version 1.0 review submission; Apple requires the first product of that type to accompany a new app version.
 - [ ] Verify the IAP localized description is no more than 45 characters and use: **Unlimited receipts, reports, and exports.**
-- [ ] Complete EU DSA trader status. Keep EU storefronts out of the initial availability until any required verification is complete.
+- [ ] Complete EU DSA trader status and any required public-contact verification before enabling EU storefronts; enable all other eligible territories requested by the owner.
 - [ ] Complete the current age-rating flow and save Apple’s calculated global and regional results.
 - [ ] Test all common tasks with each proposed accessibility feature before publishing the iPhone Accessibility Nutrition Label.
 
@@ -58,7 +60,7 @@
 - [ ] Submit for review and monitor App Review messages.
 - [ ] After approval, use manual or phased release as appropriate and keep a rollback/support plan.
 
-## Physical-iPhone validation record — version 1.0 build 3
+## Physical-iPhone validation record — version 1.0 builds 3–4
 
 Build 3 was signed and uploaded to App Store Connect on 12 August 2026. GitHub Actions run: https://github.com/elaineq81/receipt-tracking-app/actions/runs/31553071883. Apple delivery ID: `5d620bc8-bed8-485c-8900-b625c441feb3`.
 
@@ -67,30 +69,36 @@ Record the iPhone model, iOS version, tester, date, and each result before start
 | Test | Result | Notes |
 | --- | --- | --- |
 | Clean install opens, onboarding completes, and no blank or placeholder branding appears | Pending | |
-| Updating from the previous TestFlight build preserves matters, receipts, images, revisions, and totals | Pending | |
+| Updating from the previous TestFlight build preserves matters, receipts, images, revisions, and totals | Pass | Verified on build 4. |
 | Camera permission allow, deny, and later-enable paths behave clearly | Pending | |
-| Bright, dim, skewed, long, and multi-page receipts scan and crop correctly | Pending | |
-| Manual recrop corrects all four corners and re-running OCR updates the reviewed draft | Pending | |
-| Merchant, date, currency, total, tax, and category can be corrected and saved | Pending | |
+| Bright, dim, skewed, long, and multi-page receipts scan and crop correctly | Pass | Core real-receipt scan and automatic crop passed on build 4; retain edge-condition coverage before submission. |
+| Manual recrop corrects all four corners and re-running OCR updates the reviewed draft | Pass | Verified on build 4. |
+| Merchant, date, currency, total, tax, and category can be corrected and saved | Pass | Verified on build 4. |
 | Decimal-comma, thousands-separator, GST/VAT, and non-USD examples produce correct values | Pending | |
-| Share sheet sends a receipt image/PDF to Messages and saves it to Files without exposing another receipt | Pending | |
-| PDF, XLSX, CSV, DOCX, JPG bundle, and Proof Pack exports open in their intended apps and totals match | Pending | |
+| Share sheet sends a receipt image/PDF to Messages and saves it to Files without exposing another receipt | Pass | Messages and Files sharing verified on build 4. |
+| PDF, XLSX, CSV, DOCX, JPG bundle, and Proof Pack exports open in their intended apps and totals match | Partial | PDF and CSV verified on build 4; advanced formats remain pending. |
 | Recently Deleted restores a receipt and permanent deletion removes its stored image | Pending | |
-| Face ID/passcode unlock, cancellation, failed authentication, background relock, and app-switcher shielding work | Pending | |
+| Face ID/passcode unlock, cancellation, failed authentication, background relock, and app-switcher shielding work | Pass | Face ID loop fixed in build 4 and verified on a physical iPhone. |
 | Encrypted backup restores into a clean installation; wrong password, duplicate restore, and modified archive fail safely | Pending | |
 | Free allowance, purchase, cancel/pending, entitlement persistence, Restore Purchases, and refund/revocation paths behave correctly | Pending | |
-| Offline launch, save, relaunch, search, report, and export work without network access | Pending | |
+| Offline launch, save, relaunch, search, report, and export work without network access | Partial | Relaunch and persistence passed; complete the full no-network matrix before submission. |
 | VoiceOver, Larger Text, Dark Mode, Reduce Motion, landscape, and a small supported iPhone keep common tasks usable | Pending | |
 | Rapid scrolling and a representative large receipt library remain responsive without visible data loss or crashes | Pending | |
+| Private sync is off by default; enabling it creates the encrypted snapshot and a second device merges new records | Pending | Build 5 candidate. |
+| Newer same-record edits win across two devices for receipts, merchant rules, and custom categories | Pending | Build 5 candidate. |
+| Permanent receipt deletion propagates through a deletion marker and does not resurrect on the second device | Pending | Build 5 candidate. |
+| Turning private sync off stops automatic syncing; “Delete iCloud copy” removes the cloud snapshot but preserves local receipts | Pending | Build 5 candidate. |
+| Batch capture saves multiple independently reviewable receipts without lost or duplicated pages | Pending | Build 5 candidate. |
+| Spanish and Simplified Chinese core capture, settings, categories, and sync screens fit without clipped controls | Pending | Build 5 candidate. |
 
-Gate decision: **Pending**. Do not submit build 3 for App Review or begin the iCloud/data-model tranche until all critical rows pass and any non-critical limitation is documented.
+Gate decision: **Core baseline passed on build 4**. The iCloud/data-model tranche may proceed. Do not submit for App Review until every remaining Pending/Partial row is resolved on the final candidate build.
 
 ## Suggested App Review note
 
-ReceiptSure is an offline-first receipt organizer. No account is required. The free plan includes 15 stored receipts, two matters, one PDF report, and CSV export. ReceiptSure Pro is the one-time non-consumable product `com.bodywiseremedy.receiptsure.pro.lifetime`; it unlocks unlimited creation, reports, advanced exports, and merchant rules. Existing data remains accessible without purchase. Restore Purchases is available in Settings and on the Pro screen. Camera access is used only for user-initiated VisionKit scanning. The app contains no analytics, advertising, tracking, or server upload.
+ReceiptSure is an offline-first receipt organizer. No ReceiptSure account is required. Optional private iCloud sync is off by default and stores an AES-GCM encrypted library snapshot only in the user’s private CloudKit database; the developer operates no receipt-data server. The free plan includes 15 stored receipts, two matters, one PDF report, and CSV export. ReceiptSure Pro is the one-time non-consumable product `com.bodywiseremedy.receiptsure.pro.lifetime`; it unlocks unlimited creation, reports, advanced exports, and merchant rules. Existing data remains accessible without purchase. Restore Purchases is available in Settings and on the Pro screen. Camera access is used only for user-initiated VisionKit scanning. The app contains no analytics, advertising, or tracking.
 
 ## Not yet included
 
-- Cloud sync, collaboration, automatic exchange-rate lookup, and accounting-platform integrations remain outside version 1. Encrypted backup is included but must pass the physical-device round-trip tests above before release.
+- Collaboration, automatic exchange-rate lookup, and accounting-platform integrations remain outside version 1. Encrypted backup and optional private iCloud sync are included but must pass the physical-device tests above before release.
 - The included icon is technically ready, but the account owner must approve it as the final public brand asset.
 - App Store account fields, signing credentials, production screenshots, encryption determination, and upload require the owner’s Apple Developer account and a Mac with Xcode.

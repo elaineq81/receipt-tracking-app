@@ -53,6 +53,7 @@ final class Receipt {
     var categoryRaw: String
     var notes: String
     var createdAt: Date
+    var updatedAt: Date?
     var ocrText: String
     var ocrConfidence: Double = 0
     var reviewStatusRaw: String = ReceiptReviewStatus.needsReview.rawValue
@@ -129,6 +130,7 @@ final class Receipt {
         self.categoryRaw = category.rawValue
         self.notes = notes
         self.createdAt = .now
+        self.updatedAt = .now
         self.ocrText = ocrText
         self.ocrConfidence = ocrConfidence
         self.reviewStatusRaw = reviewStatus.rawValue
@@ -157,6 +159,14 @@ final class Receipt {
         get { ExpenseCategory(rawValue: categoryRaw) ?? .other }
         set { categoryRaw = newValue.rawValue }
     }
+
+    var categoryDisplayName: String {
+        let value = categoryRaw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? ExpenseCategory.other.rawValue : value
+    }
+
+    var categorySymbol: String { ExpenseCategory.symbol(for: categoryDisplayName) }
+    var categoryLocalizedName: String { ExpenseCategory.localizedName(for: categoryDisplayName) }
 
     var reviewStatus: ReceiptReviewStatus {
         get { ReceiptReviewStatus(rawValue: reviewStatusRaw) ?? .needsReview }
@@ -196,11 +206,13 @@ final class Receipt {
     func moveToTrash(at date: Date = .now) {
         isTrashed = true
         trashedAt = date
+        updatedAt = date
     }
 
     func restoreFromTrash() {
         isTrashed = false
         trashedAt = nil
+        updatedAt = .now
     }
 
     var lineItems: [ReceiptLineItem] {
@@ -286,6 +298,7 @@ final class MerchantRule {
     var clientOrCostCentre: String
     var matterID: UUID?
     var createdAt: Date
+    var updatedAt: Date?
 
     init(
         id: UUID = UUID(),
@@ -304,11 +317,17 @@ final class MerchantRule {
         self.clientOrCostCentre = clientOrCostCentre
         self.matterID = matterID
         self.createdAt = .now
+        self.updatedAt = .now
     }
 
     var category: ExpenseCategory {
         get { ExpenseCategory(rawValue: categoryRaw) ?? .other }
         set { categoryRaw = newValue.rawValue }
+    }
+
+    var categoryDisplayName: String {
+        let value = categoryRaw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? ExpenseCategory.other.rawValue : value
     }
 
     var paymentMethod: PaymentMethod {
@@ -399,5 +418,104 @@ enum ExpenseCategory: String, CaseIterable, Codable, Identifiable, Sendable {
         case .fees: "creditcard.fill"
         case .other: "square.grid.2x2.fill"
         }
+    }
+
+    var localizedName: String {
+        switch self {
+        case .accommodation: String(localized: "Accommodation")
+        case .meals: String(localized: "Meals")
+        case .transport: String(localized: "Transport")
+        case .fuel: String(localized: "Fuel")
+        case .supplies: String(localized: "Supplies")
+        case .entertainment: String(localized: "Entertainment")
+        case .fees: String(localized: "Fees")
+        case .other: String(localized: "Other")
+        }
+    }
+
+    static func symbol(for categoryName: String) -> String {
+        ExpenseCategory(rawValue: categoryName)?.symbol ?? "tag.fill"
+    }
+
+    static func localizedName(for categoryName: String) -> String {
+        ExpenseCategory(rawValue: categoryName)?.localizedName ?? categoryName
+    }
+}
+
+@Model
+final class CustomExpenseCategory {
+    @Attribute(.unique) var id: UUID
+    var name: String
+    var symbolName: String
+    var sortOrder: Int
+    var createdAt: Date
+    var updatedAt: Date?
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        symbolName: String = "tag.fill",
+        sortOrder: Int = 0,
+        createdAt: Date = .now,
+        updatedAt: Date? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.symbolName = symbolName
+        self.sortOrder = sortOrder
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt ?? createdAt
+    }
+}
+
+enum CloudEntityType: String, Codable, Sendable {
+    case receipt
+    case merchantRule
+    case customCategory
+}
+
+@Model
+final class CloudDeletionTombstone {
+    @Attribute(.unique) var id: UUID
+    var entityID: UUID
+    var entityTypeRaw: String
+    var deletedAt: Date
+
+    init(id: UUID = UUID(), entityID: UUID, entityType: CloudEntityType, deletedAt: Date = .now) {
+        self.id = id
+        self.entityID = entityID
+        self.entityTypeRaw = entityType.rawValue
+        self.deletedAt = deletedAt
+    }
+
+    var entityType: CloudEntityType? { CloudEntityType(rawValue: entityTypeRaw) }
+}
+
+struct ExpenseCategoryOption: Identifiable, Hashable {
+    let name: String
+    let displayName: String
+    let symbol: String
+    let isCustom: Bool
+
+    var id: String { name.localizedLowercase }
+
+    static func options(customCategories: [CustomExpenseCategory], including selectedName: String? = nil) -> [ExpenseCategoryOption] {
+        var values = ExpenseCategory.allCases.map {
+            ExpenseCategoryOption(name: $0.rawValue, displayName: $0.localizedName, symbol: $0.symbol, isCustom: false)
+        }
+        values += customCategories
+            .sorted { lhs, rhs in
+                lhs.sortOrder == rhs.sortOrder
+                    ? lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+                    : lhs.sortOrder < rhs.sortOrder
+            }
+            .map { ExpenseCategoryOption(name: $0.name, displayName: $0.name, symbol: $0.symbolName, isCustom: true) }
+
+        if let selectedName,
+           !selectedName.isEmpty,
+           !values.contains(where: { $0.name.caseInsensitiveCompare(selectedName) == .orderedSame }) {
+            values.append(ExpenseCategoryOption(name: selectedName, displayName: selectedName, symbol: ExpenseCategory.symbol(for: selectedName), isCustom: true))
+        }
+        return values
     }
 }

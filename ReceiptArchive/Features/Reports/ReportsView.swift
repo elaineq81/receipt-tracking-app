@@ -79,10 +79,10 @@ struct ReportsView: View {
             Section("Totals by category") {
                 ForEach(report.categories) { section in
                     NavigationLink {
-                        CategoryBreakdownView(category: section.category, receipts: section.receipts)
+                        CategoryBreakdownView(categoryName: section.categoryName, receipts: section.receipts)
                     } label: {
                         VStack(alignment: .leading, spacing: 4) {
-                            Label(section.category.rawValue, systemImage: section.category.symbol)
+                            Label(ExpenseCategory.localizedName(for: section.categoryName), systemImage: section.symbol)
                             Text(section.totalLine).font(.caption).foregroundStyle(.secondary)
                         }
                     }
@@ -166,10 +166,11 @@ struct ReportsView: View {
 
 private struct ReportSummary {
     struct CategorySection: Identifiable {
-        let category: ExpenseCategory
+        let categoryName: String
+        let symbol: String
         let receipts: [Receipt]
         let totalLine: String
-        var id: ExpenseCategory { category }
+        var id: String { categoryName }
     }
 
     struct DateSection: Identifiable {
@@ -194,7 +195,7 @@ private struct ReportSummary {
         var incompleteConversions = 0
         var totals: [String: Decimal] = [:]
         var reportingTotals: [String: Decimal] = [:]
-        var categories: [ExpenseCategory: [Receipt]] = [:]
+        var categories: [String: [Receipt]] = [:]
         var dates: [Date: [Receipt]] = [:]
 
         for receipt in receipts {
@@ -206,7 +207,7 @@ private struct ReportSummary {
             if let reportingTotal = receipt.reportingTotal {
                 reportingTotals[receipt.reportingCurrencyCode, default: .zero] += reportingTotal
             }
-            categories[receipt.category, default: []].append(receipt)
+            categories[receipt.categoryDisplayName, default: []].append(receipt)
             let day = Calendar.current.startOfDay(for: receipt.transactionDate)
             dates[day, default: []].append(receipt)
         }
@@ -216,9 +217,14 @@ private struct ReportSummary {
         self.incompleteConversions = incompleteConversions
         self.totals = totals.sorted { $0.key < $1.key }
         self.reportingTotals = reportingTotals.sorted { $0.key < $1.key }
-        self.categories = ExpenseCategory.allCases.compactMap { category in
-            guard let rows = categories[category], !rows.isEmpty else { return nil }
-            return CategorySection(category: category, receipts: rows, totalLine: ReportsView.totalLine(rows))
+        self.categories = categories.keys.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }.compactMap { categoryName in
+            guard let rows = categories[categoryName], !rows.isEmpty else { return nil }
+            return CategorySection(
+                categoryName: categoryName,
+                symbol: ExpenseCategory.symbol(for: categoryName),
+                receipts: rows,
+                totalLine: ReportsView.totalLine(rows)
+            )
         }
         self.dates = dates.sorted { $0.key > $1.key }.map {
             DateSection(day: $0.key, totalLine: ReportsView.totalLine($0.value))
@@ -227,11 +233,11 @@ private struct ReportSummary {
 }
 
 private struct CategoryBreakdownView: View {
-    let category: ExpenseCategory
+    let categoryName: String
     let receipts: [Receipt]
     var body: some View {
         List(receipts) { receipt in ReceiptRow(receipt: receipt) }
-            .navigationTitle(category.rawValue)
+            .navigationTitle(ExpenseCategory.localizedName(for: categoryName))
     }
 }
 

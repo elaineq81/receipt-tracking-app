@@ -21,12 +21,14 @@ Its differentiator is a **Receipt Evidence Record**: visible OCR confidence, val
 - Produce PDF evidence packs with a readiness cover sheet, original-currency totals, supported reporting totals, exceptions, and a receipt-image appendix.
 - Protect the app with Face ID, Touch ID, or device passcode and obscure private content in the app switcher.
 - Create password-protected AES-GCM archives containing receipt images, revisions, matters, and rules; restore merges missing records without deleting current data.
+- Optionally sync an AES-GCM encrypted library snapshot through the user’s private iCloud database, with newest-edit conflict handling and cloud-copy deletion.
+- Capture receipts in batches and create custom expense categories that flow through rules, summaries, backups, and exports.
 - Monitor backup health and see the last successful restore time.
 - Organize and search receipts by date, merchant, category, and matter.
 - Summaries by matter, category, date, and currency. Different currencies are never silently combined.
 - Report-readiness counts and verification status embedded in PDF, XLSX, and CSV outputs.
 - Export a selection as PDF (including receipt images), valid XLSX, CSV, DOCX, or a ZIP containing JPGs and a CSV index.
-- Local-only storage, a privacy manifest, and a clear camera purpose string.
+- Local-first storage, an opt-in private iCloud path, a privacy manifest, and a clear camera purpose string.
 - An original, opaque 1024×1024 App Store icon.
 - StoreKit 2 lifetime Pro entitlement, a professional upgrade screen, and Restore Purchases.
 
@@ -52,11 +54,11 @@ Minimum deployment target: iOS 17.0. No third-party runtime packages are require
 
 ## Product decisions
 
-- The app is offline-first and has no account, backend, analytics, ads, or tracking.
+- The app is offline-first and has no ReceiptSure account, developer backend, analytics, ads, or tracking. Optional private sync uses the user’s private CloudKit database.
 - The system photo picker is preferred for future image import because it avoids broad photo-library access.
 - OCR is assistance, not an accounting guarantee. The save flow requires user review.
 - Totals are grouped by ISO currency code; conversion is intentionally not guessed.
-- The initial bundle ID is a placeholder and must match the identifier created in the developer account.
+- The production bundle ID is `com.bodywiseremedy.receiptsure`; private sync uses `iCloud.com.receiptsure`.
 
 See `RELEASE_CHECKLIST.md` for the TestFlight and App Store Connect pathway.
 

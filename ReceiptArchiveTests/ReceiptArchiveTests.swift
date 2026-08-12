@@ -1,8 +1,105 @@
 import Foundation
+import SwiftData
 import XCTest
 @testable import ReceiptSure
 
 final class ReceiptArchiveTests: XCTestCase {
+    @MainActor
+    func testPrivateCloudSnapshotRoundTripsCustomCategoriesAndDeletionMarkers() async throws {
+        let source = try makeModelContainer()
+        let sourceContext = source.mainContext
+        let category = CustomExpenseCategory(name: "Client Entertainment", symbolName: "briefcase.fill")
+        let receipt = Receipt(
+            merchant: "Example",
+            transactionDate: .now,
+            currencyCode: "SGD",
+            subtotal: 10,
+            tax: 0,
+            total: 10,
+            category: .other
+        )
+        receipt.categoryRaw = category.name
+        sourceContext.insert(category)
+        sourceContext.insert(receipt)
+        try sourceContext.save()
+
+        let key = Data(repeating: 7, count: 32)
+        let firstSnapshot = try await SecureBackupService.createPrivateCloudSnapshot(modelContext: sourceContext, keyData: key)
+        let destination = try makeModelContainer()
+        let destinationContext = destination.mainContext
+        let firstMerge = try await SecureBackupService.mergePrivateCloudSnapshot(firstSnapshot, modelContext: destinationContext, keyData: key)
+
+        XCTAssertEqual(firstMerge.receipts, 1)
+        XCTAssertEqual(firstMerge.categories, 1)
+        XCTAssertEqual(try destinationContext.fetch(FetchDescriptor<Receipt>()).first?.categoryRaw, "Client Entertainment")
+
+        PersistenceService.delete(receipt, entityID: receipt.id, entityType: .receipt, from: sourceContext)
+        try sourceContext.save()
+        let deletionSnapshot = try await SecureBackupService.createPrivateCloudSnapshot(modelContext: sourceContext, keyData: key)
+        _ = try await SecureBackupService.mergePrivateCloudSnapshot(deletionSnapshot, modelContext: destinationContext, keyData: key)
+
+        XCTAssertTrue(try destinationContext.fetch(FetchDescriptor<Receipt>()).isEmpty)
+        XCTAssertEqual(try destinationContext.fetch(FetchDescriptor<CloudDeletionTombstone>()).count, 1)
+    }
+
+    @MainActor
+    func testPrivateCloudSnapshotAppliesOnlyTheNewestSameIDEdits() async throws {
+        let receiptID = UUID()
+        let ruleID = UUID()
+        let categoryID = UUID()
+        let older = Date(timeIntervalSince1970: 1_700_000_000)
+        let newer = Date(timeIntervalSince1970: 1_800_000_000)
+        let newest = Date(timeIntervalSince1970: 1_900_000_000)
+
+        let source = try makeModelContainer()
+        let sourceContext = source.mainContext
+        let remoteReceipt = Receipt(id: receiptID, merchant: "Remote edit", transactionDate: older, currencyCode: "SGD", subtotal: 20, tax: 2, total: 22, category: .meals)
+        remoteReceipt.updatedAt = newer
+        let remotePage = ReceiptPage(imageData: Data("remote-page".utf8), pageIndex: 0, receipt: remoteReceipt)
+        remoteReceipt.pages.append(remotePage)
+        let remoteRule = MerchantRule(id: ruleID, merchantPattern: "Remote", category: .meals)
+        remoteRule.updatedAt = newer
+        let remoteCategory = CustomExpenseCategory(id: categoryID, name: "Remote Category", updatedAt: newer)
+        sourceContext.insert(remoteReceipt)
+        sourceContext.insert(remotePage)
+        sourceContext.insert(remoteRule)
+        sourceContext.insert(remoteCategory)
+        try sourceContext.save()
+
+        let destination = try makeModelContainer()
+        let destinationContext = destination.mainContext
+        let localReceipt = Receipt(id: receiptID, merchant: "Older local", transactionDate: older, currencyCode: "SGD", subtotal: 10, tax: 1, total: 11, category: .other)
+        localReceipt.updatedAt = older
+        let localRule = MerchantRule(id: ruleID, merchantPattern: "Older", category: .other)
+        localRule.updatedAt = older
+        let localCategory = CustomExpenseCategory(id: categoryID, name: "Older Category", updatedAt: older)
+        destinationContext.insert(localReceipt)
+        destinationContext.insert(localRule)
+        destinationContext.insert(localCategory)
+        try destinationContext.save()
+
+        let key = Data(repeating: 11, count: 32)
+        let snapshot = try await SecureBackupService.createPrivateCloudSnapshot(modelContext: sourceContext, keyData: key)
+        let firstMerge = try await SecureBackupService.mergePrivateCloudSnapshot(snapshot, modelContext: destinationContext, keyData: key)
+
+        XCTAssertEqual(firstMerge.receipts, 1)
+        XCTAssertEqual(firstMerge.rules, 1)
+        XCTAssertEqual(firstMerge.categories, 1)
+        XCTAssertEqual(localReceipt.merchant, "Remote edit")
+        XCTAssertEqual(localReceipt.total, 22)
+        XCTAssertEqual(localReceipt.pages.first?.imageData, Data("remote-page".utf8))
+        XCTAssertEqual(localRule.merchantPattern, "Remote")
+        XCTAssertEqual(localCategory.name, "Remote Category")
+
+        localReceipt.merchant = "Newest local"
+        localReceipt.updatedAt = newest
+        try destinationContext.save()
+        let staleMerge = try await SecureBackupService.mergePrivateCloudSnapshot(snapshot, modelContext: destinationContext, keyData: key)
+
+        XCTAssertEqual(staleMerge.receipts, 0)
+        XCTAssertEqual(localReceipt.merchant, "Newest local")
+    }
+
     func testDeviceLockDoesNotRestartForFaceIDInactiveTransition() throws {
         var state = DeviceLockState()
         state.requireAuthentication()
@@ -163,5 +260,19 @@ final class ReceiptArchiveTests: XCTestCase {
         XCTAssertNotNil(archive.range(of: Data("audit/receipt-records.json".utf8)))
         XCTAssertNotNil(archive.range(of: Data("current-page-01.jpg".utf8)))
         XCTAssertNotNil(archive.range(of: Data("original-page-01.jpg".utf8)))
+    }
+
+    @MainActor
+    private func makeModelContainer() throws -> ModelContainer {
+        let schema = Schema([
+            ExpenseMatter.self,
+            Receipt.self,
+            ReceiptPage.self,
+            ReceiptRevision.self,
+            MerchantRule.self,
+            CustomExpenseCategory.self,
+            CloudDeletionTombstone.self
+        ])
+        return try ModelContainer(for: schema, configurations: ModelConfiguration(schema: schema, isStoredInMemoryOnly: true))
     }
 }

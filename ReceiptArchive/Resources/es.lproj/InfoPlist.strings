@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "ReceiptSure";
+"NSCameraUsageDescription" = "ReceiptSure usa la cámara para escanear, detectar y recortar los recibos que decidas guardar.";
+"NSFaceIDUsageDescription" = "ReceiptSure usa Face ID para proteger los recibos y gastos guardados en el dispositivo.";
