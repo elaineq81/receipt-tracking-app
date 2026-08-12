@@ -3,6 +3,34 @@ import XCTest
 @testable import ReceiptSure
 
 final class ReceiptArchiveTests: XCTestCase {
+    func testDeviceLockDoesNotRestartForFaceIDInactiveTransition() throws {
+        var state = DeviceLockState()
+        state.requireAuthentication()
+        let generation = try XCTUnwrap(state.beginAuthentication())
+
+        XCTAssertTrue(state.isAuthenticating)
+
+        // An inactive scene transition is intentionally not forwarded as a lock.
+        XCTAssertNil(state.beginAuthentication())
+        state.completeAuthentication(succeeded: true, message: nil, generation: generation)
+
+        XCTAssertTrue(state.isUnlocked)
+        XCTAssertFalse(state.isAuthenticating)
+        XCTAssertNil(state.authenticationMessage)
+    }
+
+    func testDeviceLockIgnoresAuthenticationThatFinishesAfterBackgrounding() throws {
+        var state = DeviceLockState()
+        state.requireAuthentication()
+        let staleGeneration = try XCTUnwrap(state.beginAuthentication())
+
+        state.lockAfterEnteringBackground()
+        state.completeAuthentication(succeeded: true, message: nil, generation: staleGeneration)
+
+        XCTAssertFalse(state.isUnlocked)
+        XCTAssertFalse(state.isAuthenticating)
+    }
+
     func testSpreadsheetColumnReferencesContinueBeyondZ() {
         XCTAssertEqual(SpreadsheetColumnReference.name(for: 1), "A")
         XCTAssertEqual(SpreadsheetColumnReference.name(for: 26), "Z")

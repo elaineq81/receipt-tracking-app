@@ -21,9 +21,7 @@ struct RootView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("deviceLockEnabled") private var deviceLockEnabled = false
     @AppStorage("privacyScreenEnabled") private var privacyScreenEnabled = true
-    @State private var isUnlocked = false
-    @State private var isAuthenticating = false
-    @State private var authenticationMessage: String?
+    @State private var lockState = DeviceLockState()
 
     var body: some View {
         ZStack {
@@ -40,12 +38,12 @@ struct RootView: View {
                 VStack(spacing: 18) {
                     Image(systemName: "lock.shield.fill").font(.system(size: 58)).foregroundStyle(.teal)
                     Text("ReceiptSure is locked").font(.title2.bold())
-                    if let authenticationMessage { Text(authenticationMessage).font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center) }
+                    if let authenticationMessage = lockState.authenticationMessage { Text(authenticationMessage).font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center) }
                     if scenePhase == .active && deviceLockEnabled {
-                        Button { Task { await unlock() } } label: {
-                            if isAuthenticating { ProgressView() } else { Label("Unlock", systemImage: "faceid") }
+                        Button { requestUnlock() } label: {
+                            if lockState.isAuthenticating { ProgressView() } else { Label("Unlock", systemImage: "faceid") }
                         }
-                        .buttonStyle(.borderedProminent).tint(.teal).disabled(isAuthenticating)
+                        .buttonStyle(.borderedProminent).tint(.teal).disabled(lockState.isAuthenticating)
                     }
                 }
                 .padding(32)
@@ -53,34 +51,60 @@ struct RootView: View {
                 .background(.background)
             }
         }
-        .task(id: scenePhase) {
+        .task {
             ScreenshotSupport.prepare(modelContext: modelContext)
-            guard scenePhase == .active else {
-                if deviceLockEnabled { isUnlocked = false }
-                return
-            }
-            if deviceLockEnabled { await unlock() } else { isUnlocked = true }
+            handleScenePhase(scenePhase)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            handleScenePhase(phase)
         }
         .onChange(of: deviceLockEnabled) { _, enabled in
-            if !enabled { isUnlocked = true; authenticationMessage = nil }
-            else { isUnlocked = false; Task { await unlock() } }
+            if enabled {
+                lockState.requireAuthentication()
+                if scenePhase == .active { requestUnlock() }
+            } else {
+                lockState.unlockWithoutAuthentication()
+            }
         }
     }
 
     private var shouldCover: Bool {
-        (privacyScreenEnabled && scenePhase != .active) || (deviceLockEnabled && !isUnlocked)
+        (privacyScreenEnabled && scenePhase != .active) || (deviceLockEnabled && !lockState.isUnlocked)
     }
 
-    private func unlock() async {
-        guard !isAuthenticating else { return }
-        isAuthenticating = true
-        defer { isAuthenticating = false }
-        do {
-            isUnlocked = try await DeviceAuthentication.authenticate()
-            authenticationMessage = isUnlocked ? nil : "Authentication was not completed."
-        } catch {
-            isUnlocked = false
-            authenticationMessage = error.localizedDescription
+    private func handleScenePhase(_ phase: ScenePhase) {
+        switch phase {
+        case .active:
+            if deviceLockEnabled { requestUnlock() }
+            else { lockState.unlockWithoutAuthentication() }
+        case .background:
+            if deviceLockEnabled { lockState.lockAfterEnteringBackground() }
+        case .inactive:
+            // Face ID and system overlays temporarily make the scene inactive.
+            // Relocking here cancels or repeats an otherwise successful prompt.
+            break
+        @unknown default:
+            break
+        }
+    }
+
+    private func requestUnlock() {
+        guard deviceLockEnabled, let generation = lockState.beginAuthentication() else { return }
+        Task {
+            do {
+                let authenticated = try await DeviceAuthentication.authenticate()
+                lockState.completeAuthentication(
+                    succeeded: authenticated,
+                    message: nil,
+                    generation: generation
+                )
+            } catch {
+                lockState.completeAuthentication(
+                    succeeded: false,
+                    message: error.localizedDescription,
+                    generation: generation
+                )
+            }
         }
     }
 }
