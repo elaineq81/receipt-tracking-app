@@ -98,9 +98,11 @@ struct PaywallView: View {
 
     private var purchaseButtonTitle: String {
         if let price = purchases.product?.displayPrice {
-            return "Unlock Pro for \(price)"
+            return String(localized: "Unlock Pro for \(price)")
         }
-        return purchases.hasLoadedStore ? "Try loading price again" : "Loading App Store price…"
+        return purchases.hasLoadedStore
+            ? String(localized: "Try loading price again")
+            : String(localized: "Loading App Store price…")
     }
 
     private func benefit(_ title: String, symbol: String) -> some View {

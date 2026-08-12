@@ -90,6 +90,8 @@ Record the iPhone model, iOS version, tester, date, and each result before start
 | Turning private sync off stops automatic syncing; “Delete iCloud copy” removes the cloud snapshot but preserves local receipts | Pending | Build 5 candidate. |
 | Batch capture saves multiple independently reviewable receipts without lost or duplicated pages | Pending | Build 5 candidate. |
 | Every declared language has 100% compiler-extracted string and permission-copy coverage, with no mixed-language screens | Pending | Build 5 exposed incomplete Spanish localization; replacement required. |
+| Machine-assisted translations receive linguistic review; financial, privacy, purchase, deletion, backup, and evidence terminology is approved in each language | Pending | Draft strings use `needs_review` and cannot pass the release gate. |
+| Representative LTR, RTL, CJK, and Indic languages pass layout, Dynamic Type, truncation, number, currency, and date-format validation | Pending | Required before replacement TestFlight candidate. |
 
 Gate decision: **Core baseline passed on build 4**. The iCloud/data-model tranche may proceed. Do not submit for App Review until every remaining Pending/Partial row is resolved on the final candidate build.
 

@@ -2,10 +2,62 @@
   "sourceLanguage": "en",
   "strings": {
     "CFBundleDisplayName": {
-      "comment": "Bundle display name"
+      "comment": "Bundle display name",
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        }
+      }
     },
     "CFBundleName": {
-      "comment": "Bundle name"
+      "comment": "Bundle name",
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        }
+      }
     },
     "NSCameraUsageDescription": {
       "comment": "Explains why ReceiptSure requests camera access.",
@@ -15,6 +67,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "ReceiptSure uses the camera to scan, detect, and crop receipts you choose to save."
+          }
+        },
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure usa la cámara para escanear, detectar y recortar los recibos que decidas guardar."
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure usa la cámara para escanear, detectar y recortar los recibos que decidas guardar."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure 使用相机扫描、检测并裁剪你选择保存的收据。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure 使用相機掃描、偵測並裁切你選擇儲存的收據。"
           }
         }
       }
@@ -28,10 +104,61 @@
             "state": "translated",
             "value": "ReceiptSure uses Face ID to protect your locally stored receipts and expense records."
           }
+        },
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure usa Face ID para proteger los recibos y registros de gastos almacenados localmente."
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure usa Face ID para proteger los recibos y registros de gastos almacenados localmente."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure 使用 Face ID 保护存储在本机的收据和支出记录。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure 使用 Face ID 保護儲存在本機的收據和支出記錄。"
+          }
         }
       }
     },
-    "ReceiptSure Secure Backup": {}
+    "ReceiptSure Secure Backup": {
+      "localizations": {
+        "es-ES": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia de seguridad segura de ReceiptSure"
+          }
+        },
+        "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia de seguridad segura de ReceiptSure"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure 安全备份"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure 安全備份"
+          }
+        }
+      }
+    }
   },
   "version": "1.0"
 }

@@ -32,6 +32,7 @@ Its differentiator is a **Receipt Evidence Record**: visible OCR confidence, val
 - An original, opaque 1024×1024 App Store icon.
 - StoreKit 2 lifetime Pro entitlement, a professional upgrade screen, and Restore Purchases.
 - Compiler-extracted UI and permission-copy catalogs covering every App Store Connect language, with a 100% coverage gate; multilingual receipt OCR remains available.
+- Machine-assisted translations remain marked for review until linguistic QA explicitly approves them; draft coverage cannot pass the release gate.
 
 ## Pricing model
 

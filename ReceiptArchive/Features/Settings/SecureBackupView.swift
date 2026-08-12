@@ -82,9 +82,11 @@ struct SecureBackupView: View {
     }
 
     private var healthTitle: String {
-        guard lastSecureBackupAt > 0 else { return "Backup recommended" }
+        guard lastSecureBackupAt > 0 else { return String(localized: "Backup recommended") }
         let age = Date.now.timeIntervalSince1970 - lastSecureBackupAt
-        return age < 30 * 86_400 ? "Backup is current" : "Backup is over 30 days old"
+        return age < 30 * 86_400
+            ? String(localized: "Backup is current")
+            : String(localized: "Backup is over 30 days old")
     }
 
     private var healthSymbol: String { lastSecureBackupAt > 0 && Date.now.timeIntervalSince1970 - lastSecureBackupAt < 30 * 86_400 ? "checkmark.shield.fill" : "exclamationmark.triangle.fill" }
@@ -110,7 +112,7 @@ struct SecureBackupView: View {
             do {
                 let summary = try await SecureBackupService.restore(from: url, modelContext: modelContext, password: password)
                 lastSecureRestoreAt = Date.now.timeIntervalSince1970
-                resultMessage = "Added \(summary.receipts) receipts, \(summary.matters) matters, \(summary.rules) rules, and \(summary.categories) categories. Skipped \(summary.skippedReceipts) receipts already present."
+                resultMessage = String(localized: "Added \(summary.receipts) receipts, \(summary.matters) matters, \(summary.rules) rules, and \(summary.categories) categories. Skipped \(summary.skippedReceipts) receipts already present.")
             } catch { errorMessage = error.localizedDescription }
             isWorking = false
         }

@@ -27,3 +27,6 @@ ExportOptions.private.plist
 SigningAssets/
 .env
 .env.*
+.localization-tools/
+.localization-models/
+__pycache__/
