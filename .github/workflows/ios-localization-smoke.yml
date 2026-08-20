@@ -1,0 +1,119 @@
+name: ReceiptSure Localization Smoke Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: receiptsure-localization-smoke
+  cancel-in-progress: true
+
+jobs:
+  localized-launch:
+    name: Launch representative localized interfaces
+    runs-on: macos-26
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out ReceiptSure
+        uses: actions/checkout@v5
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Create localization simulator
+        id: simulator
+        run: |
+          DEVICE_TYPE="$(xcrun simctl list devicetypes -j | jq -r '.devicetypes[] | select(.name == "iPhone 14 Plus") | .identifier' | head -1)"
+          RUNTIME="$(xcrun simctl list runtimes -j | jq -r '[.runtimes[] | select(.platform == "iOS" and .isAvailable == true)] | sort_by(.version) | last.identifier')"
+          test -n "$DEVICE_TYPE"
+          test -n "$RUNTIME"
+          UDID="$(xcrun simctl create 'ReceiptSure Localization QA' "$DEVICE_TYPE" "$RUNTIME")"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time 9:41 --batteryState charged --batteryLevel 100 --wifiBars 3 --cellularBars 4
+
+      - name: Build and install localized app
+        env:
+          UDID: ${{ steps.simulator.outputs.udid }}
+        run: |
+          xcodebuild build \
+            -project ReceiptArchive.xcodeproj \
+            -scheme ReceiptArchive \
+            -configuration Release \
+            -destination "platform=iOS Simulator,id=$UDID" \
+            -derivedDataPath "$RUNNER_TEMP/ReceiptSureLocalizationDerivedData" \
+            CODE_SIGNING_ALLOWED=NO
+          APP_PATH="$(find "$RUNNER_TEMP/ReceiptSureLocalizationDerivedData/Build/Products/Release-iphonesimulator" -maxdepth 1 -name '*.app' -print -quit)"
+          test -d "$APP_PATH"
+          xcrun simctl install "$UDID" "$APP_PATH"
+
+      - name: Capture representative locales
+        env:
+          UDID: ${{ steps.simulator.outputs.udid }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/ReceiptSureLocalizationQA"
+          capture() {
+            local language="$1"
+            local locale="$2"
+            local tab="$3"
+            xcrun simctl terminate "$UDID" com.bodywiseremedy.receiptsure >/dev/null 2>&1 || true
+            LAUNCH_OUTPUT="$(xcrun simctl launch "$UDID" com.bodywiseremedy.receiptsure \
+              -AppleLanguages "($language)" \
+              -AppleLocale "$locale" \
+              -ReceiptSureScreenshotMode 1 \
+              -ReceiptSureScreenshotTab "$tab")"
+            echo "$LAUNCH_OUTPUT"
+            echo "$LAUNCH_OUTPUT" | grep -E 'com\.bodywiseremedy\.receiptsure: [0-9]+'
+            sleep 4
+            xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ReceiptSureLocalizationQA/${language}-${tab}.png"
+          }
+
+          for sample in \
+            'es-MX|es_MX' \
+            'fr|fr_FR' \
+            'fr-CA|fr_CA' \
+            'de|de_DE' \
+            'ja|ja_JP' \
+            'ko|ko_KR' \
+            'pt-BR|pt_BR' \
+            'pt-PT|pt_PT' \
+            'zh-Hans|zh_CN' \
+            'zh-Hant|zh_TW'; do
+            language="${sample%%|*}"
+            locale="${sample##*|}"
+            capture "$language" "$locale" settings
+            capture "$language" "$locale" matters
+          done
+
+          for screenshot in "$RUNNER_TEMP"/ReceiptSureLocalizationQA/*.png; do
+            WIDTH="$(sips -g pixelWidth "$screenshot" | awk '/pixelWidth/ {print $2}')"
+            HEIGHT="$(sips -g pixelHeight "$screenshot" | awk '/pixelHeight/ {print $2}')"
+            test "$WIDTH" = "1284"
+            test "$HEIGHT" = "2778"
+          done
+          test "$(find "$RUNNER_TEMP/ReceiptSureLocalizationQA" -name '*.png' | wc -l | tr -d ' ')" = "20"
+
+      - name: Upload localization QA screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReceiptSure-Localization-QA
+          path: ${{ runner.temp }}/ReceiptSureLocalizationQA/*.png
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove temporary simulator
+        if: always()
+        env:
+          UDID: ${{ steps.simulator.outputs.udid }}
+        run: |
+          if [ -n "$UDID" ]; then
+            xcrun simctl shutdown "$UDID" >/dev/null 2>&1 || true
+            xcrun simctl delete "$UDID" >/dev/null 2>&1 || true
+          fi

@@ -4,6 +4,12 @@
     "CFBundleDisplayName": {
       "comment": "Bundle display name",
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
         "es-ES": {
           "stringUnit": {
             "state": "translated",
@@ -11,6 +17,42 @@
           }
         },
         "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "pt-PT": {
           "stringUnit": {
             "state": "translated",
             "value": "ReceiptSure"
@@ -33,6 +75,12 @@
     "CFBundleName": {
       "comment": "Bundle name",
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
         "es-ES": {
           "stringUnit": {
             "state": "translated",
@@ -40,6 +88,42 @@
           }
         },
         "es-MX": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "pt-PT": {
           "stringUnit": {
             "state": "translated",
             "value": "ReceiptSure"
@@ -63,6 +147,12 @@
       "comment": "Explains why ReceiptSure requests camera access.",
       "extractionState": "manual",
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure verwendet die Kamera, um Belege zu scannen, zu erkennen und zuzuschneiden, die du speichern möchtest."
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -79,6 +169,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "ReceiptSure usa la cámara para escanear, detectar y recortar los recibos que decidas guardar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure utilise l’appareil photo pour numériser, détecter et recadrer les reçus que vous choisissez d’enregistrer."
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure utilise l’appareil photo pour numériser, détecter et recadrer les reçus que vous choisissez d’enregistrer."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSureは、保存するレシートのスキャン、検出、切り抜きにカメラを使用します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure는 저장할 영수증을 스캔하고 감지하며 자르기 위해 카메라를 사용합니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O ReceiptSure usa a câmera para digitalizar, detectar e recortar os recibos que você escolher salvar."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O ReceiptSure utiliza a câmara para digitalizar, detetar e recortar os recibos que optar por guardar."
           }
         },
         "zh-Hans": {
@@ -99,6 +225,12 @@
       "comment": "Explains why ReceiptSure requests Face ID authentication.",
       "extractionState": "manual",
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure verwendet Face ID, um deine lokal gespeicherten Belege und Ausgabendaten zu schützen."
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -117,6 +249,42 @@
             "value": "ReceiptSure usa Face ID para proteger los recibos y registros de gastos almacenados localmente."
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure utilise Face ID pour protéger vos reçus et relevés de dépenses stockés localement."
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure utilise Face ID pour protéger vos reçus et relevés de dépenses stockés localement."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSureは、端末内に保存されたレシートと支出記録を保護するためにFace IDを使用します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure는 기기에 저장된 영수증과 지출 기록을 보호하기 위해 Face ID를 사용합니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O ReceiptSure usa o Face ID para proteger seus recibos e registros de despesas armazenados localmente."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O ReceiptSure utiliza o Face ID para proteger os recibos e registos de despesas guardados localmente."
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -133,6 +301,12 @@
     },
     "ReceiptSure Secure Backup": {
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicheres ReceiptSure-Backup"
+          }
+        },
         "es-ES": {
           "stringUnit": {
             "state": "translated",
@@ -143,6 +317,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copia de seguridad segura de ReceiptSure"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sauvegarde sécurisée ReceiptSure"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sauvegarde sécurisée ReceiptSure"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure安全バックアップ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure 보안 백업"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup seguro do ReceiptSure"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cópia de segurança segura do ReceiptSure"
           }
         },
         "zh-Hans": {
