@@ -13,8 +13,8 @@ assert_file_contains() {
 }
 
 assert_file_contains project.yml "DEVELOPMENT_TEAM: B5DJ69S32C"
-assert_file_contains project.yml "CURRENT_PROJECT_VERSION: 1"
-assert_file_contains project.yml "MARKETING_VERSION: 1.0"
+assert_file_contains project.yml "CURRENT_PROJECT_VERSION: 6"
+assert_file_contains project.yml "MARKETING_VERSION: 1.1"
 assert_file_contains project.yml "PRODUCT_BUNDLE_IDENTIFIER: com.bodywiseremedy.receiptsure"
 assert_file_contains project.yml 'iOS: "17.0"'
 
@@ -94,8 +94,13 @@ PY
 # A signed/TestFlight build must contain reviewed translations for every
 # language declared by ReceiptSure. Machine-generated drafts deliberately use
 # the `needs_review` state, so this strict check prevents an unfinished locale
-# from reaching App Store Connect by mistake.
-python3 scripts/validate-localizations.py
+# from reaching App Store Connect by mistake. Ordinary pull-request CI may opt
+# into source-only validation while the localization work is still in progress.
+if [ "${ALLOW_UNREVIEWED_LOCALIZATIONS:-false}" = "true" ]; then
+  python3 scripts/validate-localizations.py --source-only
+else
+  python3 scripts/validate-localizations.py
+fi
 
 if command -v plutil >/dev/null 2>&1; then
   plutil -lint ReceiptArchive/Resources/Info.plist
