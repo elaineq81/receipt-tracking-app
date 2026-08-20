@@ -91,6 +91,12 @@ print(
 )
 PY
 
+# A signed/TestFlight build must contain reviewed translations for every
+# language declared by ReceiptSure. Machine-generated drafts deliberately use
+# the `needs_review` state, so this strict check prevents an unfinished locale
+# from reaching App Store Connect by mistake.
+python3 scripts/validate-localizations.py
+
 if command -v plutil >/dev/null 2>&1; then
   plutil -lint ReceiptArchive/Resources/Info.plist
   plutil -lint ReceiptArchive/Resources/PrivacyInfo.xcprivacy

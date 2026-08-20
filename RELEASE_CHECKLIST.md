@@ -43,6 +43,7 @@
 
 ## 3. Archive and TestFlight
 
+- [ ] Run the strict localization validator and confirm every declared locale is in the reviewed `translated` state; the signed-upload workflow enforces this gate automatically.
 - [ ] In Xcode, select **Any iOS Device (arm64)**, then Product → Archive.
 - [ ] In Organizer, Validate App, resolve signing/privacy issues, then Distribute App → App Store Connect → Upload.
 - [ ] Confirm the final source still uses only Apple CryptoKit/Security cryptography and that the archive contains `ITSAppUsesNonExemptEncryption = NO`; reassess if another cryptographic implementation is added.
