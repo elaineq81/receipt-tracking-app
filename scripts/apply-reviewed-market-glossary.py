@@ -9,6 +9,7 @@ UI = Path("ReceiptArchive/Resources/Localizable.xcstrings")
 INFO = Path("ReceiptArchive/Resources/InfoPlist.xcstrings")
 
 LANGUAGES = ("fr", "fr-CA", "de", "ja", "ko", "pt-BR", "pt-PT")
+RTL_LANGUAGES = ("ar", "he", "ur")
 
 TERMS = {
     "Settings": ("Réglages", "Réglages", "Einstellungen", "設定", "설정", "Configurações", "Definições"),
@@ -53,17 +54,54 @@ INFO_TERMS = {
     ),
 }
 
+RTL_TERMS = {
+    "Settings": ("الإعدادات", "הגדרות", "ترتیبات"),
+    "Merchant rules": ("قواعد التجار", "כללי בתי עסק", "تجارتی اداروں کے قواعد"),
+    "Custom categories": ("فئات مخصصة", "קטגוריות מותאמות אישית", "حسبِ ضرورت زمرے"),
+    "Capture & accuracy": ("المسح والدقة", "סריקה ודיוק", "اسکین اور درستگی"),
+    "Encrypted backup & restore": ("النسخ الاحتياطي المشفر والاستعادة", "גיבוי מוצפן ושחזור", "خفیہ کردہ بیک اپ اور بحالی"),
+    "Private iCloud sync": ("مزامنة iCloud الخاصة", "סנכרון iCloud פרטי", "نجی iCloud مطابقت پذیری"),
+    "Share receipt": ("مشاركة الإيصال", "שיתוף קבלה", "رسید شیئر کریں"),
+    "Delete permanently": ("حذف نهائيًا", "מחיקה לצמיתות", "مستقل طور پر حذف کریں"),
+    "Delete Permanently": ("حذف نهائيًا", "מחיקה לצמיתות", "مستقل طور پر حذف کریں"),
+    "Currency": ("العملة", "מטבע", "کرنسی"),
+    "Tax label": ("تسمية الضريبة", "תווית מס", "ٹیکس کا لیبل"),
+    "Evidence status": ("حالة الإثبات", "מצב הראיות", "ثبوت کی حیثیت"),
+    "ReceiptSure Proof Pack": ("حزمة إثبات ReceiptSure", "חבילת הוכחות של ReceiptSure", "ReceiptSure ثبوت پیک"),
+    "Unlock Pro for %@": ("فتح Pro مقابل %@", "פתיחת Pro תמורת %@", "%@ کے عوض Pro ان لاک کریں"),
+    "No secure backup created": ("لم يتم إنشاء نسخة احتياطية آمنة", "טרם נוצר גיבוי מאובטח", "ابھی تک کوئی محفوظ بیک اپ نہیں بنایا گیا"),
+    "ReceiptSure Pro has been restored.": ("تمت استعادة ReceiptSure Pro.", "ReceiptSure Pro שוחזר.", "ReceiptSure Pro بحال ہو گیا ہے۔"),
+}
 
-def apply(path: Path, translations) -> int:
+RTL_INFO_TERMS = {
+    "CFBundleDisplayName": ("ReceiptSure",) * 3,
+    "CFBundleName": ("ReceiptSure",) * 3,
+    "ReceiptSure Secure Backup": ("نسخة احتياطية آمنة لـ ReceiptSure", "גיבוי מאובטח של ReceiptSure", "ReceiptSure محفوظ بیک اپ"),
+    "NSCameraUsageDescription": (
+        "يستخدم ReceiptSure الكاميرا لمسح الإيصالات التي تختار حفظها واكتشافها واقتصاصها.",
+        "ReceiptSure משתמש במצלמה כדי לסרוק, לזהות ולחתוך קבלות שתבחרו לשמור.",
+        "ReceiptSure آپ کی منتخب کردہ رسیدوں کو اسکین، شناخت اور تراشنے کے لیے کیمرہ استعمال کرتا ہے۔",
+    ),
+    "NSFaceIDUsageDescription": (
+        "يستخدم ReceiptSure ‏Face ID لحماية الإيصالات وسجلات النفقات المخزنة محليًا.",
+        "ReceiptSure משתמש ב-Face ID כדי להגן על קבלות ורישומי הוצאות המאוחסנים במכשיר.",
+        "ReceiptSure مقامی طور پر محفوظ رسیدوں اور اخراجات کے ریکارڈ کی حفاظت کے لیے Face ID استعمال کرتا ہے۔",
+    ),
+}
+
+
+def apply(path: Path, translations, languages=LANGUAGES) -> int:
     payload = json.loads(path.read_text(encoding="utf-8"))
     changed = 0
     for key, values in translations.items():
         entry = payload["strings"][key].setdefault("localizations", {})
-        for language, value in zip(LANGUAGES, values):
+        for language, value in zip(languages, values):
             entry[language] = {"stringUnit": {"state": "translated", "value": value}}
             changed += 1
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return changed
 
 
-print(f"Applied {apply(UI, TERMS) + apply(INFO, INFO_TERMS)} reviewed priority-market entries.")
+changed = apply(UI, TERMS) + apply(INFO, INFO_TERMS)
+changed += apply(UI, RTL_TERMS, RTL_LANGUAGES) + apply(INFO, RTL_INFO_TERMS, RTL_LANGUAGES)
+print(f"Applied {changed} reviewed priority-market entries.")

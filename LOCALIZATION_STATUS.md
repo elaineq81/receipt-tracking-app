@@ -18,8 +18,11 @@ ReceiptSure uses English as its source language. Xcode currently inventories 333
 | Korean | 333/333 | 21/333 | Blocked pending full linguistic and layout review |
 | Portuguese (Brazil) | 333/333 | 21/333 | Blocked pending regional and layout review |
 | Portuguese (Portugal) | 333/333 | 21/333 | Blocked pending regional and layout review |
+| Arabic | 333/333 | 21/333 | Blocked pending full linguistic and RTL layout review |
+| Hebrew | 333/333 | 21/333 | Blocked pending full linguistic and RTL layout review |
+| Urdu | 333/333 | 21/333 | Blocked pending full linguistic and RTL layout review |
 
-The remaining 35 configured non-English locales have not yet been populated. Machine-assisted values use the String Catalog state `needs_review`; the release validator only accepts `translated`. Placeholders such as `%@` and `%lld` must remain byte-for-byte identical. Run `python scripts/localization-report.py` for the current per-locale counts.
+The remaining 32 configured non-English locales have not yet been populated. Machine-assisted values use the String Catalog state `needs_review`; the release validator only accepts `translated`. Placeholders such as `%@` and `%lld` must remain byte-for-byte identical. Run `python scripts/localization-report.py` for the current per-locale counts.
 
 ## Required release sampling
 
@@ -31,4 +34,4 @@ The remaining 35 configured non-English locales have not yet been populated. Mac
 
 Do not select a replacement TestFlight build for App Review until the strict validator and representative device matrix pass.
 
-The `ReceiptSure Localization Smoke Test` workflow launches the Settings and Matters interfaces in ten representative locales and retains 20 genuine simulator screenshots for visual review.
+The `ReceiptSure Localization Smoke Test` workflow launches the Settings and Matters interfaces in thirteen representative locales and retains 26 genuine simulator screenshots for visual review, including Arabic, Hebrew, and Urdu right-to-left layouts.

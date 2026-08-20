@@ -76,14 +76,17 @@ jobs:
           }
 
           for sample in \
+            'ar|ar_SA' \
             'es-MX|es_MX' \
             'fr|fr_FR' \
             'fr-CA|fr_CA' \
             'de|de_DE' \
+            'he|he_IL' \
             'ja|ja_JP' \
             'ko|ko_KR' \
             'pt-BR|pt_BR' \
             'pt-PT|pt_PT' \
+            'ur|ur_PK' \
             'zh-Hans|zh_CN' \
             'zh-Hant|zh_TW'; do
             language="${sample%%|*}"
@@ -98,7 +101,7 @@ jobs:
             test "$WIDTH" = "1284"
             test "$HEIGHT" = "2778"
           done
-          test "$(find "$RUNNER_TEMP/ReceiptSureLocalizationQA" -name '*.png' | wc -l | tr -d ' ')" = "20"
+          test "$(find "$RUNNER_TEMP/ReceiptSureLocalizationQA" -name '*.png' | wc -l | tr -d ' ')" = "26"
 
       - name: Upload localization QA screenshots
         uses: actions/upload-artifact@v4

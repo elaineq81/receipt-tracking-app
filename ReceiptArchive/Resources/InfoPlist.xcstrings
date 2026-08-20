@@ -4,6 +4,12 @@
     "CFBundleDisplayName": {
       "comment": "Bundle display name",
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -34,6 +40,12 @@
             "value": "ReceiptSure"
           }
         },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
@@ -53,6 +65,12 @@
           }
         },
         "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "ur": {
           "stringUnit": {
             "state": "translated",
             "value": "ReceiptSure"
@@ -75,6 +93,12 @@
     "CFBundleName": {
       "comment": "Bundle name",
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -105,6 +129,12 @@
             "value": "ReceiptSure"
           }
         },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
@@ -124,6 +154,12 @@
           }
         },
         "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure"
+          }
+        },
+        "ur": {
           "stringUnit": {
             "state": "translated",
             "value": "ReceiptSure"
@@ -147,6 +183,12 @@
       "comment": "Explains why ReceiptSure requests camera access.",
       "extractionState": "manual",
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يستخدم ReceiptSure الكاميرا لمسح الإيصالات التي تختار حفظها واكتشافها واقتصاصها."
+          }
+        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -183,6 +225,12 @@
             "value": "ReceiptSure utilise l’appareil photo pour numériser, détecter et recadrer les reçus que vous choisissez d’enregistrer."
           }
         },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure משתמש במצלמה כדי לסרוק, לזהות ולחתוך קבלות שתבחרו לשמור."
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
@@ -207,6 +255,12 @@
             "value": "O ReceiptSure utiliza a câmara para digitalizar, detetar e recortar os recibos que optar por guardar."
           }
         },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure آپ کی منتخب کردہ رسیدوں کو اسکین، شناخت اور تراشنے کے لیے کیمرہ استعمال کرتا ہے۔"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -225,6 +279,12 @@
       "comment": "Explains why ReceiptSure requests Face ID authentication.",
       "extractionState": "manual",
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يستخدم ReceiptSure ‏Face ID لحماية الإيصالات وسجلات النفقات المخزنة محليًا."
+          }
+        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -261,6 +321,12 @@
             "value": "ReceiptSure utilise Face ID pour protéger vos reçus et relevés de dépenses stockés localement."
           }
         },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure משתמש ב-Face ID כדי להגן על קבלות ורישומי הוצאות המאוחסנים במכשיר."
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
@@ -285,6 +351,12 @@
             "value": "O ReceiptSure utiliza o Face ID para proteger os recibos e registos de despesas guardados localmente."
           }
         },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure مقامی طور پر محفوظ رسیدوں اور اخراجات کے ریکارڈ کی حفاظت کے لیے Face ID استعمال کرتا ہے۔"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -301,6 +373,12 @@
     },
     "ReceiptSure Secure Backup": {
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نسخة احتياطية آمنة لـ ReceiptSure"
+          }
+        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -331,6 +409,12 @@
             "value": "Sauvegarde sécurisée ReceiptSure"
           }
         },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "גיבוי מאובטח של ReceiptSure"
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
@@ -353,6 +437,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cópia de segurança segura do ReceiptSure"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ReceiptSure محفوظ بیک اپ"
           }
         },
         "zh-Hans": {
