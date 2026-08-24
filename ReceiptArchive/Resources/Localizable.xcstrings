@@ -11445,86 +11445,86 @@
       "localizations": {
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "محتوى الاختباء في محول التذاكر"
+            "state": "translated",
+            "value": "إخفاء المحتوى في مبدّل التطبيقات"
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Inhalte im App Switcher ausblenden"
+            "state": "translated",
+            "value": "Inhalte im App-Umschalter ausblenden"
           }
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Ocultar contenido en el conmutador de aplicaciones"
+            "state": "translated",
+            "value": "Ocultar contenido en el selector de apps"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Ocultar contenido en el conmutador de aplicaciones"
+            "state": "translated",
+            "value": "Ocultar contenido en el selector de apps"
           }
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Cacher le contenu dans l'application commuter"
+            "state": "translated",
+            "value": "Masquer le contenu dans le sélecteur d’apps"
           }
         },
         "fr-CA": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Cacher le contenu dans l'application commuter"
+            "state": "translated",
+            "value": "Masquer le contenu dans le sélecteur d’apps"
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "עקבו אחרי app Switcher"
+            "state": "translated",
+            "value": "הסתרת תוכן במחליף היישומים"
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "アプリのスイッチャーでコンテンツを隠す"
+            "state": "translated",
+            "value": "Appスイッチャーで内容を隠す"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "앱 스위처에서 콘텐츠 숨기기"
+            "state": "translated",
+            "value": "앱 전환기에서 콘텐츠 가리기"
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Ocultar conteúdo no interruptor de aplicativos"
+            "state": "translated",
+            "value": "Ocultar conteúdo no seletor de apps"
           }
         },
         "pt-PT": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Ocultar conteúdo no interruptor de aplicativos"
+            "state": "translated",
+            "value": "Ocultar conteúdo no seletor de apps"
           }
         },
         "ur": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ایپپسر میں دستیاب مواد"
+            "state": "translated",
+            "value": "ایپ سوئچر میں مواد چھپائیں"
           }
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "在应用程序切换器中隐藏内容"
+            "state": "translated",
+            "value": "在应用切换器中隐藏内容"
           }
         },
         "zh-Hant": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "在應用程式切換器中隱藏內容"
+            "state": "translated",
+            "value": "在 App 切換器中隱藏內容"
           }
         }
       }
@@ -12589,86 +12589,86 @@
       "localizations": {
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "استمري في استخدام الخطة المجانية أو التحديث مرة دون اشتراك"
+            "state": "translated",
+            "value": "استمر في استخدام الخطة المجانية، أو قم بالترقية مرة واحدة من دون اشتراك."
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Verwenden Sie den kostenlosen Plan oder aktualisieren Sie einmal ohne Abonnement."
+            "state": "translated",
+            "value": "Nutze weiterhin den kostenlosen Plan oder führe ein einmaliges Upgrade ohne Abonnement durch."
           }
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Siga utilizando el plan gratuito, o actualice una vez sin suscripción."
+            "state": "translated",
+            "value": "Sigue usando el plan gratuito o mejora una sola vez, sin suscripción."
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Siga utilizando el plan gratuito, o actualice una vez sin suscripción."
+            "state": "translated",
+            "value": "Sigue usando el plan gratuito o mejora una sola vez, sin suscripción."
           }
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Continuez à utiliser le forfait gratuit, ou mettez à jour une fois sans abonnement."
+            "state": "translated",
+            "value": "Continuez avec l’offre gratuite ou passez à Pro une seule fois, sans abonnement."
           }
         },
         "fr-CA": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Continuez à utiliser le forfait gratuit, ou mettez à jour une fois sans abonnement."
+            "state": "translated",
+            "value": "Continuez avec l’offre gratuite ou passez à Pro une seule fois, sans abonnement."
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "המשיכו להשתמש בתוכנה חופשית, או לשדרג פעם ללא מנויים."
+            "state": "translated",
+            "value": "המשיכו להשתמש בתוכנית החינמית, או שדרגו פעם אחת ללא מנוי."
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "無料プランをお使いいただくか、サブスクリプションなしでアップグレードしてください。"
+            "state": "translated",
+            "value": "無料プランを使い続けるか、サブスクリプションなしで一度だけアップグレードできます。"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "무료 플랜을 사용하거나 구독없이 한 번 업그레이드하십시오."
+            "state": "translated",
+            "value": "무료 플랜을 계속 사용하거나 구독 없이 한 번만 업그레이드하세요."
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Continue usando o plano gratuito, ou atualize uma vez sem assinatura."
+            "state": "translated",
+            "value": "Continue usando o plano gratuito ou faça um upgrade único, sem assinatura."
           }
         },
         "pt-PT": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Continue usando o plano gratuito, ou atualize uma vez sem assinatura."
+            "state": "translated",
+            "value": "Continue a usar o plano gratuito ou faça uma atualização única, sem subscrição."
           }
         },
         "ur": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "آزاد منصوبے کا استعمال کرتے رہیں یا ایک بار پھر بغیر کسی قسم کے دوبارہ تجدید کریں۔"
+            "state": "translated",
+            "value": "مفت پلان استعمال کرتے رہیں، یا سبسکرپشن کے بغیر ایک بار اپ گریڈ کریں۔"
           }
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "继续使用免费计划,或升级一次,不订阅."
+            "state": "translated",
+            "value": "继续使用免费计划，或一次性升级，无需订阅。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "繼續使用免費計劃,"
+            "state": "translated",
+            "value": "繼續使用免費方案，或一次升級，無需訂閱。"
           }
         }
       }
@@ -13821,14 +13821,14 @@
       "localizations": {
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "المسائل"
+            "state": "translated",
+            "value": "المهام"
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Materie"
+            "state": "translated",
+            "value": "Vorgänge"
           }
         },
         "es-ES": {
@@ -13845,49 +13845,49 @@
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Questions de fond"
+            "state": "translated",
+            "value": "Dossiers"
           }
         },
         "fr-CA": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Questions de fond"
+            "state": "translated",
+            "value": "Dossiers"
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "דברים"
+            "state": "translated",
+            "value": "נושאים"
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "マット"
+            "state": "translated",
+            "value": "案件"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "팟캐스트"
+            "state": "translated",
+            "value": "항목"
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Questões"
+            "state": "translated",
+            "value": "Assuntos"
           }
         },
         "pt-PT": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Questões"
+            "state": "translated",
+            "value": "Assuntos"
           }
         },
         "ur": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "معاملات"
           }
         },
@@ -19805,86 +19805,86 @@
       "localizations": {
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "تلقي الصور و تفاصيل النفقات تبقى محلية إلا إذا سمحتiCloudمتزامنة"
+            "state": "translated",
+            "value": "تبقى صور الإيصالات وتفاصيل النفقات على الجهاز ما لم تفعّل مزامنة iCloud الخاصة صراحةً."
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Empfangsbilder und Kostendetails bleiben lokal, es sei denn, Sie aktivieren ausdrücklich privateiCloudsync."
+            "state": "translated",
+            "value": "Belegbilder und Ausgabendetails bleiben auf diesem Gerät, sofern du die private iCloud-Synchronisierung nicht ausdrücklich aktivierst."
           }
         },
         "es-ES": {
           "stringUnit": {
             "state": "translated",
-            "value": "Las imágenes de recibos y los detalles de gastos permanecen en el dispositivo salvo que actives expresamente la sincronización privada con iCloud."
+            "value": "Las imágenes de recibos y los detalles de gastos permanecen en el dispositivo, salvo que actives expresamente la sincronización privada con iCloud."
           }
         },
         "es-MX": {
           "stringUnit": {
             "state": "translated",
-            "value": "Las imágenes de recibos y los detalles de gastos permanecen en el dispositivo salvo que actives expresamente la sincronización privada con iCloud."
+            "value": "Las imágenes de recibos y los detalles de gastos permanecen en el dispositivo, salvo que actives expresamente la sincronización privada con iCloud."
           }
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Reçu les images et les détails des dépenses restent locaux sauf si vous activez explicitement privéiCloudSynchronisation."
+            "state": "translated",
+            "value": "Les images des reçus et les détails des dépenses restent sur l’appareil, sauf si vous activez explicitement la synchronisation iCloud privée."
           }
         },
         "fr-CA": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Reçu les images et les détails des dépenses restent locaux sauf si vous activez explicitement privéiCloudSynchronisation."
+            "state": "translated",
+            "value": "Les images des reçus et les détails des dépenses restent sur l’appareil, sauf si vous activez explicitement la synchronisation iCloud privée."
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "תמונות ופרטים על חשבון להישאר במקום, אלא אם כן אתה מאפשר במפורש פרטיותiCloudסינכרון."
+            "state": "translated",
+            "value": "תמונות הקבלות ופרטי ההוצאות נשארים במכשיר, אלא אם מפעילים במפורש סנכרון iCloud פרטי."
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "許可された画像と費用の詳細は、明示的にプライベートを有効にしない限り、ローカルに滞在しますiCloud同期。"
+            "state": "translated",
+            "value": "レシート画像と支出の詳細は、プライベートiCloud同期を明示的に有効にしない限り、このデバイスに保存されます。"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Receipt images and cost details stay local if you 명시적으로 개인을 활성화하지 않는 한iCloud동기화."
+            "state": "translated",
+            "value": "영수증 이미지와 지출 세부 정보는 비공개 iCloud 동기화를 직접 켜지 않는 한 이 기기에만 저장됩니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Receber imagens e detalhes de despesas permanecer local a menos que você explicitamente habilitar privadoiCloudsincronizar."
+            "state": "translated",
+            "value": "As imagens dos recibos e os detalhes das despesas ficam no dispositivo, a menos que você ative explicitamente a sincronização privada do iCloud."
           }
         },
         "pt-PT": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Receber imagens e detalhes de despesas permanecer local a menos que você explicitamente habilitar privadoiCloudsincronizar."
+            "state": "translated",
+            "value": "As imagens dos recibos e os detalhes das despesas ficam no dispositivo, a menos que ative explicitamente a sincronização privada do iCloud."
           }
         },
         "ur": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "جب تک آپ ذاتی معلومات حاصل نہ کر لیں مقامی طور پر رہ جائیںiCloudایس ."
+            "state": "translated",
+            "value": "رسید کی تصاویر اور اخراجات کی تفصیلات اسی ڈیوائس پر رہتی ہیں، جب تک آپ نجی iCloud مطابقت پذیری واضح طور پر فعال نہ کریں۔"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "除非你明确启用专用 iCloud 同步，否则收据图像和支出详情只保存在本机。"
+            "value": "收据图像和支出详情会保留在此设备上，除非你明确启用专用 iCloud 同步。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "接收影像與支出細節留在本地, 除非您明确開啟私用iCloud同步。"
+            "state": "translated",
+            "value": "收據影像和支出詳情會保留在此裝置上，除非你明確啟用私人 iCloud 同步。"
           }
         }
       }
@@ -20069,86 +20069,86 @@
       "localizations": {
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ReceiptSurePro"
+            "state": "translated",
+            "value": "ReceiptSure Pro"
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ReceiptSureProd"
+            "state": "translated",
+            "value": "ReceiptSure Pro"
           }
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "ReceiptSure Pro"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "ReceiptSure Pro"
           }
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ReceiptSurePour"
+            "state": "translated",
+            "value": "ReceiptSure Pro"
           }
         },
         "fr-CA": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ReceiptSurePour"
+            "state": "translated",
+            "value": "ReceiptSure Pro"
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ReceiptSurePro"
+            "state": "translated",
+            "value": "ReceiptSure Pro"
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ReceiptSureプロフィール"
+            "state": "translated",
+            "value": "ReceiptSure Pro"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ReceiptSure지원하다"
+            "state": "translated",
+            "value": "ReceiptSure Pro"
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ReceiptSurePro"
+            "state": "translated",
+            "value": "ReceiptSure Pro"
           }
         },
         "pt-PT": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ReceiptSurePro"
+            "state": "translated",
+            "value": "ReceiptSure Pro"
           }
         },
         "ur": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ReceiptSureاوپر لکھیں"
+            "state": "translated",
+            "value": "ReceiptSure Pro"
           }
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ReceiptSure赞成:"
+            "state": "translated",
+            "value": "ReceiptSure Pro"
           }
         },
         "zh-Hant": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ReceiptSure正"
+            "state": "translated",
+            "value": "ReceiptSure Pro"
           }
         }
       }
@@ -20597,14 +20597,14 @@
       "localizations": {
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "المقبوضات"
+            "state": "translated",
+            "value": "الإيصالات"
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Eingänge"
+            "state": "translated",
+            "value": "Belege"
           }
         },
         "es-ES": {
@@ -20621,50 +20621,50 @@
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Recettes"
+            "state": "translated",
+            "value": "Reçus"
           }
         },
         "fr-CA": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Recettes"
+            "state": "translated",
+            "value": "Reçus"
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Receipts"
+            "state": "translated",
+            "value": "קבלות"
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "パスワード"
+            "state": "translated",
+            "value": "レシート"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "회사연혁"
+            "state": "translated",
+            "value": "영수증"
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Receitas"
+            "state": "translated",
+            "value": "Recibos"
           }
         },
         "pt-PT": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Receitas"
+            "state": "translated",
+            "value": "Recibos"
           }
         },
         "ur": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "دوبارہ شروع"
+            "state": "translated",
+            "value": "رسیدیں"
           }
         },
         "zh-Hans": {
@@ -21653,13 +21653,13 @@
       "localizations": {
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "التقارير"
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Berichte"
           }
         },
@@ -21677,50 +21677,50 @@
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Rapports"
           }
         },
         "fr-CA": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Rapports"
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "דוחות"
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "レポート"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "제품정보"
+            "state": "translated",
+            "value": "보고서"
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Relatórios"
           }
         },
         "pt-PT": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Relatórios"
           }
         },
         "ur": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "بیانات"
+            "state": "translated",
+            "value": "رپورٹس"
           }
         },
         "zh-Hans": {
@@ -21741,86 +21741,86 @@
       "localizations": {
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "طلبFace IDأو رمز المرور"
+            "state": "translated",
+            "value": "طلب Face ID أو رمز الدخول"
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "BenötigenFace IDoder Passcode"
+            "state": "translated",
+            "value": "Face ID oder Code anfordern"
           }
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Requiere Face ID o contraseña"
+            "state": "translated",
+            "value": "Requerir Face ID o código"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Requiere Face ID o contraseña"
+            "state": "translated",
+            "value": "Requerir Face ID o código"
           }
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "BesoinFace IDou code passe"
+            "state": "translated",
+            "value": "Exiger Face ID ou un code"
           }
         },
         "fr-CA": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "BesoinFace IDou code passe"
+            "state": "translated",
+            "value": "Exiger Face ID ou un code"
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "דרושיםFace IDאו Passcode"
+            "state": "translated",
+            "value": "דרישת Face ID או קוד גישה"
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "お問い合わせFace IDまたはパスコード"
+            "state": "translated",
+            "value": "Face IDまたはパスコードを要求"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "이름 *Face ID패스코드"
+            "state": "translated",
+            "value": "Face ID 또는 암호 요구"
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "RequererFace IDou senha"
+            "state": "translated",
+            "value": "Exigir Face ID ou código"
           }
         },
         "pt-PT": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "RequererFace IDou senha"
+            "state": "translated",
+            "value": "Exigir Face ID ou código"
           }
         },
         "ur": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ضرورتFace IDیا کوڈ عبور کرتا ہے۔"
+            "state": "translated",
+            "value": "Face ID یا پاس کوڈ درکار"
           }
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "需求Face ID或密码"
+            "state": "translated",
+            "value": "需要 Face ID 或密码"
           }
         },
         "zh-Hant": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "需要Face ID或密碼"
+            "state": "translated",
+            "value": "需要 Face ID 或密碼"
           }
         }
       }
@@ -22005,86 +22005,86 @@
       "localizations": {
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Restore Purchases"
+            "state": "translated",
+            "value": "استعادة المشتريات"
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Käufe wiederherstellen"
           }
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Restaurar las compras"
+            "state": "translated",
+            "value": "Restaurar compras"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Restaurar las compras"
+            "state": "translated",
+            "value": "Restaurar compras"
           }
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Restaurer les achats"
           }
         },
         "fr-CA": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Restaurer les achats"
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "שחזור רכישות"
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "購入を復元する"
+            "state": "translated",
+            "value": "購入を復元"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Restore 구매"
+            "state": "translated",
+            "value": "구매 복원"
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Restaurar compras"
           }
         },
         "pt-PT": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Restaurar compras"
           }
         },
         "ur": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "پَکُرُورس"
+            "state": "translated",
+            "value": "خریداری بحال کریں"
           }
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "恢复购买"
           }
         },
         "zh-Hant": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "恢复购买"
+            "state": "translated",
+            "value": "恢復購買"
           }
         }
       }
@@ -23853,86 +23853,86 @@
       "localizations": {
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "استمرارية الأمن"
+            "state": "translated",
+            "value": "الأمان والاستمرارية"
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Sicherheit und Kontinuität"
           }
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Seguridad y continuidad"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Seguridad y continuidad"
           }
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Sécurité et continuité"
           }
         },
         "fr-CA": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Sécurité et continuité"
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "אבטחה & המשכיות"
+            "state": "translated",
+            "value": "אבטחה והמשכיות"
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "セキュリティと継続性"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "보안 및 연속성"
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Segurança e continuidade"
           }
         },
         "pt-PT": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Segurança e continuidade"
           }
         },
         "ur": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "سیکورٹی & مستقل"
+            "state": "translated",
+            "value": "سیکیورٹی اور تسلسل"
           }
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "安保和连续性"
+            "state": "translated",
+            "value": "安全与连续性"
           }
         },
         "zh-Hant": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "安全连续性( C)"
+            "state": "translated",
+            "value": "安全與連續性"
           }
         }
       }
@@ -24733,13 +24733,13 @@
       "localizations": {
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "مخزن على هذا الجهاز"
+            "state": "translated",
+            "value": "مخزّن على هذا الجهاز"
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Auf diesem Gerät gespeichert"
           }
         },
@@ -24757,50 +24757,50 @@
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Stockage sur ce dispositif"
+            "state": "translated",
+            "value": "Stocké sur cet appareil"
           }
         },
         "fr-CA": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Stockage sur ce dispositif"
+            "state": "translated",
+            "value": "Stocké sur cet appareil"
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "מאוחסן במכשיר זה"
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "このデバイスに保存"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "이 장치에 저장"
+            "state": "translated",
+            "value": "이 기기에 저장됨"
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Armazenado neste dispositivo"
           }
         },
         "pt-PT": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Armazenado neste dispositivo"
+            "state": "translated",
+            "value": "Guardado neste dispositivo"
           }
         },
         "ur": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "اس ڈیوائس پر محفوظ کیا گیا"
+            "state": "translated",
+            "value": "اس ڈیوائس پر محفوظ"
           }
         },
         "zh-Hans": {
@@ -24811,7 +24811,7 @@
         },
         "zh-Hant": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "儲存在此裝置上"
           }
         }
@@ -27637,86 +27637,86 @@
       "localizations": {
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "&quot; Pro &quot; - شراء لمرة واحدة"
+            "state": "translated",
+            "value": "فتح Pro — شراء لمرة واحدة"
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Unlock Pro — einmaliger Kauf"
+            "state": "translated",
+            "value": "Pro freischalten — einmaliger Kauf"
           }
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Desbloquear Pro — compra única"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Desbloquear Pro — compra única"
           }
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Débloquer Pro — achat ponctuel"
+            "state": "translated",
+            "value": "Débloquer Pro — achat unique"
           }
         },
         "fr-CA": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Débloquer Pro — achat ponctuel"
+            "state": "translated",
+            "value": "Débloquer Pro — achat unique"
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Unlock Pro - רכישה חד פעמית"
+            "state": "translated",
+            "value": "פתיחת Pro — רכישה חד-פעמית"
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Proのロック解除 — ワンタイム購入"
+            "state": "translated",
+            "value": "Proを解除 — 1回限りの購入"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Pro를 잠금 해제 - 한 번 구매"
+            "state": "translated",
+            "value": "Pro 잠금 해제 — 일회성 구매"
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Desbloquear Pro — compra única"
           }
         },
         "pt-PT": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Desbloquear Pro — compra única"
           }
         },
         "ur": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "یک وقتی خریداری"
+            "state": "translated",
+            "value": "Pro اَن لاک کریں — ایک بار کی خریداری"
           }
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "解锁Pro——一次性购买"
+            "state": "translated",
+            "value": "解锁 Pro — 一次性购买"
           }
         },
         "zh-Hant": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "解鎖Pro——一次性購買"
+            "state": "translated",
+            "value": "解鎖 Pro — 一次購買"
           }
         }
       }
@@ -28693,86 +28693,86 @@
       "localizations": {
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "بياناتك"
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Ihre Daten"
           }
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Sus datos"
+            "state": "translated",
+            "value": "Tus datos"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Sus datos"
+            "state": "translated",
+            "value": "Tus datos"
           }
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Vos données"
           }
         },
         "fr-CA": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Vos données"
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "הנתונים שלך"
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "あなたのデータ"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "당신의 자료"
+            "state": "translated",
+            "value": "내 데이터"
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Os seus dados"
+            "state": "translated",
+            "value": "Seus dados"
           }
         },
         "pt-PT": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Os seus dados"
           }
         },
         "ur": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "آپ کے اعداد"
+            "state": "translated",
+            "value": "آپ کا ڈیٹا"
           }
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "您的数据"
+            "state": "translated",
+            "value": "你的数据"
           }
         },
         "zh-Hant": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "您的數據"
+            "state": "translated",
+            "value": "你的資料"
           }
         }
       }
