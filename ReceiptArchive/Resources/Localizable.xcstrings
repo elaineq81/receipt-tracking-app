@@ -5446,7 +5446,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "收款"
+            "value": "数据收集"
           }
         },
         "zh-Hant": {
@@ -12837,8 +12837,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "保持此收件分离,并打开扫描仪用于下一个."
+            "state": "translated",
+            "value": "单独保存此收据，并打开扫描器以处理下一张。"
           }
         },
         "zh-Hant": {
@@ -13013,8 +13013,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "最后恢复"
+            "state": "translated",
+            "value": "上次恢复"
           }
         },
         "zh-Hant": {
@@ -13189,8 +13189,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "终身 Pro 活动"
+            "state": "translated",
+            "value": "终身 Pro 已激活"
           }
         },
         "zh-Hant": {
@@ -13277,8 +13277,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "细列项目"
+            "state": "translated",
+            "value": "明细项"
           }
         },
         "zh-Hant": {
@@ -13453,8 +13453,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "正在装入接收图像"
+            "state": "translated",
+            "value": "正在加载收据图像"
           }
         },
         "zh-Hant": {
@@ -13541,8 +13541,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "确定每个数量都是可见的。 调整任何页面上的四角ReceiptSure读它。"
+            "state": "translated",
+            "value": "确保每个金额都清晰可见。ReceiptSure 读取前，你可以调整任一页面的四个角。"
           }
         },
         "zh-Hant": {
@@ -13629,8 +13629,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "匹配"
+            "state": "translated",
+            "value": "匹配条件"
           }
         },
         "zh-Hant": {
@@ -13717,8 +13717,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "匹配“%@“"
+            "state": "translated",
+            "value": "匹配“%@”"
           }
         },
         "zh-Hant": {
@@ -13805,8 +13805,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "匹配忽略了资本化. 使用商号的稳定部分."
+            "state": "translated",
+            "value": "匹配不区分大小写。请使用商家名称中固定不变的部分。"
           }
         },
         "zh-Hant": {
@@ -13893,8 +13893,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "物质"
+            "state": "translated",
+            "value": "事项"
           }
         },
         "zh-Hant": {
@@ -14245,8 +14245,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "商业名称包含"
+            "state": "translated",
+            "value": "商家名称包含"
           }
         },
         "zh-Hant": {
@@ -14333,8 +14333,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "可用商机规则"
+            "state": "translated",
+            "value": "有可用的商家规则"
           }
         },
         "zh-Hant": {
@@ -14509,8 +14509,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "商品、类别或事项"
+            "state": "translated",
+            "value": "商家、类别或事项"
           }
         },
         "zh-Hant": {
@@ -14597,8 +14597,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "移动%@到最近删除 ?"
+            "state": "translated",
+            "value": "将 %@ 移到“最近删除”？"
           }
         },
         "zh-Hant": {
@@ -14685,8 +14685,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "移动到最近删除"
+            "state": "translated",
+            "value": "移到“最近删除”"
           }
         },
         "zh-Hant": {
@@ -14773,8 +14773,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "需要关注"
+            "state": "translated",
+            "value": "需要处理"
           }
         },
         "zh-Hant": {
@@ -14861,8 +14861,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "需求审查"
+            "state": "translated",
+            "value": "需要检查"
           }
         },
         "zh-Hant": {
@@ -15037,8 +15037,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "新事项"
+            "state": "translated",
+            "value": "新建事项"
           }
         },
         "zh-Hant": {
@@ -15125,8 +15125,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "新规则"
+            "state": "translated",
+            "value": "新建规则"
           }
         },
         "zh-Hant": {
@@ -15301,8 +15301,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "本选择没有费用"
+            "state": "translated",
+            "value": "此选择中没有费用"
           }
         },
         "zh-Hant": {
@@ -15389,8 +15389,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "没有发现个别物品。 需要分配或报销时,您可以手动添加。"
+            "state": "translated",
+            "value": "未识别出单项明细。如分摊或报销需要，你可以手动添加。"
           }
         },
         "zh-Hant": {
@@ -15477,8 +15477,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "未保存行项目 。"
+            "state": "translated",
+            "value": "未保存明细项。"
           }
         },
         "zh-Hant": {
@@ -15565,8 +15565,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "还没有问题"
+            "state": "translated",
+            "value": "尚无事项"
           }
         },
         "zh-Hant": {
@@ -15653,8 +15653,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "没有商法"
+            "state": "translated",
+            "value": "尚无商家规则"
           }
         },
         "zh-Hant": {
@@ -15741,8 +15741,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "无收据"
+            "state": "translated",
+            "value": "没有收据"
           }
         },
         "zh-Hant": {
@@ -15829,8 +15829,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "尚未收到收据"
+            "state": "translated",
+            "value": "尚无收据"
           }
         },
         "zh-Hant": {
@@ -16005,7 +16005,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "无建议"
           }
         },
@@ -16093,8 +16093,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "现在不行"
+            "state": "translated",
+            "value": "暂不"
           }
         },
         "zh-Hant": {
@@ -16269,8 +16269,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "页:1"
+            "state": "translated",
+            "value": "备注"
           }
         },
         "zh-Hant": {
@@ -16357,8 +16357,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "注解(可选)"
+            "state": "translated",
+            "value": "备注（可选）"
           }
         },
         "zh-Hant": {
@@ -16445,8 +16445,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "OCR自信"
+            "state": "translated",
+            "value": "OCR 置信度"
           }
         },
         "zh-Hant": {
@@ -16533,8 +16533,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "OCR自信%@"
+            "state": "translated",
+            "value": "OCR 置信度 %@"
           }
         },
         "zh-Hant": {
@@ -16621,8 +16621,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "还好"
+            "state": "translated",
+            "value": "好"
           }
         },
         "zh-Hant": {
@@ -16709,8 +16709,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "默认关闭。 如果启用,则AES-GCM加密的库快照和收件图像存储在您的 CloudKit 私人数据库中. 加密密钥用途iCloud键链可以让你的签名设备解密快照."
+            "state": "translated",
+            "value": "默认关闭。启用后，经 AES-GCM 加密的资料库快照和收据图像会存储在你的私人 CloudKit 数据库中。加密密钥使用 iCloud 钥匙串，以便登录同一账户的设备解密快照。"
           }
         },
         "zh-Hant": {
@@ -16885,8 +16885,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "一次性购买. 不订阅。"
+            "state": "translated",
+            "value": "一次性购买，无需订阅。"
           }
         },
         "zh-Hant": {
@@ -16973,8 +16973,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "仅包括有完整费率、生效日期和来源的收据。"
+            "state": "translated",
+            "value": "仅包含汇率、生效日期和来源均完整的收据。"
           }
         },
         "zh-Hant": {
@@ -17061,8 +17061,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "可选设备认证用途Face ID触摸ID或设备密码 隐私屏蔽在应用程序不活动时隐藏接收内容."
+            "state": "translated",
+            "value": "可选的设备认证使用 Face ID、Touch ID 或设备密码。应用不在前台时，隐私遮罩会隐藏收据内容。"
           }
         },
         "zh-Hant": {
@@ -17149,8 +17149,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "任择说明"
+            "state": "translated",
+            "value": "可选备注"
           }
         },
         "zh-Hant": {
@@ -17237,8 +17237,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "原封号"
+            "state": "translated",
+            "value": "原始凭证印章"
           }
         },
         "zh-Hant": {
@@ -17413,7 +17413,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "概览"
           }
         },
@@ -17589,8 +17589,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "PDF详细内容"
+            "state": "translated",
+            "value": "含详细信息的 PDF"
           }
         },
         "zh-Hant": {
@@ -17677,8 +17677,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "主张"
+            "state": "translated",
+            "value": "PRO"
           }
         },
         "zh-Hant": {
@@ -17765,8 +17765,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "付款"
+            "state": "translated",
+            "value": "付款方式"
           }
         },
         "zh-Hant": {
@@ -17853,8 +17853,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "付款由你的苹果账户支付。 用同一账户的设备可以恢复购买。"
+            "state": "translated",
+            "value": "款项将从你的 Apple 账户扣除。使用同一账户的设备可以恢复购买项目。"
           }
         },
         "zh-Hant": {
@@ -17941,7 +17941,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "照片"
           }
         },
@@ -18029,8 +18029,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "可能的重复"
+            "state": "translated",
+            "value": "可能重复"
           }
         },
         "zh-Hant": {
@@ -18117,8 +18117,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "准备..."
+            "state": "translated",
+            "value": "正在准备…"
           }
         },
         "zh-Hant": {
@@ -18205,7 +18205,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "隐私"
           }
         },
@@ -18293,7 +18293,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "隐私政策"
           }
         },
@@ -18381,7 +18381,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "隐私政策"
           }
         },
@@ -18821,7 +18821,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "保护"
           }
         },
@@ -18909,8 +18909,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "采购"
+            "state": "translated",
+            "value": "购买项目"
           }
         },
         "zh-Hant": {
@@ -18997,8 +18997,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "终止原因"
+            "state": "translated",
+            "value": "数量"
           }
         },
         "zh-Hant": {
@@ -19085,8 +19085,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "费率"
+            "state": "translated",
+            "value": "汇率"
           }
         },
         "zh-Hant": {
@@ -19173,8 +19173,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "费率日期"
+            "state": "translated",
+            "value": "汇率日期"
           }
         },
         "zh-Hant": {
@@ -19261,8 +19261,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "费率来源"
+            "state": "translated",
+            "value": "汇率来源"
           }
         },
         "zh-Hant": {
@@ -19437,8 +19437,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "正在读取校正的图像..."
+            "state": "translated",
+            "value": "正在读取校正后的图像…"
           }
         },
         "zh-Hant": {
@@ -19613,8 +19613,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "变动原因(可选)"
+            "state": "translated",
+            "value": "更改原因（可选）"
           }
         },
         "zh-Hant": {
@@ -19701,8 +19701,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "接收行动"
+            "state": "translated",
+            "value": "收据操作"
           }
         },
         "zh-Hant": {
@@ -19877,8 +19877,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "收到图像"
+            "state": "translated",
+            "value": "收据图像"
           }
         },
         "zh-Hant": {
@@ -20053,8 +20053,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "收到情况"
+            "state": "translated",
+            "value": "收据状态"
           }
         },
         "zh-Hant": {
@@ -20141,7 +20141,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "ReceiptSure"
           }
         },
@@ -20581,8 +20581,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "ReceiptSure不包括开发商账户、分析、广告或跟踪。 开发者不接收您的私人iCloud内容。"
+            "state": "translated",
+            "value": "ReceiptSure 不使用开发者账户、分析、广告或跟踪功能。开发者不会收到你的私人 iCloud 内容。"
           }
         },
         "zh-Hant": {
@@ -20845,8 +20845,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "在此移动的收据可以永久恢复或删除 。"
+            "state": "translated",
+            "value": "移到这里的收据可以恢复或永久删除。"
           }
         },
         "zh-Hant": {
@@ -20933,7 +20933,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "最近删除"
           }
         },
@@ -21021,8 +21021,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "最近删除为空"
+            "state": "translated",
+            "value": "“最近删除”为空"
           }
         },
         "zh-Hant": {
@@ -21109,8 +21109,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "公认文本"
+            "state": "translated",
+            "value": "识别出的文字"
           }
         },
         "zh-Hant": {
@@ -21197,8 +21197,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "偿还"
+            "state": "translated",
+            "value": "报销"
           }
         },
         "zh-Hant": {
@@ -21285,8 +21285,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "重新命名更新使用这种习惯类别的现有收据和商号规则,保留一致的报告."
+            "state": "translated",
+            "value": "重命名后，使用此自定义类别的现有收据和商家规则也会更新，以保持报表一致。"
           }
         },
         "zh-Hant": {
@@ -21373,8 +21373,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "报告准备情况"
+            "state": "translated",
+            "value": "报表就绪情况"
           }
         },
         "zh-Hant": {
@@ -21461,8 +21461,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "报告范围"
+            "state": "translated",
+            "value": "报表范围"
           }
         },
         "zh-Hant": {
@@ -21549,8 +21549,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "报告货币"
+            "state": "translated",
+            "value": "报表币种"
           }
         },
         "zh-Hant": {
@@ -21637,8 +21637,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "报告货币(例如SGD)"
+            "state": "translated",
+            "value": "报表币种（例如 SGD）"
           }
         },
         "zh-Hant": {
@@ -21725,8 +21725,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "报告共计"
+            "state": "translated",
+            "value": "报表总额"
           }
         },
         "zh-Hant": {
@@ -21989,8 +21989,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "重设"
+            "state": "translated",
+            "value": "重置"
           }
         },
         "zh-Hant": {
@@ -22077,7 +22077,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "恢复"
           }
         },
@@ -22253,8 +22253,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "恢复此设备上的缺失记录并跳过接收ID 。 它从不删除当前库."
+            "state": "translated",
+            "value": "恢复操作会合并缺失的记录，并跳过此设备上已有的收据 ID，绝不会删除当前资料库。"
           }
         },
         "zh-Hant": {
@@ -22341,8 +22341,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "重新使用您定期访问的商人的可信类别和存档细节 。"
+            "state": "translated",
+            "value": "为经常光顾的商家重复使用可信的类别和归档信息。"
           }
         },
         "zh-Hant": {
@@ -22517,8 +22517,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "审查建议"
+            "state": "translated",
+            "value": "建议检查"
           }
         },
         "zh-Hant": {
@@ -22605,7 +22605,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "修订历史"
           }
         },
@@ -22693,8 +22693,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "风险%lld"
+            "state": "translated",
+            "value": "风险 %lld"
           }
         },
         "zh-Hant": {
@@ -22781,7 +22781,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "旋转"
           }
         },
@@ -22957,8 +22957,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "无论如何保存"
+            "state": "translated",
+            "value": "仍然保存"
           }
         },
         "zh-Hant": {
@@ -23045,7 +23045,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "扫描"
           }
         },
@@ -23133,8 +23133,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "扫描一张收据,确认提取的数字。"
+            "state": "translated",
+            "value": "扫描收据并确认提取的金额。"
           }
         },
         "zh-Hant": {
@@ -23221,8 +23221,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "扫描信心"
+            "state": "translated",
+            "value": "扫描置信度"
           }
         },
         "zh-Hant": {
@@ -23309,7 +23309,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "扫描收据"
           }
         },
@@ -23397,8 +23397,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "扫描第一份收据"
+            "state": "translated",
+            "value": "为此事项扫描第一张收据。"
           }
         },
         "zh-Hant": {
@@ -23485,8 +23485,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "扫描自动裁剪,或导入已有图像或PDF。 。 。 。"
+            "state": "translated",
+            "value": "使用自动裁剪进行扫描，或导入现有图像或 PDF。"
           }
         },
         "zh-Hant": {
@@ -23661,8 +23661,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "密封当前证据"
+            "state": "translated",
+            "value": "封存当前凭证"
           }
         },
         "zh-Hant": {
@@ -23749,8 +23749,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "密封"
+            "state": "translated",
+            "value": "已封存"
           }
         },
         "zh-Hant": {
@@ -23837,7 +23837,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "安全归档错误"
           }
         },
@@ -23925,8 +23925,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "安全档案在本地加密AES-GCM和密码生成的密钥。 密码从不存储或上传,只恢复添加缺失的记录."
+            "state": "translated",
+            "value": "安全归档使用 AES-GCM 和由密码派生的密钥在本地加密。密码绝不会被存储或上传，恢复操作只会添加缺失的记录。"
           }
         },
         "zh-Hant": {
@@ -24277,8 +24277,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "共享"
+            "state": "translated",
+            "value": "正在分享"
           }
         },
         "zh-Hant": {
@@ -24365,8 +24365,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "再次显示登机"
+            "state": "translated",
+            "value": "再次显示新手引导"
           }
         },
         "zh-Hant": {
@@ -24453,7 +24453,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "来源"
           }
         },
@@ -24541,8 +24541,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "开始组织"
+            "state": "translated",
+            "value": "开始整理"
           }
         },
         "zh-Hant": {
@@ -24717,7 +24717,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "开始"
           }
         },
@@ -24805,7 +24805,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "状态"
           }
         },
@@ -24981,8 +24981,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "强扫描"
+            "state": "translated",
+            "value": "扫描质量良好"
           }
         },
         "zh-Hant": {
@@ -25069,7 +25069,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "小计"
           }
         },
@@ -25157,8 +25157,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "建议存档"
+            "state": "translated",
+            "value": "建议归档"
           }
         },
         "zh-Hant": {
@@ -25509,8 +25509,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "标记"
+            "state": "translated",
+            "value": "标签"
           }
         },
         "zh-Hant": {
@@ -25597,8 +25597,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "标记, 用逗号分隔"
+            "state": "translated",
+            "value": "标签，以逗号分隔"
           }
         },
         "zh-Hant": {
@@ -25685,8 +25685,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "税务标签"
+            "state": "translated",
+            "value": "税项标签"
           }
         },
         "zh-Hant": {
@@ -25773,8 +25773,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "使用条件"
+            "state": "translated",
+            "value": "使用条款"
           }
         },
         "zh-Hant": {
@@ -25861,8 +25861,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "文本摘要"
+            "state": "translated",
+            "value": "文字摘要"
           }
         },
         "zh-Hant": {
@@ -25949,8 +25949,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "密码从未存储 。 保存在安全的地方——没有它就无法恢复档案。"
+            "state": "translated",
+            "value": "密码绝不会被存储。请妥善保管密码，没有密码将无法恢复归档。"
           }
         },
         "zh-Hant": {
@@ -26125,8 +26125,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "在此行动之后无法恢复收件图像和审计历史。"
+            "state": "translated",
+            "value": "执行此操作后，收据图像和审计历史将无法恢复。"
           }
         },
         "zh-Hant": {
@@ -26213,8 +26213,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "系统文件拾取器只允许临时访问图像或PDF你选择。 导入的页面存储在应用程序的本地私人数据库中 。"
+            "state": "translated",
+            "value": "系统文件选择器只会临时访问你选择的图像或 PDF。导入的页面存储在应用的私人本地数据库中。"
           }
         },
         "zh-Hant": {
@@ -26301,8 +26301,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "系统照片采集器只能导入您选择的图像; 应用程序不要求宽图片库访问 。"
+            "state": "translated",
+            "value": "系统照片选择器只能导入你选择的图像；本应用不会请求访问整个照片图库。"
           }
         },
         "zh-Hant": {
@@ -26389,8 +26389,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "此收据将被标记为验证 。"
+            "state": "translated",
+            "value": "此收据将被标记为“已验证”。"
           }
         },
         "zh-Hant": {
@@ -26565,8 +26565,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "提示"
+            "state": "translated",
+            "value": "小费"
           }
         },
         "zh-Hant": {
@@ -26741,8 +26741,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "共计"
+            "state": "translated",
+            "value": "总计"
           }
         },
         "zh-Hant": {
@@ -26829,8 +26829,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "按类别开列的共计"
+            "state": "translated",
+            "value": "按类别汇总"
           }
         },
         "zh-Hant": {
@@ -26917,8 +26917,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "按货币开列的共计"
+            "state": "translated",
+            "value": "按币种汇总"
           }
         },
         "zh-Hant": {
@@ -27005,8 +27005,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "按日期开列的共计"
+            "state": "translated",
+            "value": "按日期汇总"
           }
         },
         "zh-Hant": {
@@ -27181,7 +27181,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "旅行、活动或事项名称"
           }
         },
@@ -27269,8 +27269,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "旅行、活动和事项"
+            "state": "translated",
+            "value": "旅行、活动与事项"
           }
         },
         "zh-Hant": {
@@ -27445,8 +27445,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "未存档"
+            "state": "translated",
+            "value": "未归档"
           }
         },
         "zh-Hant": {
@@ -27533,8 +27533,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "在这个设备上解锁了无限制的收据,事项,报告和商号规则."
+            "state": "translated",
+            "value": "此设备已解锁不限数量的收据、事项、报表和商家规则。"
           }
         },
         "zh-Hant": {
@@ -27885,8 +27885,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "未核实的收据将在出口记录中明确列出。"
+            "state": "translated",
+            "value": "导出的记录会清楚标示未经验证的收据。"
           }
         },
         "zh-Hant": {
@@ -27973,7 +27973,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "使用裁剪"
           }
         },
@@ -28061,8 +28061,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "只在选择扫描收据时使用. VisionKit检测文件边界,并裁剪图像."
+            "state": "translated",
+            "value": "仅在你选择扫描收据时使用。VisionKit 会检测文档边界并裁剪图像。"
           }
         },
         "zh-Hant": {
@@ -28149,8 +28149,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "核查"
+            "state": "translated",
+            "value": "验证"
           }
         },
         "zh-Hant": {
@@ -28237,7 +28237,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "已验证"
           }
         },
@@ -28325,7 +28325,7 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "版本"
           }
         },
@@ -28589,8 +28589,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "你可以还原%@从收据标签。"
+            "state": "translated",
+            "value": "你可以从“收据”标签页恢复 %@。"
           }
         },
         "zh-Hant": {
@@ -28677,8 +28677,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "你可以还原%@等会"
+            "state": "translated",
+            "value": "你可以稍后恢复 %@。"
           }
         },
         "zh-Hant": {
@@ -28765,8 +28765,8 @@
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "你可以保存它,但它会留在需求审查。"
+            "state": "translated",
+            "value": "你可以保存，但它仍会处于“需要检查”状态。"
           }
         },
         "zh-Hant": {
