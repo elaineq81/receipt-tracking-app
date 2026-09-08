@@ -1,28 +1,30 @@
 # ReceiptSure localization status
 
-ReceiptSure uses English as its source language. Xcode currently inventories 333 localizable units: 328 interface strings and 5 app-name/permission strings.
+ReceiptSure uses English as its source language. Xcode currently inventories 334 localizable units: 329 interface strings and 5 app-name/permission strings.
 
 ## Current tranche
 
 | Locale | Draft coverage | Reviewed coverage | Release status |
 |---|---:|---:|---|
-| English | 333/333 | Source language | Baseline |
-| Spanish (Spain) | 333/333 | 333/333 | Catalog complete; pending final device sampling |
-| Spanish (Mexico) | 333/333 | 333/333 | Catalog complete; pending final regional device sampling |
-| Chinese (Simplified) | 333/333 | 100/333 | Blocked pending full linguistic and layout review |
-| Chinese (Traditional) | 333/333 | 49/333 | Blocked pending full linguistic and layout review |
-| French | 333/333 | 34/333 | Blocked pending full linguistic and layout review |
-| French (Canada) | 333/333 | 34/333 | Blocked pending regional and layout review |
-| German | 333/333 | 34/333 | Blocked pending full linguistic and layout review |
-| Japanese | 333/333 | 34/333 | Blocked pending full linguistic and layout review |
-| Korean | 333/333 | 34/333 | Blocked pending full linguistic and layout review |
-| Portuguese (Brazil) | 333/333 | 34/333 | Blocked pending regional and layout review |
-| Portuguese (Portugal) | 333/333 | 34/333 | Blocked pending regional and layout review |
-| Arabic | 333/333 | 34/333 | Blocked pending full linguistic and RTL layout review |
-| Hebrew | 333/333 | 34/333 | Blocked pending full linguistic and RTL layout review |
-| Urdu | 333/333 | 34/333 | Blocked pending full linguistic and RTL layout review |
+| English | 334/334 | Source language | Baseline |
+| Spanish (Spain) | 334/334 | 334/334 | Catalog complete; pending final device sampling |
+| Spanish (Mexico) | 334/334 | 334/334 | Catalog complete; pending final regional device sampling |
+| Chinese (Simplified) | 334/334 | 204/334 | Blocked pending full linguistic and layout review |
+| Chinese (Traditional) | 334/334 | 49/334 | Blocked pending full linguistic and layout review |
+| French | 334/334 | 34/334 | Blocked pending full linguistic and layout review |
+| French (Canada) | 334/334 | 34/334 | Blocked pending regional and layout review |
+| German | 334/334 | 34/334 | Blocked pending full linguistic and layout review |
+| Japanese | 334/334 | 34/334 | Blocked pending full linguistic and layout review |
+| Korean | 334/334 | 34/334 | Blocked pending full linguistic and layout review |
+| Portuguese (Brazil) | 334/334 | 34/334 | Blocked pending regional and layout review |
+| Portuguese (Portugal) | 334/334 | 34/334 | Blocked pending regional and layout review |
+| Arabic | 334/334 | 34/334 | Blocked pending full linguistic and RTL layout review |
+| Hebrew | 334/334 | 34/334 | Blocked pending full linguistic and RTL layout review |
+| Urdu | 334/334 | 34/334 | Blocked pending full linguistic and RTL layout review |
 
-The remaining 32 configured non-English locales have not yet been populated. Machine-assisted values use the String Catalog state `needs_review`; the release validator only accepts `translated`. Placeholders such as `%@` and `%lld` must remain byte-for-byte identical. The strict gate currently reports 14,195 gaps. Run `python scripts/localization-report.py` for the current per-locale counts.
+The remaining 32 configured non-English locales have not yet been populated. Machine-assisted values use the String Catalog state `needs_review`; the release validator only accepts `translated`. Placeholders such as `%@` and `%lld` must remain byte-for-byte identical. The strict gate currently reports 14,135 gaps. Run `python scripts/localization-report.py` for the current per-locale counts.
+
+The Matters list now uses separate localized singular and plural receipt-count strings. This replaces the earlier English-only `"s"` suffix construction, which could not render correctly in Chinese, Japanese, Korean, Arabic, Hebrew, or Urdu.
 
 ## Required release sampling
 

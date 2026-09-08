@@ -8,6 +8,9 @@ import xml.etree.ElementTree as ET
 from localization_config import CATALOGS, REQUIRED_LANGUAGES
 
 FORMAT_TOKEN = re.compile(r"%(?:\d+\$)?(?:lld|ld|d|@|f)|%%")
+DEPRECATED_SOURCE_KEYS = {
+    "%lld receipt%@ • %@": "Use separate localized singular and plural receipt-count strings.",
+}
 
 
 def string_units(node):
@@ -72,6 +75,9 @@ def main() -> int:
         catalogs[catalog] = strings
         if not strings:
             failures.append(f"{catalog}: no source strings found")
+        for key, guidance in DEPRECATED_SOURCE_KEYS.items():
+            if key in strings:
+                failures.append(f"{catalog.name}: deprecated source key {key!r}. {guidance}")
         for entry in strings.values():
             languages.update(entry.get("localizations", {}).keys())
 
