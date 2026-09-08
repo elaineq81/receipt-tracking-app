@@ -7,8 +7,8 @@ ReceiptSure uses English as its source language. Xcode currently inventories 333
 | Locale | Draft coverage | Reviewed coverage | Release status |
 |---|---:|---:|---|
 | English | 333/333 | Source language | Baseline |
-| Spanish (Spain) | 333/333 | 166/333 | Blocked pending full linguistic and layout review |
-| Spanish (Mexico) | 333/333 | 166/333 | Blocked pending regional and layout review |
+| Spanish (Spain) | 333/333 | 333/333 | Catalog complete; pending final device sampling |
+| Spanish (Mexico) | 333/333 | 333/333 | Catalog complete; pending final regional device sampling |
 | Chinese (Simplified) | 333/333 | 100/333 | Blocked pending full linguistic and layout review |
 | Chinese (Traditional) | 333/333 | 49/333 | Blocked pending full linguistic and layout review |
 | French | 333/333 | 34/333 | Blocked pending full linguistic and layout review |
@@ -22,7 +22,7 @@ ReceiptSure uses English as its source language. Xcode currently inventories 333
 | Hebrew | 333/333 | 34/333 | Blocked pending full linguistic and RTL layout review |
 | Urdu | 333/333 | 34/333 | Blocked pending full linguistic and RTL layout review |
 
-The remaining 32 configured non-English locales have not yet been populated. Machine-assisted values use the String Catalog state `needs_review`; the release validator only accepts `translated`. Placeholders such as `%@` and `%lld` must remain byte-for-byte identical. The strict gate currently reports 14,529 gaps. Run `python scripts/localization-report.py` for the current per-locale counts.
+The remaining 32 configured non-English locales have not yet been populated. Machine-assisted values use the String Catalog state `needs_review`; the release validator only accepts `translated`. Placeholders such as `%@` and `%lld` must remain byte-for-byte identical. The strict gate currently reports 14,195 gaps. Run `python scripts/localization-report.py` for the current per-locale counts.
 
 ## Required release sampling
 
