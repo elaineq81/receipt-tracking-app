@@ -633,13 +633,13 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Acerca de"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Acerca de"
           }
         },
@@ -809,14 +809,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Añada un recibo"
+            "state": "translated",
+            "value": "Añadir un recibo"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Añada un recibo"
+            "state": "translated",
+            "value": "Agregar un recibo"
           }
         },
         "fr": {
@@ -897,14 +897,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Añade una regla para sugerir detalles de presentación cuando un comerciante coincide."
+            "state": "translated",
+            "value": "Añade una regla para sugerir datos de clasificación cuando coincida un comercio."
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Añade una regla para sugerir detalles de presentación cuando un comerciante coincide."
+            "state": "translated",
+            "value": "Agrega una regla para sugerir datos de clasificación cuando coincida un comercio."
           }
         },
         "fr": {
@@ -1337,14 +1337,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Añadir conversión explícita"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Añadir conversión explícita"
+            "state": "translated",
+            "value": "Agregar conversión explícita"
           }
         },
         "fr": {
@@ -1425,14 +1425,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Add line item"
+            "state": "translated",
+            "value": "Añadir partida"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Add line item"
+            "state": "translated",
+            "value": "Agregar partida"
           }
         },
         "fr": {
@@ -1601,14 +1601,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Añádase la regla"
+            "state": "translated",
+            "value": "Añadir regla"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Añádase la regla"
+            "state": "translated",
+            "value": "Agregar regla"
           }
         },
         "fr": {
@@ -1777,14 +1777,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Cultivo ajustado"
+            "state": "translated",
+            "value": "Ajustar recorte"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Cultivo ajustado"
+            "state": "translated",
+            "value": "Ajustar recorte"
           }
         },
         "fr": {
@@ -2129,13 +2129,13 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Todos los recibos"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Todos los recibos"
           }
         },
@@ -2305,13 +2305,13 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Monto"
+            "state": "translated",
+            "value": "Importe"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Monto"
           }
         },
@@ -2481,13 +2481,13 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Aplicar sugerencias"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Aplicar sugerencias"
           }
         },
@@ -2921,14 +2921,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Copia de seguridad completa"
+            "state": "translated",
+            "value": "Copia de seguridad completada"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Copia de seguridad completa"
+            "state": "translated",
+            "value": "Respaldo completado"
           }
         },
         "fr": {
@@ -3009,14 +3009,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Salud de apoyo"
+            "state": "translated",
+            "value": "Estado de la copia de seguridad"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Salud de apoyo"
+            "state": "translated",
+            "value": "Estado del respaldo"
           }
         },
         "fr": {
@@ -3273,14 +3273,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "contraseña de respaldo"
+            "state": "translated",
+            "value": "Contraseña de la copia de seguridad"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "contraseña de respaldo"
+            "state": "translated",
+            "value": "Contraseña del respaldo"
           }
         },
         "fr": {
@@ -3449,13 +3449,13 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Respaldos"
+            "state": "translated",
+            "value": "Copias de seguridad"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Respaldos"
           }
         },
@@ -3889,13 +3889,13 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Cámara"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Cámara"
           }
         },
@@ -4329,14 +4329,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Categoría nombre"
+            "state": "translated",
+            "value": "Nombre de la categoría"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Categoría nombre"
+            "state": "translated",
+            "value": "Nombre de la categoría"
           }
         },
         "fr": {
@@ -4593,14 +4593,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Compruebe los detalles extraídos"
+            "state": "translated",
+            "value": "Revisar los datos extraídos"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Compruebe los detalles extraídos"
+            "state": "translated",
+            "value": "Revisar los datos extraídos"
           }
         },
         "fr": {
@@ -4681,14 +4681,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Compruebe las cifras"
+            "state": "translated",
+            "value": "Revisar los importes"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Compruebe las cifras"
+            "state": "translated",
+            "value": "Revisar los montos"
           }
         },
         "fr": {
@@ -4769,13 +4769,13 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Revisado"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Revisado"
           }
         },
@@ -4945,14 +4945,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Elija copia de seguridad cifrada"
+            "state": "translated",
+            "value": "Elegir copia de seguridad cifrada"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Elija copia de seguridad cifrada"
+            "state": "translated",
+            "value": "Elegir respaldo cifrado"
           }
         },
         "fr": {
@@ -5121,14 +5121,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Cliente / centro de costo"
+            "state": "translated",
+            "value": "Cliente / centro de coste"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Cliente / centro de costo"
+            "state": "translated",
+            "value": "Cliente / centro de costos"
           }
         },
         "fr": {
@@ -5209,14 +5209,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Centro de clientes o gastos"
+            "state": "translated",
+            "value": "Cliente o centro de coste"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Centro de clientes o gastos"
+            "state": "translated",
+            "value": "Cliente o centro de costos"
           }
         },
         "fr": {
@@ -5561,13 +5561,13 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Continuar"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Continuar"
           }
         },
@@ -5737,14 +5737,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Totales de presentación de informes convertidos"
+            "state": "translated",
+            "value": "Totales convertidos del informe"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Totales de presentación de informes convertidos"
+            "state": "translated",
+            "value": "Totales convertidos del informe"
           }
         },
         "fr": {
@@ -5825,13 +5825,13 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Total convertido"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Total convertido"
           }
         },
@@ -5913,14 +5913,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No se podía recortar el recibo"
+            "state": "translated",
+            "value": "No se pudo recortar el recibo"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No se podía recortar el recibo"
+            "state": "translated",
+            "value": "No se pudo recortar el recibo"
           }
         },
         "fr": {
@@ -6001,14 +6001,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No podía volver a leer la recepción"
+            "state": "translated",
+            "value": "No se pudo volver a leer el recibo"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No podía volver a leer la recepción"
+            "state": "translated",
+            "value": "No se pudo volver a leer el recibo"
           }
         },
         "fr": {
@@ -6089,14 +6089,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No podía leer recibo"
+            "state": "translated",
+            "value": "No se pudo leer el recibo"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No podía leer recibo"
+            "state": "translated",
+            "value": "No se pudo leer el recibo"
           }
         },
         "fr": {
@@ -6177,14 +6177,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No podía salvar la categoría"
+            "state": "translated",
+            "value": "No se pudo guardar la categoría"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No podía salvar la categoría"
+            "state": "translated",
+            "value": "No se pudo guardar la categoría"
           }
         },
         "fr": {
@@ -6265,14 +6265,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No podía salvar la materia"
+            "state": "translated",
+            "value": "No se pudo guardar el asunto"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No podía salvar la materia"
+            "state": "translated",
+            "value": "No se pudo guardar el asunto"
           }
         },
         "fr": {
@@ -6353,14 +6353,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No podía salvar la regla del comerciante"
+            "state": "translated",
+            "value": "No se pudo guardar la regla del comercio"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No podía salvar la regla del comerciante"
+            "state": "translated",
+            "value": "No se pudo guardar la regla del comercio"
           }
         },
         "fr": {
@@ -6441,14 +6441,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No podía ahorrar recibo"
+            "state": "translated",
+            "value": "No se pudo guardar el recibo"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No podía ahorrar recibo"
+            "state": "translated",
+            "value": "No se pudo guardar el recibo"
           }
         },
         "fr": {
@@ -6529,14 +6529,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No podía compartir recibo"
+            "state": "translated",
+            "value": "No se pudo compartir el recibo"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No podía compartir recibo"
+            "state": "translated",
+            "value": "No se pudo compartir el recibo"
           }
         },
         "fr": {
@@ -7145,13 +7145,13 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Crear un asunto"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Crear un asunto"
           }
         },
@@ -7409,13 +7409,13 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Crear archivo cifrado"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Crear archivo cifrado"
           }
         },
@@ -7497,14 +7497,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Crop page %lld"
+            "state": "translated",
+            "value": "Recortar página %lld"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Crop page %lld"
+            "state": "translated",
+            "value": "Recortar página %lld"
           }
         },
         "fr": {
@@ -7585,13 +7585,13 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Moneda"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Moneda"
           }
         },
@@ -8201,14 +8201,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Suprímase permanentemente"
+            "state": "translated",
+            "value": "Eliminar definitivamente"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Suprímase permanentemente"
+            "state": "translated",
+            "value": "Eliminar definitivamente"
           }
         },
         "fr": {
@@ -8377,14 +8377,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Suprimir permanentemente"
+            "state": "translated",
+            "value": "Eliminar definitivamente"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Suprimir permanentemente"
+            "state": "translated",
+            "value": "Eliminar definitivamente"
           }
         },
         "fr": {
@@ -8553,14 +8553,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Eliminar este recibo permanentemente?"
+            "state": "translated",
+            "value": "¿Eliminar este recibo definitivamente?"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Eliminar este recibo permanentemente?"
+            "state": "translated",
+            "value": "¿Eliminar este recibo definitivamente?"
           }
         },
         "fr": {
@@ -8993,14 +8993,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Arrastre este mango a la esquina de recepción coincidente"
+            "state": "translated",
+            "value": "Arrastra este control hasta la esquina correspondiente del recibo"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Arrastre este mango a la esquina de recepción coincidente"
+            "state": "translated",
+            "value": "Arrastra este control hasta la esquina correspondiente del recibo"
           }
         },
         "fr": {
@@ -9169,14 +9169,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Edición de recibo"
+            "state": "translated",
+            "value": "Editar recibo"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Edición de recibo"
+            "state": "translated",
+            "value": "Editar recibo"
           }
         },
         "fr": {
@@ -9873,14 +9873,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Estado de prueba"
+            "state": "translated",
+            "value": "Estado del justificante"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Estado de prueba"
+            "state": "translated",
+            "value": "Estado del comprobante"
           }
         },
         "fr": {
@@ -10225,14 +10225,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Exportación"
+            "state": "translated",
+            "value": "Exportar"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Exportación"
+            "state": "translated",
+            "value": "Exportar"
           }
         },
         "fr": {
@@ -10313,14 +10313,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Exportación falló"
+            "state": "translated",
+            "value": "No se pudo exportar"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Exportación falló"
+            "state": "translated",
+            "value": "No se pudo exportar"
           }
         },
         "fr": {
@@ -10577,14 +10577,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Confianza sobre el terreno"
+            "state": "translated",
+            "value": "Confianza del campo"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Confianza sobre el terreno"
+            "state": "translated",
+            "value": "Confianza del campo"
           }
         },
         "fr": {
@@ -10753,14 +10753,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Gráficos"
+            "state": "translated",
+            "value": "Importes"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Gráficos"
+            "state": "translated",
+            "value": "Montos"
           }
         },
         "fr": {
@@ -11105,14 +11105,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Filing"
+            "state": "translated",
+            "value": "Clasificación"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Filing"
+            "state": "translated",
+            "value": "Clasificación"
           }
         },
         "fr": {
@@ -11369,14 +11369,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Ayuda y apoyo"
+            "state": "translated",
+            "value": "Ayuda y soporte"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Ayuda y apoyo"
+            "state": "translated",
+            "value": "Ayuda y soporte"
           }
         },
         "fr": {
@@ -13129,14 +13129,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Artículos de línea"
+            "state": "translated",
+            "value": "Partidas"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Artículos de línea"
+            "state": "translated",
+            "value": "Partidas"
           }
         },
         "fr": {
@@ -13745,14 +13745,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Matter"
+            "state": "translated",
+            "value": "Asunto"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Matter"
+            "state": "translated",
+            "value": "Asunto"
           }
         },
         "fr": {
@@ -14097,14 +14097,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "El nombre Merchant contiene"
+            "state": "translated",
+            "value": "El nombre del comercio contiene"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "El nombre Merchant contiene"
+            "state": "translated",
+            "value": "El nombre del comercio contiene"
           }
         },
         "fr": {
@@ -14713,14 +14713,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Examen de las necesidades"
+            "state": "translated",
+            "value": "Requiere revisión"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Examen de las necesidades"
+            "state": "translated",
+            "value": "Requiere revisión"
           }
         },
         "fr": {
@@ -15417,14 +15417,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No importa todavía"
+            "state": "translated",
+            "value": "Aún no hay asuntos"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No importa todavía"
+            "state": "translated",
+            "value": "Aún no hay asuntos"
           }
         },
         "fr": {
@@ -15505,14 +15505,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Sin reglas mercantiles"
+            "state": "translated",
+            "value": "No hay reglas de comercios"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Sin reglas mercantiles"
+            "state": "translated",
+            "value": "No hay reglas de comercios"
           }
         },
         "fr": {
@@ -15593,14 +15593,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No recibos"
+            "state": "translated",
+            "value": "No hay recibos"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "No recibos"
+            "state": "translated",
+            "value": "No hay recibos"
           }
         },
         "fr": {
@@ -16297,14 +16297,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "OCR confianza"
+            "state": "translated",
+            "value": "Confianza del OCR"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "OCR confianza"
+            "state": "translated",
+            "value": "Confianza del OCR"
           }
         },
         "fr": {
@@ -16385,14 +16385,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "OCR confianza %@"
+            "state": "translated",
+            "value": "Confianza del OCR: %@"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "OCR confianza %@"
+            "state": "translated",
+            "value": "Confianza del OCR: %@"
           }
         },
         "fr": {
@@ -22897,14 +22897,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Scan"
+            "state": "translated",
+            "value": "Escanear"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Scan"
+            "state": "translated",
+            "value": "Escanear"
           }
         },
         "fr": {
@@ -23161,14 +23161,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Recibido por escáner"
+            "state": "translated",
+            "value": "Escanear recibo"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Recibido por escáner"
+            "state": "translated",
+            "value": "Escanear recibo"
           }
         },
         "fr": {
@@ -23601,14 +23601,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Sealed"
+            "state": "translated",
+            "value": "Sellado"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Sealed"
+            "state": "translated",
+            "value": "Sellado"
           }
         },
         "fr": {
@@ -24217,14 +24217,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Show onboarding again"
+            "state": "translated",
+            "value": "Mostrar de nuevo la introducción"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Show onboarding again"
+            "state": "translated",
+            "value": "Mostrar de nuevo la introducción"
           }
         },
         "fr": {
@@ -25449,14 +25449,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Etiquetas, separated by commas"
+            "state": "translated",
+            "value": "Etiquetas, separadas por comas"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Etiquetas, separated by commas"
+            "state": "translated",
+            "value": "Etiquetas, separadas por comas"
           }
         },
         "fr": {
@@ -25537,14 +25537,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Marca fiscal"
+            "state": "translated",
+            "value": "Etiqueta fiscal"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Marca fiscal"
+            "state": "translated",
+            "value": "Etiqueta fiscal"
           }
         },
         "fr": {
@@ -27825,14 +27825,14 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Use Crop"
+            "state": "translated",
+            "value": "Usar recorte"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Use Crop"
+            "state": "translated",
+            "value": "Usar recorte"
           }
         },
         "fr": {
@@ -28089,13 +28089,13 @@
         },
         "es-ES": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Verificado"
           }
         },
         "es-MX": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Verificado"
           }
         },

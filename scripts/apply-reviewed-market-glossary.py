@@ -202,6 +202,86 @@ VISIBLE_TERMS = {
     ),
 }
 
+# Spanish capture, review, and filing terminology. These entries are reviewed
+# separately from the machine drafts because short English UI labels are highly
+# context-sensitive (for example, "crop", "matter", "filing", and "line item").
+SPANISH_LANGUAGES = ("es-ES", "es-MX")
+
+SPANISH_WORKFLOW_TERMS = {
+    "About": ("Acerca de", "Acerca de"),
+    "Add a receipt": ("Añadir un recibo", "Agregar un recibo"),
+    "Add a rule to suggest filing details when a merchant matches.": (
+        "Añade una regla para sugerir datos de clasificación cuando coincida un comercio.",
+        "Agrega una regla para sugerir datos de clasificación cuando coincida un comercio.",
+    ),
+    "Add explicit conversion": ("Añadir conversión explícita", "Agregar conversión explícita"),
+    "Add line item": ("Añadir partida", "Agregar partida"),
+    "Add rule": ("Añadir regla", "Agregar regla"),
+    "Adjust crop": ("Ajustar recorte", "Ajustar recorte"),
+    "All receipts": ("Todos los recibos", "Todos los recibos"),
+    "Amount": ("Importe", "Monto"),
+    "Apply suggestions": ("Aplicar sugerencias", "Aplicar sugerencias"),
+    "Backup complete": ("Copia de seguridad completada", "Respaldo completado"),
+    "Backup health": ("Estado de la copia de seguridad", "Estado del respaldo"),
+    "Backup password": ("Contraseña de la copia de seguridad", "Contraseña del respaldo"),
+    "Backups": ("Copias de seguridad", "Respaldos"),
+    "Camera": ("Cámara", "Cámara"),
+    "Category name": ("Nombre de la categoría", "Nombre de la categoría"),
+    "Check the extracted details": ("Revisar los datos extraídos", "Revisar los datos extraídos"),
+    "Check the figures": ("Revisar los importes", "Revisar los montos"),
+    "Checked": ("Revisado", "Revisado"),
+    "Choose encrypted backup": ("Elegir copia de seguridad cifrada", "Elegir respaldo cifrado"),
+    "Client / cost centre": ("Cliente / centro de coste", "Cliente / centro de costos"),
+    "Client or cost centre": ("Cliente o centro de coste", "Cliente o centro de costos"),
+    "Continue": ("Continuar", "Continuar"),
+    "Converted reporting totals": ("Totales convertidos del informe", "Totales convertidos del informe"),
+    "Converted total": ("Total convertido", "Total convertido"),
+    "Couldn’t crop receipt": ("No se pudo recortar el recibo", "No se pudo recortar el recibo"),
+    "Couldn’t re-read receipt": ("No se pudo volver a leer el recibo", "No se pudo volver a leer el recibo"),
+    "Couldn’t read receipt": ("No se pudo leer el recibo", "No se pudo leer el recibo"),
+    "Couldn’t save category": ("No se pudo guardar la categoría", "No se pudo guardar la categoría"),
+    "Couldn’t save matter": ("No se pudo guardar el asunto", "No se pudo guardar el asunto"),
+    "Couldn’t save merchant rule": ("No se pudo guardar la regla del comercio", "No se pudo guardar la regla del comercio"),
+    "Couldn’t save receipt": ("No se pudo guardar el recibo", "No se pudo guardar el recibo"),
+    "Couldn’t share receipt": ("No se pudo compartir el recibo", "No se pudo compartir el recibo"),
+    "Create a matter": ("Crear un asunto", "Crear un asunto"),
+    "Create encrypted archive": ("Crear archivo cifrado", "Crear archivo cifrado"),
+    "Crop page %lld": ("Recortar página %lld", "Recortar página %lld"),
+    "Currency": ("Moneda", "Moneda"),
+    "Delete Permanently": ("Eliminar definitivamente", "Eliminar definitivamente"),
+    "Delete permanently": ("Eliminar definitivamente", "Eliminar definitivamente"),
+    "Delete this receipt permanently?": ("¿Eliminar este recibo definitivamente?", "¿Eliminar este recibo definitivamente?"),
+    "Drag this handle to the matching receipt corner": (
+        "Arrastra este control hasta la esquina correspondiente del recibo",
+        "Arrastra este control hasta la esquina correspondiente del recibo",
+    ),
+    "Edit receipt": ("Editar recibo", "Editar recibo"),
+    "Evidence status": ("Estado del justificante", "Estado del comprobante"),
+    "Export": ("Exportar", "Exportar"),
+    "Export failed": ("No se pudo exportar", "No se pudo exportar"),
+    "Field confidence": ("Confianza del campo", "Confianza del campo"),
+    "Figures": ("Importes", "Montos"),
+    "Filing": ("Clasificación", "Clasificación"),
+    "Help & support": ("Ayuda y soporte", "Ayuda y soporte"),
+    "Line items": ("Partidas", "Partidas"),
+    "Matter": ("Asunto", "Asunto"),
+    "Merchant name contains": ("El nombre del comercio contiene", "El nombre del comercio contiene"),
+    "Needs review": ("Requiere revisión", "Requiere revisión"),
+    "No matters yet": ("Aún no hay asuntos", "Aún no hay asuntos"),
+    "No merchant rules": ("No hay reglas de comercios", "No hay reglas de comercios"),
+    "No receipts": ("No hay recibos", "No hay recibos"),
+    "OCR confidence": ("Confianza del OCR", "Confianza del OCR"),
+    "OCR confidence %@": ("Confianza del OCR: %@", "Confianza del OCR: %@"),
+    "Scan": ("Escanear", "Escanear"),
+    "Scan receipt": ("Escanear recibo", "Escanear recibo"),
+    "Sealed": ("Sellado", "Sellado"),
+    "Show onboarding again": ("Mostrar de nuevo la introducción", "Mostrar de nuevo la introducción"),
+    "Tags, separated by commas": ("Etiquetas, separadas por comas", "Etiquetas, separadas por comas"),
+    "Tax label": ("Etiqueta fiscal", "Etiqueta fiscal"),
+    "Use Crop": ("Usar recorte", "Usar recorte"),
+    "Verified": ("Verificado", "Verificado"),
+}
+
 
 def apply(path: Path, translations, languages=LANGUAGES) -> int:
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -218,4 +298,5 @@ def apply(path: Path, translations, languages=LANGUAGES) -> int:
 changed = apply(UI, TERMS) + apply(INFO, INFO_TERMS)
 changed += apply(UI, RTL_TERMS, RTL_LANGUAGES) + apply(INFO, RTL_INFO_TERMS, RTL_LANGUAGES)
 changed += apply(UI, VISIBLE_TERMS, VISIBLE_LANGUAGES)
+changed += apply(UI, SPANISH_WORKFLOW_TERMS, SPANISH_LANGUAGES)
 print(f"Applied {changed} reviewed priority-market entries.")
