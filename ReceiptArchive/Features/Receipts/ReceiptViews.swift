@@ -387,7 +387,7 @@ struct ReceiptDetailView: View {
                     receipt.revisions.append(revision)
                     receipt.reviewStatus = .needsReview
                     receipt.reviewedAt = nil
-                    let cropWarning = "Receipt image was recropped; check the extracted details"
+                    let cropWarning = String(localized: "Receipt image was recropped; check the extracted details")
                     if !receipt.validationMessages.contains(cropWarning) {
                         receipt.validationNotes = ([cropWarning] + receipt.validationMessages).joined(separator: "; ")
                     }

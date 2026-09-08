@@ -1,14 +1,15 @@
 name: ReceiptArchive
 options:
   bundleIdPrefix: com.bodywiseremedy
+  developmentLanguage: en
   deploymentTarget:
     iOS: "17.0"
 settings:
   base:
     SWIFT_VERSION: 5.0
     DEVELOPMENT_TEAM: B5DJ69S32C
-    CURRENT_PROJECT_VERSION: 1
-    MARKETING_VERSION: 1.0
+    CURRENT_PROJECT_VERSION: 6
+    MARKETING_VERSION: 1.1
 fileGroups:
   - ReceiptArchive/Resources/ReceiptSure.storekit
 targets:
@@ -25,9 +26,7 @@ targets:
         buildPhase: resources
       - path: ReceiptArchive/Resources/Localizable.xcstrings
         buildPhase: resources
-      - path: ReceiptArchive/Resources/zh-Hans.lproj/InfoPlist.strings
-        buildPhase: resources
-      - path: ReceiptArchive/Resources/es.lproj/InfoPlist.strings
+      - path: ReceiptArchive/Resources/InfoPlist.xcstrings
         buildPhase: resources
     settings:
       base:

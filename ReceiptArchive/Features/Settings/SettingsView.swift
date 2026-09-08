@@ -28,7 +28,7 @@ struct SettingsView: View {
                 Button("Restore Purchases") {
                     Task {
                         if await purchases.restore() {
-                            purchaseMessage = "ReceiptSure Pro has been restored."
+                            purchaseMessage = String(localized: "ReceiptSure Pro has been restored.")
                         } else {
                             purchaseMessage = purchases.errorMessage
                         }
@@ -110,8 +110,9 @@ struct SettingsView: View {
     private static let supportURL = URL(string: "https://receipt-tracking-app-lemon.vercel.app/support")!
 
     private var backupStatus: String {
-        guard lastSecureBackupAt > 0 else { return "No secure backup created" }
-        return "Last backup \(Date(timeIntervalSince1970: lastSecureBackupAt).formatted(.relative(presentation: .named)))"
+        guard lastSecureBackupAt > 0 else { return String(localized: "No secure backup created") }
+        let relativeDate = Date(timeIntervalSince1970: lastSecureBackupAt).formatted(.relative(presentation: .named))
+        return String(localized: "Last backup \(relativeDate)")
     }
 
     private var backupStatusColor: Color {
@@ -348,7 +349,7 @@ private struct PrivateCloudSyncView: View {
                 try await PrivateCloudSyncService.deleteCloudSnapshot()
                 isEnabled = false
                 lastSyncAt = 0
-                statusMessage = "The private iCloud copy was deleted. Your receipts remain on this iPhone."
+                statusMessage = String(localized: "The private iCloud copy was deleted. Your receipts remain on this iPhone.")
             } catch {
                 errorMessage = error.localizedDescription
             }
@@ -488,7 +489,7 @@ private struct CustomCategoryEditorView: View {
             $0.id != category?.id && $0.name.caseInsensitiveCompare(normalized) == .orderedSame
         }
         guard !conflictsWithBuiltIn, !conflictsWithCustom else {
-            saveError = "Choose a category name that is not already in use."
+            saveError = String(localized: "Choose a category name that is not already in use.")
             return
         }
 

@@ -10,6 +10,16 @@ enum ExportFormat: String, CaseIterable, Identifiable, Sendable {
     case proof = "ReceiptSure Proof Pack"
 
     var id: String { rawValue }
+    var localizedTitle: String {
+        switch self {
+        case .pdf: String(localized: "PDF report")
+        case .xlsx: String(localized: "Excel workbook")
+        case .csv: String(localized: "CSV table")
+        case .docx: String(localized: "Word report")
+        case .images: String(localized: "JPG bundle")
+        case .proof: String(localized: "ReceiptSure Proof Pack")
+        }
+    }
     var isAdvanced: Bool { self == .xlsx || self == .docx || self == .images || self == .proof }
     var symbol: String {
         switch self {
@@ -96,7 +106,7 @@ struct ReportsView: View {
             Section("Export") {
                 Picker("Format", selection: $format) {
                     ForEach(ExportFormat.allCases) { option in
-                        Label(option.rawValue + proSuffix(for: option), systemImage: option.symbol).tag(option)
+                        Label(option.localizedTitle + proSuffix(for: option), systemImage: option.symbol).tag(option)
                     }
                 }
                 Button {
@@ -135,7 +145,7 @@ struct ReportsView: View {
 
         isExporting = true
         let rows = selectedReceipts
-        let title = selectedMatter?.name ?? "All Expenses"
+        let title = selectedMatter?.name ?? String(localized: "All Expenses")
         Task {
             do {
                 let url = try await ExportService().create(format: format, receipts: rows, title: title)

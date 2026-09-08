@@ -1,5 +1,11 @@
 # Xcode → TestFlight → App Store Connect checklist
 
+## Current release state — audited 20 August 2026
+
+- Version 1.0 build 2 is `READY_FOR_SALE` in 175 territories with its processed icon, screenshots, privacy disclosure, export-compliance answer, review contact, and approved lifetime purchase present.
+- Builds 3–5 remain available in TestFlight but are not the live App Store binary.
+- The localization, private-sync, batch-capture, and category tranche is version 1.1 build 6 or later. Do not upload it until the strict localization gate and the remaining physical-device checks pass.
+
 ## 1. Before the first archive
 
 - [ ] Generate and open the Xcode project; confirm the iOS deployment target is 17.0.
@@ -43,6 +49,7 @@
 
 ## 3. Archive and TestFlight
 
+- [ ] Run the strict localization validator and confirm every declared locale is in the reviewed `translated` state; the signed-upload workflow enforces this gate automatically. Pull-request CI uses source-only validation so build and test feedback remains available while translation review is underway.
 - [ ] In Xcode, select **Any iOS Device (arm64)**, then Product → Archive.
 - [ ] In Organizer, Validate App, resolve signing/privacy issues, then Distribute App → App Store Connect → Upload.
 - [ ] Confirm the final source still uses only Apple CryptoKit/Security cryptography and that the archive contains `ITSAppUsesNonExemptEncryption = NO`; reassess if another cryptographic implementation is added.
@@ -89,7 +96,9 @@ Record the iPhone model, iOS version, tester, date, and each result before start
 | Permanent receipt deletion propagates through a deletion marker and does not resurrect on the second device | Pending | Build 5 candidate. |
 | Turning private sync off stops automatic syncing; “Delete iCloud copy” removes the cloud snapshot but preserves local receipts | Pending | Build 5 candidate. |
 | Batch capture saves multiple independently reviewable receipts without lost or duplicated pages | Pending | Build 5 candidate. |
-| Spanish and Simplified Chinese core capture, settings, categories, and sync screens fit without clipped controls | Pending | Build 5 candidate. |
+| Every declared language has 100% compiler-extracted string and permission-copy coverage, with no mixed-language screens | Pending | Build 5 exposed incomplete Spanish localization; replacement required. |
+| Machine-assisted translations receive linguistic review; financial, privacy, purchase, deletion, backup, and evidence terminology is approved in each language | Pending | Draft strings use `needs_review` and cannot pass the release gate. |
+| Representative LTR, RTL, CJK, and Indic languages pass layout, Dynamic Type, truncation, number, currency, and date-format validation | Pending | Required before replacement TestFlight candidate. |
 
 Gate decision: **Core baseline passed on build 4**. The iCloud/data-model tranche may proceed. Do not submit for App Review until every remaining Pending/Partial row is resolved on the final candidate build.
 

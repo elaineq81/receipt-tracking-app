@@ -59,7 +59,7 @@ Expected outcome: the lowest general age band. The app contains no violence, sex
 
 ## 7. In-app purchase setup
 
-Create this product before the TestFlight purchase test and submit it with version 1.0:
+The following product was approved with version 1.0 and remains available for version 1.1 testing:
 
 | App Store Connect field | Prepared value |
 | --- | --- |
@@ -111,6 +111,6 @@ Suggested review note:
 3. Select the owner’s development team and confirm automatic signing resolves `com.bodywiseremedy.receiptsure`.
 4. Select **Any iOS Device (arm64)** and choose **Product → Archive**.
 5. In Organizer, run **Validate App**, then **Distribute App → App Store Connect → Upload**.
-6. Wait for processing, attach build 1 to version 1.0, complete TestFlight information, and test before App Review submission.
+6. Wait for processing, attach build 6 or later to version 1.1, complete TestFlight information, and test before App Review submission.
 
 For the exact owner-account sequence, all-territory compliance checks, encryption facts, and private fields still required, use `APPLE_RELEASE_HANDOFF.md`. Deploy the private-sync production schema using `CLOUDKIT_RELEASE_SETUP.md` before testing the final TestFlight build.

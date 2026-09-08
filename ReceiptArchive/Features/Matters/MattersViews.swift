@@ -57,7 +57,10 @@ private struct MatterRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(matter.name).font(.headline)
                 let activeCount = matter.receipts.filter { !$0.isTrashed }.count
-                Text("\(activeCount) receipt\(activeCount == 1 ? "" : "s") • \(matter.startDate.formatted(date: .abbreviated, time: .omitted))")
+                let receiptCount = activeCount == 1
+                    ? String(localized: "1 receipt")
+                    : String(localized: "\(activeCount) receipts")
+                Text(verbatim: receiptCount + " • " + matter.startDate.formatted(date: .abbreviated, time: .omitted))
                     .font(.subheadline).foregroundStyle(.secondary)
                 if let first = matter.totalByCurrency.sorted(by: { $0.key < $1.key }).first {
                     Text(first.value.formatted(.currency(code: first.key))).font(.subheadline.weight(.semibold))

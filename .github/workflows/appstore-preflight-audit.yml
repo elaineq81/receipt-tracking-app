@@ -6,7 +6,7 @@ on:
       app_store_version:
         description: "App Store version to audit"
         required: true
-        default: "1.0"
+        default: "1.1"
         type: string
 
 permissions:

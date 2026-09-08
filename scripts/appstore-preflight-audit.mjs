@@ -1,7 +1,7 @@
 import { createPrivateKey, sign } from "node:crypto";
 
 const appId = process.env.APP_STORE_CONNECT_APP_ID || "6798071503";
-const versionString = process.env.APP_STORE_VERSION || "1.0";
+const versionString = process.env.APP_STORE_VERSION || "1.1";
 const platform = process.env.APP_STORE_PLATFORM || "IOS";
 const expectedEula = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 const expectedMarketing = "https://receipt-tracking-app-lemon.vercel.app";
@@ -29,7 +29,9 @@ function base64url(input) {
 function createJwt() {
   const now = Math.floor(Date.now() / 1000);
   const header = { alg: "ES256", kid: keyId, typ: "JWT" };
-  const payload = { iss: issuerId, iat: now, exp: now + 20 * 60, aud: "appstoreconnect-v1" };
+  // Keep the token comfortably below App Store Connect's 20-minute maximum
+  // instead of relying on boundary behavior at exactly 20 minutes.
+  const payload = { iss: issuerId, iat: now, exp: now + 15 * 60, aud: "appstoreconnect-v1" };
   const signingInput = `${base64url(JSON.stringify(header))}.${base64url(JSON.stringify(payload))}`;
   const signature = sign("sha256", Buffer.from(signingInput), {
     key: createPrivateKey(privateKey),
@@ -99,7 +101,7 @@ if (!localization) {
 
 const build = included.find((item) => item.type === "builds");
 if (!build) {
-  fail("Build attached", "No build is selected for version 1.0");
+  fail("Build attached", `No build is selected for version ${versionString}`);
 } else {
   const attributes = build.attributes || {};
   pass("Build attached", `version=${attributes.version || "unknown"}`);
